@@ -4,9 +4,6 @@ export type Repository = {
   title: string
   summary: string
   coverage: string
-  writeups: string
-  stars: string
-  language: string
   updated: string
 }
 
@@ -17,9 +14,6 @@ export const repositories: Repository[] = [
     title: "robo26-encryptid-writeups",
     summary: "Official writeups for the challenges we authored for Encryptid X CTF - Robotronics 26.",
     coverage: "CRYPTIC · CTF · OFFLINE",
-    writeups: "20 WRITEUPS",
-    stars: "0 STARS",
-    language: "C",
     updated: "UPDATED AUG 2026",
   },
   {
@@ -28,9 +22,6 @@ export const repositories: Repository[] = [
     title: "inTech-Encryptid-CTF-2026-Writeups",
     summary: "Official source code and writeups for the challenges we authored for inTech Encryptid CTF 2026.",
     coverage: "CRYPTO · FORENSICS · MISC · WEB",
-    writeups: "7 CHALLENGES",
-    stars: "2 STARS",
-    language: "PYTHON",
     updated: "UPDATED JUN 2026",
   },
   {
@@ -39,9 +30,6 @@ export const repositories: Repository[] = [
     title: "HackZero-CTF-2026-Writeups",
     summary: "These are some of the writeups of the challenges that our team, Syndication, managed to solve during HackZero CTF 2026.",
     coverage: "PWN · CLOUD · CRYPTO · OSINT · WEB",
-    writeups: "17 WRITEUPS",
-    stars: "2 STARS",
-    language: "MARKDOWN",
     updated: "UPDATED MAY 2026",
   },
 ]

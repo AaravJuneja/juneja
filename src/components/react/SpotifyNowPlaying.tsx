@@ -74,6 +74,8 @@ export default function SpotifyNowPlaying() {
       <div
         className="absolute inset-0 flex items-center gap-3 px-3 border hover:border-accent transition-colors cursor-pointer"
         style={{
+          width: 180,
+          height: 44,
           borderRadius: expanded ? 12 : 9999,
           background: "#251a3a",
           borderColor: "rgba(168,105,219,0.35)",
@@ -113,7 +115,7 @@ export default function SpotifyNowPlaying() {
             <img
               src="https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02a775614cbb5796d2ff1fa8ed"
               alt="Album Art"
-              loading="lazy"
+              loading="eager"
               decoding="async"
               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />

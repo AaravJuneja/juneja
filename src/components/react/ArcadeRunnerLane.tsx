@@ -204,7 +204,7 @@ export default function ArcadeRunnerLane() {
   return (
     <>
       <div ref={laneRef} className="relative w-full max-w-[1088px] h-[34px] mx-auto">
-        <div className="absolute left-0 right-[14px] top-1/2 -translate-y-1/2 h-px bg-accent opacity-[0.45]" />
+        <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-px bg-accent opacity-[0.45]" />
         <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[6px] flex items-center justify-between">
           <div className="w-[6px] h-[6px] bg-accent" />
           <div className="w-3 h-3 flex items-center justify-between flex-1 mx-2">
@@ -213,11 +213,6 @@ export default function ArcadeRunnerLane() {
             <div className="w-[3px] h-[3px] bg-accent opacity-40" />
           </div>
           <div className="w-[6px] h-[6px] bg-accent" />
-        </div>
-        {/* Finish flag */}
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[14px] h-[27px]">
-          <div className="absolute left-0 top-2 w-[2px] h-[23px] bg-accent" />
-          <div className="absolute left-[2px] top-0 w-[9px] h-[7px] bg-accent" />
         </div>
 
         <div
