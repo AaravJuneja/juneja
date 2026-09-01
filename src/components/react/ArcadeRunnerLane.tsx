@@ -47,7 +47,7 @@ export default function ArcadeRunnerLane() {
     };
 
     const onPointerMove = (e: PointerEvent) => {
-      const pt = (e as any).pointerType || "mouse";
+      const pt = e.pointerType || "mouse";
       pointerActiveRef.current = pt === "mouse" || pt === "pen";
       pointerRef.current = { x: e.clientX, y: e.clientY, type: pt, t: performance.now() };
     };
@@ -93,8 +93,8 @@ export default function ArcadeRunnerLane() {
         if (hoverStartRef.current !== null && ts - hoverStartRef.current >= 350) {
           hasDoorsGlitchedRef.current = true;
           setDoorsGlitch(true);
-          setTimeout(() => setDoorsGlitch(false), 1800);
-          const dur = reducedMotionRef.current ? 350 : 1650;
+          setTimeout(() => setDoorsGlitch(false), 900);
+          const dur = reducedMotionRef.current ? 175 : 825;
           overdriveUntilRef.current = ts + dur;
           overdriveDirectionRef.current = pointer ? (pointer.x < runnerRect.left + runnerRect.width / 2 ? 1 : -1) : 1;
           hoverStartRef.current = null;
@@ -115,10 +115,10 @@ export default function ArcadeRunnerLane() {
         } else {
           const dir = overdriveDirectionRef.current;
           const targetX = dir > 0 ? maxX : 0;
-          if (ts <= overdriveUntilRef.current - 200) {
+          if (ts <= overdriveUntilRef.current - 100) {
             xRef.current += (targetX - xRef.current) * 0.35;
           }
-          const pulse = 1 + Math.sin((overdriveUntilRef.current - ts) * 0.04) * 0.08;
+          const pulse = 1 + Math.sin((overdriveUntilRef.current - ts) * 0.08) * 0.08;
           setScale(Math.max(1, pulse + 0.05));
           setFilter(`drop-shadow(${8 * dir}px 0 0 #A869DB) drop-shadow(${16 * dir}px 0 0 rgba(168,105,219,0.65)) drop-shadow(0 0 12px #A869DB)`);
         }
@@ -179,11 +179,10 @@ export default function ArcadeRunnerLane() {
       if (!hasDoorsGlitchedRef.current) {
         hasDoorsGlitchedRef.current = true;
         setDoorsGlitch(true);
-        setTimeout(() => setDoorsGlitch(false), 1800);
+        setTimeout(() => setDoorsGlitch(false), 900);
       }
     };
     window.addEventListener("arcade:doors", onDoors);
-    (window as any).__triggerDoorsGlitch = onDoors;
     frameRef.current = window.requestAnimationFrame(tick);
     return () => {
       mql.removeEventListener?.("change", updateReduced);
@@ -248,7 +247,7 @@ export default function ArcadeRunnerLane() {
           style={{
             background: "repeating-linear-gradient(0deg, rgba(0,0,0,0.85), rgba(0,0,0,0.85) 2px, transparent 2px, transparent 4px), repeating-linear-gradient(90deg, rgba(168,105,219,0.3), rgba(168,105,219,0.3) 2px, transparent 2px, transparent 4px)",
             backgroundColor: "rgba(10,7,16,0.96)",
-            animation: "flee-glitch 0.12s infinite, flee-fade 1.8s forwards",
+            animation: "flee-glitch 0.12s infinite, flee-fade 0.9s forwards",
             cursor: "url('/cursors-doors/rush.ani'), url('/cursors-doors/rush-static.cur'), url('/cursor-pwned.svg'), auto",
           }}
         >
