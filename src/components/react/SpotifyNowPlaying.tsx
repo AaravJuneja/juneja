@@ -46,12 +46,15 @@ export default function SpotifyNowPlaying() {
     const onPause = () => setPlaying(false);
     a.addEventListener("timeupdate", onTime);
     a.addEventListener("loadedmetadata", onLoaded);
+    a.addEventListener("durationchange", onLoaded);
     a.addEventListener("ended", onEnded);
     a.addEventListener("play", onPlay);
     a.addEventListener("pause", onPause);
+    if (a.duration) setDuration(a.duration);
     return () => {
       a.removeEventListener("timeupdate", onTime);
       a.removeEventListener("loadedmetadata", onLoaded);
+      a.removeEventListener("durationchange", onLoaded);
       a.removeEventListener("ended", onEnded);
       a.removeEventListener("play", onPlay);
       a.removeEventListener("pause", onPause);
@@ -65,7 +68,7 @@ export default function SpotifyNowPlaying() {
       onMouseEnter={() => setExpanded(true)}
       onMouseLeave={() => setExpanded(false)}
       className="relative shrink-0"
-      style={{ width: expanded ? 352 : 210, height: 44, transition: "all 200ms ease" }}
+      style={{ width: expanded ? 352 : 180, height: 44, transition: "all 200ms ease" }}
     >
       {/* Collapsed */}
       <div
@@ -90,10 +93,11 @@ export default function SpotifyNowPlaying() {
 
       {/* Expanded */}
       <div
-        className="absolute right-0 top-0 flex flex-col gap-3 p-3 border shadow-[8px_8px_0px_0px_#A869DB] overflow-hidden"
+        className="absolute right-0 top-0 flex flex-col gap-3 p-3 border overflow-hidden"
         style={{
           width: 352,
-          height: 152,
+          height: "auto",
+          minHeight: 110,
           borderRadius: 12,
           borderColor: expanded ? "var(--accent-soft)" : "rgba(168,105,219,0.35)",
           background: "#251a3a",
@@ -133,7 +137,7 @@ export default function SpotifyNowPlaying() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <div ref={barRef} onClick={onSeek} className="relative w-full h-1.5 bg-line/60 rounded-full overflow-hidden cursor-pointer group">
+          <div ref={barRef} onClick={onSeek} className="relative w-full h-1.5 rounded-full overflow-hidden cursor-pointer group" style={{ background: "rgba(58,43,70,0.6)" }}>
             <div className="absolute inset-y-0 left-0 bg-accent rounded-full transition-all duration-75" style={{ width: `${pct}%` }} />
             <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-accent-soft rounded-full shadow border border-background transition-all opacity-0 group-hover:opacity-100" style={{ left: `calc(${pct}% - 6px)` }} />
           </div>
@@ -143,7 +147,7 @@ export default function SpotifyNowPlaying() {
           </div>
         </div>
 
-        <audio ref={audioRef} src="/thenoise.mp3" preload="metadata" className="hidden" />
+        <audio ref={audioRef} src="/thenoise.mp3" preload="metadata" style={{ display: "none" }} />
       </div>
     </div>
   );
