@@ -15,13 +15,12 @@ import SpotifyNowPlaying from "../components/react/SpotifyNowPlaying.tsx";
   <Navigation />
   <Hero />
 
-  <div class="w-full max-w-[1200px] mx-auto px-5 sm:px-8 lg:px-14 pb-4">
+  <div class="w-full max-w-[1200px] mx-auto px-5 sm:px-8 lg:px-14 pb-2 flex flex-wrap gap-3 items-center">
     <SpotifyNowPlaying client:visible />
+    <SocialLinks />
   </div>
 
-  <SocialLinks />
-
-  <div class="w-full max-w-[1200px] mx-auto px-5 sm:px-8 lg:px-14 py-8">
+  <div class="w-full max-w-[1200px] mx-auto px-5 sm:px-8 lg:px-14 py-6">
     <ArcadeRunnerLane client:load />
   </div>
 

@@ -77,6 +77,7 @@
 html {
   scroll-behavior: smooth;
   overflow-x: hidden;
+  overflow-y: auto;
 }
 
 body {
@@ -89,6 +90,7 @@ body {
   letter-spacing: normal;
   margin: 0;
   overflow-x: hidden;
+  overflow-y: visible;
   font-feature-settings: "blwf", "cv03", "cv04", "cv09", "cv11";
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -142,9 +144,10 @@ img {
 ::-webkit-scrollbar-corner {
   background: var(--background);
 }
-* {
+html {
   scrollbar-width: thin;
   scrollbar-color: var(--accent) var(--background);
+  scrollbar-gutter: stable;
 }
 
 html,
