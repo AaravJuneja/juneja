@@ -39,6 +39,21 @@ export default function SpotifyNowPlaying() {
   useEffect(() => {
     const a = audioRef.current;
     if (!a) return;
+    const preloadAudio = () => {
+      a.preload = "metadata";
+      a.load();
+    };
+    if (document.readyState === "complete") {
+      preloadAudio();
+    } else {
+      window.addEventListener("load", preloadAudio, { once: true });
+      return () => window.removeEventListener("load", preloadAudio);
+    }
+  }, []);
+
+  useEffect(() => {
+    const a = audioRef.current;
+    if (!a) return;
     const onTime = () => setCurrent(a.currentTime);
     const onLoaded = () => setDuration(a.duration || 0);
     const onEnded = () => setPlaying(false);

@@ -3,8 +3,13 @@ import { useEffect, useState } from "react";
 export default function Loader() {
   const [hidden, setHidden] = useState(false);
   useEffect(() => {
-    const t = window.setTimeout(() => setHidden(true), 2000);
-    return () => window.clearTimeout(t);
+    const hide = () => setHidden(true);
+    if (document.readyState === "complete") {
+      hide();
+    } else {
+      window.addEventListener("load", hide, { once: true });
+      return () => window.removeEventListener("load", hide);
+    }
   }, []);
   return (
     <div className={`loader ${hidden ? "loader--hidden" : ""}`}>
