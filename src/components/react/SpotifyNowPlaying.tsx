@@ -21,7 +21,7 @@ export default function SpotifyNowPlaying() {
     >
       {!expanded && (
         <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <img src="/images/spotify-icon.svg" alt="" width={18} height={18} style={{ width: 18, height: 18 }} />
+          <img src="/images/spotify-icon.svg" alt="" width={18} height={18} style={{ width: 18, height: 18 }} loading="lazy" decoding="async" />
         </div>
       )}
       {expanded && (
@@ -30,6 +30,8 @@ export default function SpotifyNowPlaying() {
             <img
               src="https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02a775614cbb5796d2ff1fa8ed"
               alt="Album Art"
+              loading="lazy"
+              decoding="async"
               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
             <div style={{ position: "absolute", inset: 0, background: "rgba(168,105,219,0.15)", mixBlendMode: "multiply" }} />

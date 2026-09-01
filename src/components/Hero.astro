@@ -12,7 +12,7 @@ import prakashImg from "../../public/images/prakash.png";
       <p class="font-geist text-[clamp(17px,2vw,19px)] leading-relaxed text-muted-text max-w-[48ch]" style="letter-spacing:-0.19px">Um I do stuff, stuff breaks, I fix stuff and then it all works out (hopefully)</p>
       <a href="#journey" class="inline-flex items-center gap-3 bg-accent text-background px-4 py-3.5 font-dm text-[11px] tracking-[0.08em] uppercase hover:brightness-110 hover:-translate-x-px hover:-translate-y-px hover:shadow-[3px_3px_0px_0px_#DDBCF3] active:translate-x-0 active:translate-y-0 active:shadow-none transition-all duration-150 ease-out w-fit">
         VIEW CTF JOURNEY
-        <img src="/images/arrow-down-right.svg" alt="" width="16" height="16" class="w-4 h-4" />
+        <img src="/images/arrow-down-right.svg" alt="" width="16" height="16" class="w-4 h-4" loading="lazy" decoding="async" />
       </a>
     </div>
 
@@ -20,11 +20,11 @@ import prakashImg from "../../public/images/prakash.png";
     <div class="w-full lg:w-[340px] shrink-0 bg-surface border border-line p-6 flex flex-col gap-5">
       <div class="flex items-center justify-between">
         <p class="font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text">PLAYER PROFILE</p>
-        <img src="/images/trophy.svg" alt="" width="20" height="20" class="w-5 h-5" />
+        <img src="/images/trophy.svg" alt="" width="20" height="20" class="w-5 h-5" loading="lazy" decoding="async" />
       </div>
 
       <div class="bg-raised-surface border border-accent p-6 flex items-center justify-center">
-        <img src="/images/prakash.png" alt="Aarav Juneja" width={240} height={240} class="w-[240px] h-[240px] object-cover max-w-full" loading="eager" />
+        <Image src={prakashImg} alt="Aarav Juneja" width={240} height={240} class="w-[240px] h-[240px] object-cover max-w-full" loading="eager" decoding="async" fetchpriority="high" />
       </div>
 
       <div class="flex flex-col gap-3">
@@ -36,7 +36,7 @@ import prakashImg from "../../public/images/prakash.png";
 
       <div class="flex flex-wrap gap-2">
         <div class="group inline-flex items-center gap-1.5 bg-raised-surface border border-line px-2.5 py-1.5 hover:border-accent/30 hover:-translate-y-px transition-all duration-150">
-          <img src="/images/pixel/heart-pixel.svg" alt="" width="12" height="12" class="w-3 h-3 group-hover:scale-110 transition-transform duration-150" />
+          <img src="/images/pixel/heart-pixel.svg" alt="" width="12" height="12" class="w-3 h-3 group-hover:scale-110 transition-transform duration-150" loading="lazy" decoding="async" />
           <span class="font-dm text-[11px] tracking-[0.08em] uppercase text-text">REV</span>
         </div>
         <div class="inline-flex items-center bg-raised-surface border border-line px-2.5 py-1.5 hover:border-accent/30 hover:-translate-y-px transition-all duration-150">
