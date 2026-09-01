@@ -29,9 +29,8 @@ Thumbs.db
 *.swp
 *.swo
 
-# legacy / old - do NOT commit
 legacy/
 meh/
-portfolioz-brief.md
-CF_WORKERS_PROMPT.md
+*.md
 *.zip
+opencode.json
