@@ -147,7 +147,10 @@ export default function SpotifyNowPlaying() {
           </div>
         </div>
 
-        <audio ref={audioRef} src="/thenoise.mp3" preload="metadata" style={{ display: "none" }} />
+        <audio ref={audioRef} preload="none" style={{ display: "none" }}>
+          <source src="/thenoise.webm" type="audio/webm" />
+          <source src="/thenoise.mp3" type="audio/mpeg" />
+        </audio>
       </div>
     </div>
   );
