@@ -1,47 +1,47 @@
 @import "tailwindcss";
 
 @font-face {
-  font-family: Geist;
-  src: url("/fonts/gyBhhwUxId8gMGYQMKR3pzfaWI_RnOM4mJPby1QNtA.woff2") format("woff2");
+  font-family: Outfit;
+  src: url("/fonts/outfit-latin-400-normal.woff2") format("woff2");
   font-display: swap;
   font-style: normal;
   font-weight: 400;
 }
 @font-face {
-  font-family: Geist;
-  src: url("/fonts/gyBhhwUxId8gMGYQMKR3pzfaWI_RruM4mJPby1QNtA.woff2") format("woff2");
+  font-family: Outfit;
+  src: url("/fonts/outfit-latin-500-normal.woff2") format("woff2");
   font-display: swap;
   font-style: normal;
   font-weight: 500;
 }
 @font-face {
-  font-family: Geist;
-  src: url("/fonts/gyBhhwUxId8gMGYQMKR3pzfaWI_Re-Q4mJPby1QNtA.woff2") format("woff2");
+  font-family: Outfit;
+  src: url("/fonts/outfit-latin-600-normal.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 600;
+}
+@font-face {
+  font-family: Outfit;
+  src: url("/fonts/outfit-latin-700-normal.woff2") format("woff2");
   font-display: swap;
   font-style: normal;
   font-weight: 700;
 }
+
 @font-face {
   font-family: "DM Retrograde";
-  src: url("/fonts/AsxleeWh5ZhW5L1QUxbSeyNRNLw.woff2") format("woff2");
+  src: url("/fonts/dm-retrograde-400.woff2") format("woff2");
   font-display: swap;
   font-style: normal;
   font-weight: 400;
 }
 @font-face {
   font-family: "DM Retrograde";
-  src: url("/fonts/w1Qrd6cVyLBRaqXJLSySl5ZsAPY.woff2") format("woff2");
+  src: url("/fonts/dm-retrograde-700.woff2") format("woff2");
   font-display: swap;
   font-style: normal;
   font-weight: 700;
-}
-@font-face {
-  font-family: "Geist Placeholder";
-  src: local("Arial");
-  ascent-override: 94.56%;
-  descent-override: 27.76%;
-  line-gap-override: 0%;
-  size-adjust: 106.28%;
 }
 
 @theme {
@@ -53,7 +53,7 @@
   --color-raised-surface: #21172c;
   --color-surface: #151020;
   --color-text: #f7f2fa;
-  --font-geist: Geist, "Geist Placeholder", sans-serif;
+  --font-outfit: Outfit, sans-serif;
   --font-dm: "DM Retrograde", serif;
 }
 
@@ -81,7 +81,7 @@ html {
 }
 
 body {
-  font-family: Geist, "Geist Placeholder", sans-serif;
+  font-family: Outfit, sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: normal;

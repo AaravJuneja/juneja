@@ -85,11 +85,11 @@ export default function SpotifyNowPlaying() {
         }}
       >
         <div className="w-7 h-7 rounded-full overflow-hidden border border-line shrink-0">
-          <img src="https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02a775614cbb5796d2ff1fa8ed" alt="Album Art" width={28} height={28} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="eager" decoding="async" fetchpriority="high" />
+          <img src="https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02a775614cbb5796d2ff1fa8ed" alt="Album Art" width={28} height={28} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="eager" decoding="async" fetchPriority="high" />
         </div>
         <div className="flex flex-col min-w-0">
           <span className="font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text leading-none">Now Playing</span>
-          <span className="font-geist font-medium text-[13px] text-text leading-none truncate">Birthday Suit</span>
+          <span className="font-outfit font-medium text-[14px] text-text leading-none truncate tracking-[-0.003em]">Birthday Suit</span>
         </div>
       </div>
 
@@ -123,7 +123,7 @@ export default function SpotifyNowPlaying() {
           </div>
           <div className="flex flex-col min-w-0">
             <span className="font-dm text-[11px] tracking-[0.08em] uppercase text-accent-soft">Now Playing</span>
-            <span className="font-geist font-medium text-[13px] text-text truncate">Birthday Suit</span>
+            <span className="font-outfit font-medium text-[14px] text-text truncate tracking-[-0.003em]">Birthday Suit</span>
           </div>
           <button
             onClick={toggle}
@@ -143,7 +143,7 @@ export default function SpotifyNowPlaying() {
             <div className="absolute inset-y-0 left-0 bg-accent rounded-full transition-all duration-75" style={{ width: `${pct}%` }} />
             <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-accent-soft rounded-full shadow border border-background transition-all opacity-0 group-hover:opacity-100" style={{ left: `calc(${pct}% - 6px)` }} />
           </div>
-          <div className="flex items-center justify-between font-geist text-[11px] tracking-wide text-muted-text">
+          <div className="flex items-center justify-between font-outfit text-[12px] tracking-[0.02em] text-muted-text">
             <span>{fmt(current)}</span>
             <span>{fmt(duration)}</span>
           </div>

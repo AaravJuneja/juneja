@@ -7,7 +7,7 @@ import { repositories } from "../data.ts";
     <div class="max-w-[820px] flex flex-col gap-4 mb-11">
       <p class="font-dm text-[11px] tracking-[0.08em] uppercase text-accent">WRITEUPS</p>
       <h2 class="font-dm font-bold text-[clamp(26px,4vw,34px)] leading-tight text-text uppercase">PUBLIC CTF WRITEUPS</h2>
-      <p class="font-geist text-[clamp(17px,2vw,19px)] leading-relaxed text-muted-text">Three public repositories documenting solved challenges,<br class="hidden sm:block" />official releases and the work behind the flags.</p>
+      <p class="font-outfit text-[clamp(18px,2.1vw,21px)] leading-[1.55] text-muted-text tracking-[-0.005em]">Three public repositories documenting solved challenges,<br class="hidden sm:block" />official releases and the work behind the flags.</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -23,7 +23,7 @@ import { repositories } from "../data.ts";
 
           <div class="flex flex-col gap-3 flex-1">
             <h3 class="font-dm font-bold text-[17px] sm:text-[18px] leading-tight text-text break-words">{repo.title}</h3>
-            <p class="font-geist text-[15px] leading-relaxed text-muted-text">{repo.summary}</p>
+            <p class="font-outfit text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">{repo.summary}</p>
             <div class="flex flex-wrap gap-1.5">
               {repo.coverage.split("·").map((c) => (
                 <span class="inline-flex items-center bg-accent/10 border border-accent/20 px-2 py-1 font-dm text-[10px] tracking-[0.08em] uppercase text-accent-soft">{c.trim()}</span>

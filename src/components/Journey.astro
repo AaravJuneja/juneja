@@ -34,7 +34,7 @@ const chapters = [
     <div class="max-w-[820px] flex flex-col gap-4 mb-6">
       <p class="font-dm text-[11px] tracking-[0.08em] uppercase text-accent">RECEIPTS</p>
       <h2 class="font-dm font-bold text-[clamp(26px,4vw,34px)] leading-tight text-text uppercase">CTF ACHIEVEMENTS</h2>
-      <p class="font-geist text-[clamp(17px,2vw,19px)] leading-relaxed text-muted-text">Some sleepless nights and loads of caffeine</p>
+      <p class="font-outfit text-[clamp(18px,2.1vw,21px)] leading-[1.55] text-muted-text tracking-[-0.005em]">Some sleepless nights and loads of caffeine</p>
     </div>
 
     <div class="flex items-center gap-3.5 bg-surface border border-dashed border-accent px-4 py-4 mb-12 sm:mb-16">
@@ -55,7 +55,7 @@ const chapters = [
                 <h3 class="font-dm font-bold text-[17px] sm:text-[18px] tracking-tight text-text uppercase">{ch.title}</h3>
                 <span class="inline-flex items-center bg-accent/10 border border-accent/20 px-2.5 py-1 font-dm text-[11px] tracking-[0.08em] uppercase text-accent">{ch.team}</span>
               </div>
-              <p class="font-geist text-[14px] sm:text-[15px] leading-relaxed text-muted-text">{ch.copy}</p>
+              <p class="font-outfit text-[15px] sm:text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">{ch.copy}</p>
             </div>
           </div>
 
@@ -64,19 +64,20 @@ const chapters = [
               <div class="group flex flex-col sm:flex-row sm:items-stretch gap-4 sm:gap-5 py-5 sm:py-6 px-0 sm:px-4 hover:bg-[rgba(33,23,44,0.5)] transition-colors duration-150">
                 <div class="w-full sm:w-[170px] shrink-0 bg-raised-surface border border-line p-4 flex flex-col justify-center items-center text-center gap-1.5 group-hover:border-accent/40 transition-colors duration-150 sm:min-h-[88px]">
                   <p class="font-dm font-bold text-[15px] text-text leading-none">{a.rating}</p>
-                  <p class="font-geist font-medium text-[12px] tracking-wide text-accent-soft uppercase">{a.source && a.source !== "-" ? a.source : ""}</p>
+                  <p class="font-outfit font-medium text-[13px] tracking-[0.02em] text-accent-soft uppercase">{a.source && a.source !== "-" ? a.source : ""}</p>
                 </div>
                 <div class="flex-1 flex flex-col gap-2.5 min-w-0">
                   <div class="flex flex-wrap items-center gap-3">
                     <a href={a.href} target="_blank" rel="noopener noreferrer" class="font-dm font-bold text-[16px] sm:text-[18px] text-text hover:text-accent transition-colors break-words">{a.title}</a>
                     <span class="ml-auto inline-flex items-center border border-line px-2 py-1 font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text group-hover:border-accent/30 transition-colors duration-150">{a.team}</span>
                   </div>
-                  <div class="flex flex-wrap gap-x-3.5 gap-y-1">
-                    <span class="font-geist font-medium text-[13px] text-muted-text">{a.dates}</span>
-                    <span class="font-geist font-medium text-[13px] text-muted-text">· {a.scope}</span>
+                  <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span class="font-outfit font-medium text-[14px] text-muted-text tracking-[-0.003em]">{a.dates}</span>
+                    <span aria-hidden="true" class="font-outfit text-accent text-[18px] select-none leading-none">·</span>
+                    <span class="font-outfit font-medium text-[14px] text-muted-text tracking-[-0.003em]">{a.scope}</span>
                   </div>
-                  <p class="font-geist font-medium text-[13px] text-muted-text">{a.organizer}</p>
-                  <p class="font-geist text-[15px] sm:text-[16px] text-text">{a.finish}</p>
+                  <p class="font-outfit font-medium text-[14px] text-muted-text tracking-[-0.003em]">{a.organizer}</p>
+                  <p class="font-outfit text-[16px] sm:text-[17px] leading-[1.5] text-text tracking-[-0.005em]">{a.finish}</p>
                 </div>
               </div>
             ))}
