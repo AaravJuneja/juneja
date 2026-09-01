@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 
-const KONAMI = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65];
+const KONAMI_CODES = [
+  "ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown",
+  "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight",
+  "KeyB", "KeyA",
+];
 
 export default function KonamiPwned() {
   const [pwned, setPwned] = useState(false);
@@ -28,11 +32,11 @@ export default function KonamiPwned() {
 
   useEffect(() => {
     (window as any).__triggerKonamiPwned = trigger;
-    const pressed: number[] = [];
+    const pressed: string[] = [];
     const onKey = (e: KeyboardEvent) => {
-      pressed.push(e.keyCode);
-      if (pressed.length > KONAMI.length) pressed.shift();
-      if (pressed.join(",") === KONAMI.join(",")) {
+      pressed.push(e.code);
+      if (pressed.length > KONAMI_CODES.length) pressed.shift();
+      if (pressed.join(",") === KONAMI_CODES.join(",")) {
         if (!pwned) trigger();
       }
     };
