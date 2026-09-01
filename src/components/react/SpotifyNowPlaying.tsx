@@ -85,7 +85,7 @@ export default function SpotifyNowPlaying() {
         }}
       >
         <div className="w-7 h-7 rounded-full overflow-hidden border border-line shrink-0">
-          <img src="https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02a775614cbb5796d2ff1fa8ed" alt="Album Art" width={28} height={28} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="eager" decoding="async" />
+          <img src="https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02a775614cbb5796d2ff1fa8ed" alt="Album Art" width={28} height={28} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="eager" decoding="async" fetchpriority="high" />
         </div>
         <div className="flex flex-col min-w-0">
           <span className="font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text leading-none">Now Playing</span>
@@ -115,7 +115,7 @@ export default function SpotifyNowPlaying() {
             <img
               src="https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02a775614cbb5796d2ff1fa8ed"
               alt="Album Art"
-              loading="eager"
+              loading="lazy"
               decoding="async"
               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
