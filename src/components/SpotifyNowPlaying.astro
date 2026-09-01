@@ -1,0 +1,10 @@
+---
+import { getImage } from "astro:assets";
+import spotifyCover from "../assets/spotify-cover.jpg";
+import SpotifyPlayer from "./react/SpotifyPlayer.tsx";
+
+const COLLAPSED = await getImage({ src: spotifyCover, width: 56, height: 56, format: "webp", quality: 90 });
+const EXPANDED = await getImage({ src: spotifyCover, width: 88, height: 88, format: "webp", quality: 90 });
+---
+
+<SpotifyPlayer client:idle artSrcCollapsed={COLLAPSED.src} artSrcExpanded={EXPANDED.src} title="Birthday Suit" />

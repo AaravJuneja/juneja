@@ -1,20 +1,27 @@
 import { useEffect, useRef, useState } from "react";
 
-export default function SpotifyNowPlaying() {
+type Props = {
+  artSrcCollapsed: string;
+  artSrcExpanded: string;
+  title: string;
+};
+
+export default function SpotifyPlayer({ artSrcCollapsed, artSrcExpanded, title }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [current, setCurrent] = useState(0);
   const [duration, setDuration] = useState(294);
+  const [audioError, setAudioError] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const barRef = useRef<HTMLDivElement | null>(null);
 
   const toggle = () => {
     const a = audioRef.current;
-    if (!a) return;
+    if (!a || audioError) return;
     if (playing) {
       a.pause();
     } else {
-      a.play().catch(() => {});
+      a.play().catch(() => setAudioError(true));
     }
   };
 
@@ -59,12 +66,14 @@ export default function SpotifyNowPlaying() {
     const onEnded = () => setPlaying(false);
     const onPlay = () => setPlaying(true);
     const onPause = () => setPlaying(false);
+    const onError = () => setAudioError(true);
     a.addEventListener("timeupdate", onTime);
     a.addEventListener("loadedmetadata", onLoaded);
     a.addEventListener("durationchange", onLoaded);
     a.addEventListener("ended", onEnded);
     a.addEventListener("play", onPlay);
     a.addEventListener("pause", onPause);
+    a.addEventListener("error", onError);
     if (a.duration) setDuration(a.duration);
     return () => {
       a.removeEventListener("timeupdate", onTime);
@@ -73,6 +82,7 @@ export default function SpotifyNowPlaying() {
       a.removeEventListener("ended", onEnded);
       a.removeEventListener("play", onPlay);
       a.removeEventListener("pause", onPause);
+      a.removeEventListener("error", onError);
     };
   }, []);
 
@@ -85,7 +95,6 @@ export default function SpotifyNowPlaying() {
       className="relative shrink-0"
       style={{ width: expanded ? 352 : 180, height: 44, transition: "all 200ms ease" }}
     >
-      {/* Collapsed */}
       <div
         className="absolute inset-0 flex items-center gap-3 px-3 border hover:border-accent transition-colors cursor-pointer"
         style={{
@@ -100,15 +109,14 @@ export default function SpotifyNowPlaying() {
         }}
       >
         <div className="w-7 h-7 rounded-full overflow-hidden border border-line shrink-0">
-          <img src="https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02a775614cbb5796d2ff1fa8ed" alt="Album Art" width={28} height={28} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="eager" decoding="async" fetchPriority="high" />
+          <img src={artSrcCollapsed} alt="Album Art" width={28} height={28} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="eager" decoding="async" fetchPriority="high" />
         </div>
         <div className="flex flex-col min-w-0">
           <span className="font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text leading-none">Now Playing</span>
-          <span className="font-outfit font-medium text-[14px] text-text leading-none truncate tracking-[-0.003em]">Birthday Suit</span>
+          <span className="font-outfit font-medium text-[14px] text-text leading-none truncate tracking-[-0.003em]">{title}</span>
         </div>
       </div>
 
-      {/* Expanded */}
       <div
         className="absolute right-0 top-0 flex flex-col gap-3 p-3 border overflow-hidden"
         style={{
@@ -128,7 +136,7 @@ export default function SpotifyNowPlaying() {
         <div className="flex items-center gap-2.5">
           <div className="w-11 h-11 rounded-md overflow-hidden border border-accent/30 shrink-0 relative">
             <img
-              src="https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02a775614cbb5796d2ff1fa8ed"
+              src={artSrcExpanded}
               alt="Album Art"
               loading="lazy"
               decoding="async"
@@ -138,7 +146,7 @@ export default function SpotifyNowPlaying() {
           </div>
           <div className="flex flex-col min-w-0">
             <span className="font-dm text-[11px] tracking-[0.08em] uppercase text-accent-soft">Now Playing</span>
-            <span className="font-outfit font-medium text-[14px] text-text truncate tracking-[-0.003em]">Birthday Suit</span>
+            <span className="font-outfit font-medium text-[14px] text-text truncate tracking-[-0.003em]">{title}</span>
           </div>
           <button
             onClick={toggle}
