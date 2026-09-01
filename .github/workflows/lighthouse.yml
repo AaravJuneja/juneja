@@ -23,3 +23,20 @@ jobs:
         with:
           configPath: .lighthouserc.json
           uploadArtifacts: true
+      - name: Print Lighthouse scores
+        if: always()
+        run: |
+          for f in .lighthouseci/manifest*.json; do
+            echo "=== $f ==="
+            bunx --yes jq -r '
+              .[] | .url as $u |
+              "URL: \($u)",
+              (.summary as $s |
+                "performance: \($s.performance // "n/a")",
+                "accessibility: \($s.accessibility // "n/a")",
+                "best-practices: \($s["best-practices"] // "n/a")",
+                "seo: \($s.seo // "n/a")"
+              ),
+              ""
+            ' "$f"
+          done
