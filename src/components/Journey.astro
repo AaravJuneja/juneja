@@ -1,0 +1,87 @@
+---
+import { achievements2025Syndication, achievements2026Syndication, achievements2026Obscuri } from "../data.ts";
+
+const chapters = [
+  {
+    id: "2025-syndication",
+    badge: "2025",
+    title: "THE rookie SEASON",
+    team: "SYNDICATION",
+    copy: "The journey began here: 12th in India, 251st worldwide and 219.890 rating points.",
+    achievements: achievements2025Syndication,
+  },
+  {
+    id: "2026-syndication",
+    badge: "2026",
+    title: "THE TRIO LEVELS UP",
+    team: "SYNDICATION",
+    copy: "Kept competing as a trio seperate from the larger & experienced squad.",
+    achievements: achievements2026Syndication,
+  },
+  {
+    id: "2026-obscuri",
+    badge: "2026",
+    title: "LEVELING UP AGAIN",
+    team: "0BSCURI7Y",
+    copy: "Joined 0bscuri7y at the start of 2026 and climbed to #1 in India.",
+    achievements: achievements2026Obscuri,
+  },
+];
+---
+
+<section id="journey" data-reveal class="w-full">
+  <div class="w-full max-w-[1200px] mx-auto px-5 sm:px-8 lg:px-14 pt-20 sm:pt-24 pb-16 sm:pb-20">
+    <div class="max-w-[820px] flex flex-col gap-4 mb-6">
+      <p class="font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text">receipts</p>
+      <h2 class="font-dm font-bold text-[clamp(26px,4vw,34px)] leading-tight text-text uppercase">CTF ACHIEVEMENTS</h2>
+      <p class="font-geist text-[clamp(17px,2vw,19px)] leading-relaxed text-muted-text">Some sleepless nights and loads of caffeine</p>
+    </div>
+
+    <div class="flex items-center gap-3.5 bg-surface border border-accent px-4 py-4 mb-12 sm:mb-16">
+      <img src="/images/medal.svg" alt="" width="20" height="20" class="w-5 h-5" />
+      <span class="font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text">les réalisations</span>
+    </div>
+
+    <div class="flex flex-col gap-16 sm:gap-18">
+      {chapters.map((ch) => (
+        <div class="flex flex-col gap-8">
+          <div class="flex flex-col sm:flex-row gap-6">
+            <div class="w-full sm:w-[150px] shrink-0 bg-accent flex items-center justify-center py-6 sm:py-8">
+              <span class="font-dm font-bold text-xl text-background">{ch.badge}</span>
+            </div>
+            <div class="flex-1 bg-surface border border-line p-5 sm:p-6 flex flex-col gap-3">
+              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <h3 class="font-dm font-bold text-[17px] sm:text-[18px] text-text uppercase">{ch.title}</h3>
+                <span class="font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text">{ch.team}</span>
+              </div>
+              <p class="font-geist text-[15px] sm:text-[16px] text-muted-text">{ch.copy}</p>
+            </div>
+          </div>
+
+          <div class="flex flex-col divide-y divide-line border-t border-line">
+            {ch.achievements.map((a) => (
+              <div class="flex flex-col sm:flex-row gap-4 sm:gap-5 py-5 sm:py-6 px-0 sm:px-4">
+                <div class="w-full sm:w-[170px] shrink-0 bg-raised-surface border border-line p-3 flex flex-col gap-1.5">
+                  <p class="font-dm font-medium text-[13px] text-text truncate">{a.rating}</p>
+                  <p class="font-geist font-medium text-[13px] text-muted-text truncate">{a.source || "—"}</p>
+                </div>
+                <div class="flex-1 flex flex-col gap-2.5 min-w-0">
+                  <div class="flex flex-wrap items-center gap-3">
+                    <a href={a.href} target="_blank" rel="noopener noreferrer" class="font-dm font-bold text-[16px] sm:text-[18px] text-text hover:text-accent transition-colors break-words">{a.title}</a>
+                    <span class="inline-flex items-center border border-line px-2 py-1 font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text">{a.team}</span>
+                  </div>
+                  <div class="flex flex-wrap gap-x-3.5 gap-y-1">
+                    <span class="font-geist font-medium text-[13px] text-muted-text">{a.dates}</span>
+                    <span class="font-geist font-medium text-[13px] text-muted-text">· {a.scope}</span>
+                  </div>
+                  <p class="font-geist font-medium text-[13px] text-muted-text">{a.organizer}</p>
+                  <p class="font-geist text-[15px] sm:text-[16px] text-text">{a.finish}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

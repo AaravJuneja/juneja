@@ -35,10 +35,3 @@ meh/
 portfolioz-brief.md
 CF_WORKERS_PROMPT.md
 *.zip
-*.ani
-# keep cursors but ignore bloat fonts in public? no
-
-# legacy Next build (if legacy were kept)
-legacy/next-app/.next/
-legacy/next-app/.vercel/
-legacy/next-app/out/

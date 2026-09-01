@@ -1,0 +1,19 @@
+---
+const socials = [
+  { href: "https://github.com/AaravJuneja", label: "GITHUB", icon: "/images/github-icon.svg" },
+  { href: "https://linkedin.com/in/aaravjuneja", label: "LINKEDIN", icon: "/images/linkedin-icon.svg" },
+  { href: "https://open.spotify.com/user/w443w4mluzrxuvjqd2014fgt4", label: "SPOTIFY", icon: "/images/spotify-icon.svg" },
+  { href: "https://instagram.com/arv.ifrr", label: "INSTAGRAM", icon: "/images/instagram-icon.svg" },
+];
+---
+
+<div data-reveal class="w-full max-w-[1200px] mx-auto px-5 sm:px-8 lg:px-14 pb-6">
+  <div class="flex flex-wrap gap-2.5">
+    {socials.map((s) => (
+      <a href={s.href} target="_blank" rel="noopener noreferrer" aria-label={`Open Aarav’s ${s.label}`} class="inline-flex items-center gap-2.5 bg-surface border border-line px-3 py-2.5 hover:border-accent transition-colors">
+        <img src={s.icon} alt="" width="18" height="18" class="w-[18px] h-[18px]" />
+        <span class="font-dm text-[11px] tracking-[0.08em] uppercase text-text">{s.label}</span>
+      </a>
+    ))}
+  </div>
+</div>

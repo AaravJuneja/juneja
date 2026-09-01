@@ -1,0 +1,51 @@
+---
+import { Image } from "astro:assets";
+import prakashImg from "../../public/images/prakash.png";
+---
+
+<section id="player" data-reveal class="w-full max-w-[1200px] mx-auto px-5 sm:px-8 lg:px-14 py-14 sm:py-18 lg:py-24">
+  <div class="flex flex-col lg:flex-row lg:items-center gap-10 lg:gap-16">
+    <!-- Left copy -->
+    <div class="flex-1 flex flex-col gap-6">
+      <p class="font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text">CYBERSECURITY · CTF · reader</p>
+      <h1 class="font-dm font-bold text-[clamp(38px,6vw,68px)] leading-[0.95] tracking-tight text-text">AARAV<br />JUNEJA</h1>
+      <p class="font-geist text-[clamp(17px,2vw,19px)] leading-relaxed text-muted-text max-w-[48ch]">Um I do stuff, stuff breaks, I fix stuff and then it all works out (hopefully)</p>
+      <a href="#journey" class="inline-flex items-center gap-3 bg-accent text-background px-4 py-3.5 font-dm text-[11px] tracking-[0.08em] uppercase hover:bg-accent-soft transition-colors w-fit">
+        VIEW CTF JOURNEY
+        <img src="/images/arrow-down-right.svg" alt="" width="16" height="16" class="w-4 h-4" />
+      </a>
+    </div>
+
+    <!-- Player HUD -->
+    <div class="w-full lg:w-[340px] shrink-0 bg-surface border border-line p-6 flex flex-col gap-5">
+      <div class="flex items-center justify-between">
+        <p class="font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text">PLAYER PROFILE</p>
+        <img src="/images/trophy.svg" alt="" width="20" height="20" class="w-5 h-5" />
+      </div>
+
+      <div class="bg-raised-surface border border-accent p-6 flex items-center justify-center">
+        <img src="/images/prakash.png" alt="Aarav Juneja" width={240} height={240} class="w-[240px] h-[240px] object-cover max-w-full" loading="eager" />
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <p class="font-geist font-medium text-[13px] text-muted-text">CAPTURING SINCE</p>
+          <p class="font-dm text-[11px] tracking-[0.08em] uppercase text-text">JUN 2025</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-2">
+        <div class="inline-flex items-center gap-1.5 bg-raised-surface border border-line px-2.5 py-1.5">
+          <img src="/images/pixel/heart-pixel.svg" alt="" width="12" height="12" class="w-3 h-3" />
+          <span class="font-dm text-[11px] tracking-[0.08em] uppercase text-text">REV</span>
+        </div>
+        <div class="inline-flex items-center bg-raised-surface border border-line px-2.5 py-1.5">
+          <span class="font-dm text-[11px] tracking-[0.08em] uppercase text-text">OSINT</span>
+        </div>
+        <div class="inline-flex items-center bg-raised-surface border border-line px-2.5 py-1.5">
+          <span class="font-dm text-[11px] tracking-[0.08em] uppercase text-text">Bruteforce</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
