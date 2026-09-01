@@ -15,6 +15,7 @@ export default function KonamiPwned() {
     try {
       localStorage.setItem("pwned", "1");
     } catch {}
+    window.dispatchEvent(new CustomEvent("konami:pwned"));
   };
 
   useEffect(() => {
@@ -31,7 +32,6 @@ export default function KonamiPwned() {
   }, [pwned]);
 
   useEffect(() => {
-    (window as any).__triggerKonamiPwned = trigger;
     const pressed: string[] = [];
     const onKey = (e: KeyboardEvent) => {
       pressed.push(e.code);
@@ -43,7 +43,6 @@ export default function KonamiPwned() {
     window.addEventListener("keydown", onKey);
     return () => {
       window.removeEventListener("keydown", onKey);
-      delete (window as any).__triggerKonamiPwned;
     };
   }, [pwned]);
 
