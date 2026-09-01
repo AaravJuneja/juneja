@@ -1,0 +1,44 @@
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+bun.lockb
+
+# environment
+.env
+.env.production
+.dev.vars
+.wrangler/
+wrangler.jsonc.bak
+
+# OS
+.DS_Store
+Thumbs.db
+
+# editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# legacy / old - do NOT commit
+legacy/
+meh/
+portfolioz-brief.md
+CF_WORKERS_PROMPT.md
+*.zip
+*.ani
+# keep cursors but ignore bloat fonts in public? no
+
+# legacy Next build (if legacy were kept)
+legacy/next-app/.next/
+legacy/next-app/.vercel/
+legacy/next-app/out/
