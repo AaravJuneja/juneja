@@ -1,0 +1,42 @@
+---
+import "../styles/global.css";
+import "@fontsource/outfit/400.css";
+import "@fontsource/outfit/500.css";
+import "@fontsource/outfit/600.css";
+import "@fontsource/outfit/700.css";
+import Loader from "../components/react/Loader.tsx";
+import RevealWatcher from "../components/react/RevealWatcher.tsx";
+import KonamiPwned from "../components/react/KonamiPwned.tsx";
+
+interface Props {
+  title?: string;
+}
+const { title = "juneja" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0A0710" />
+    <meta name="description" content="Aarav Juneja’s cybersecurity portfolio and competitive CTF journey." />
+    <meta property="og:title" content="juneja" />
+    <meta property="og:description" content="Aarav Juneja’s cybersecurity portfolio and competitive CTF journey." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="juneja" />
+    <meta name="twitter:description" content="Aarav Juneja’s cybersecurity portfolio and competitive CTF journey." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body class="bg-background text-text antialiased overflow-x-hidden">
+    <Loader client:load />
+    <RevealWatcher client:idle />
+    <KonamiPwned client:idle />
+    <slot />
+  </body>
+</html>
