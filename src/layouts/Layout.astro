@@ -1,9 +1,5 @@
 ---
 import "../styles/global.css";
-import "@fontsource/outfit/400.css";
-import "@fontsource/outfit/500.css";
-import "@fontsource/outfit/600.css";
-import "@fontsource/outfit/700.css";
 import Loader from "../components/react/Loader.tsx";
 import RevealWatcher from "../components/react/RevealWatcher.tsx";
 import KonamiPwned from "../components/react/KonamiPwned.tsx";
@@ -30,8 +26,6 @@ const { title = "juneja" } = Astro.props;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="preconnect" href="https://image-cdn-ak.spotifycdn.com" crossorigin />
-    <link rel="dns-prefetch" href="https://image-cdn-ak.spotifycdn.com" />
     <link rel="preload" as="font" type="font/woff2" href="/fonts/outfit-latin-500-normal.woff2" crossorigin />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
