@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import type { Repository } from "../../data.ts";
 
 const GRID = { cols: 3, rows: 1 };
 const REPEL_RADIUS = 140;
@@ -143,9 +142,6 @@ export default function NotFoundScatter() {
 
   const letters = [["4", "Ø", "4"]];
 
-  const wors: Repository[] = [];
-  const hasWors = wors.length > 0;
-
   return (
     <div ref={containerRef} className="w-full flex flex-col items-center justify-center gap-10 py-8 flex-1">
       <div className="grid gap-2 select-none" style={{ gridTemplateColumns: `repeat(${GRID.cols}, 96px)`, gridTemplateRows: `repeat(${GRID.rows}, 96px)` }}>
@@ -170,21 +166,6 @@ export default function NotFoundScatter() {
           <span className="text-line">/</span>
           <ScrambleLink href="/#writeups">VIEW WRITEUPS</ScrambleLink>
         </div>
-        {hasWors && (
-          <div className="w-full max-w-[640px] mt-6 border border-line bg-surface p-4">
-            <p className="font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text mb-3">Available wors</p>
-            <ul className="flex flex-col gap-2">
-              {wors.map((w) => (
-                <li key={w.href} className="flex flex-col gap-1 border border-line bg-raised-surface p-3 hover:border-accent/30 transition-colors">
-                  <a href={w.href} target="_blank" rel="noopener noreferrer" className="font-dm font-bold text-[14px] text-text hover:text-accent transition-colors break-words">
-                    {w.title}
-                  </a>
-                  <span className="font-outfit text-[13px] leading-[1.4] text-muted-text">{w.summary}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
       </div>
     </div>
   );
