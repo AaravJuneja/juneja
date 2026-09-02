@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from "astro:transitions";
 import "../styles/global.css";
 import Loader from "../components/react/Loader.tsx";
 import RevealWatcher from "../components/react/RevealWatcher.tsx";
@@ -16,19 +17,17 @@ const { title = "juneja" } = Astro.props;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#0A0710" />
-    <meta name="description" content="Aarav Juneja’s cybersecurity portfolio and competitive CTF journey." />
     <meta property="og:title" content="juneja" />
-    <meta property="og:description" content="Aarav Juneja’s cybersecurity portfolio and competitive CTF journey." />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="juneja" />
-    <meta name="twitter:description" content="Aarav Juneja’s cybersecurity portfolio and competitive CTF journey." />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="preload" as="font" type="font/woff2" href="/fonts/outfit-latin-500-normal.woff2" crossorigin />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+    <ClientRouter />
   </head>
   <body class="bg-background text-text antialiased overflow-x-hidden">
     <Loader client:load />

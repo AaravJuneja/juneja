@@ -148,6 +148,11 @@ export default function SpotifyPlayer({ artSrcCollapsed, artSrcExpanded, title }
             <span className="font-dm text-[11px] tracking-[0.08em] uppercase text-accent-soft">Now Playing</span>
             <span className="font-outfit font-medium text-[14px] text-text truncate tracking-[-0.003em]">{title}</span>
           </div>
+          <div className="flex items-end gap-0.5 h-3 ml-1 shrink-0" aria-hidden="true">
+            <span className={`w-0.5 bg-accent rounded-full origin-bottom ${playing ? "animate-bar-1 h-3" : ""}`} style={!playing ? { height: 6 } : undefined} />
+            <span className={`w-0.5 bg-accent rounded-full origin-bottom ${playing ? "animate-bar-2 h-3" : ""}`} style={!playing ? { height: 10 } : undefined} />
+            <span className={`w-0.5 bg-accent rounded-full origin-bottom ${playing ? "animate-bar-3 h-3" : ""}`} style={!playing ? { height: 7 } : undefined} />
+          </div>
           <button
             onClick={toggle}
             aria-label={playing ? "Pause" : "Play"}
