@@ -93,16 +93,15 @@ export default function SpotifyPlayer({ artSrcCollapsed, artSrcExpanded, title }
       onMouseEnter={() => setExpanded(true)}
       onMouseLeave={() => setExpanded(false)}
       className="relative shrink-0"
-      style={{ width: expanded ? 352 : 180, height: 44, transition: "all 200ms ease" }}
+      style={{ width: expanded ? 340 : 180, height: 44, transition: "all 200ms ease" }}
     >
       <div
-        className="absolute inset-0 flex items-center gap-3 px-3 border hover:border-accent transition-colors cursor-pointer"
+        className="absolute inset-0 flex items-center gap-3 px-3 border border-line hover:border-line transition-colors cursor-pointer"
         style={{
           width: 180,
           height: 44,
           borderRadius: expanded ? 12 : 9999,
           background: "#251a3a",
-          borderColor: "rgba(168,105,219,0.35)",
           opacity: expanded ? 0 : 1,
           pointerEvents: expanded ? "none" : "auto",
           transition: "all 200ms ease",
@@ -118,13 +117,12 @@ export default function SpotifyPlayer({ artSrcCollapsed, artSrcExpanded, title }
       </div>
 
       <div
-        className="absolute right-0 top-0 flex flex-col gap-3 p-3 border overflow-hidden"
+        className="absolute right-0 top-0 flex flex-col gap-3 p-3 border border-line overflow-hidden"
         style={{
-          width: 352,
+          width: 340,
           height: "auto",
           minHeight: 110,
           borderRadius: 12,
-          borderColor: expanded ? "var(--accent-soft)" : "rgba(168,105,219,0.35)",
           background: "#251a3a",
           opacity: expanded ? 1 : 0,
           pointerEvents: expanded ? "auto" : "none",
@@ -134,7 +132,7 @@ export default function SpotifyPlayer({ artSrcCollapsed, artSrcExpanded, title }
         }}
       >
         <div className="flex items-center gap-2.5">
-          <div className="w-11 h-11 rounded-md overflow-hidden border border-accent/30 shrink-0 relative">
+          <div className="w-11 h-11 rounded-md overflow-hidden border border-line shrink-0 relative">
             <img
               src={artSrcExpanded}
               alt="Album Art"
@@ -156,7 +154,7 @@ export default function SpotifyPlayer({ artSrcCollapsed, artSrcExpanded, title }
           <button
             onClick={toggle}
             aria-label={playing ? "Pause" : "Play"}
-            className="ml-auto w-9 h-9 rounded-full bg-accent text-background flex items-center justify-center hover:brightness-110 active:scale-95 transition-all shrink-0 shadow-[0_2px_8px_rgba(168,105,219,0.4)]"
+            className="ml-auto w-9 h-9 rounded-full bg-accent text-background flex items-center justify-center hover:brightness-110 active:scale-95 transition-all shrink-0"
           >
             {playing ? (
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="3" y="3" width="3" height="8" rx="1" fill="currentColor"/><rect x="8" y="3" width="3" height="8" rx="1" fill="currentColor"/></svg>
