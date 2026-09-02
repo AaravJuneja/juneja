@@ -7,8 +7,9 @@ import KonamiPwned from "../components/react/KonamiPwned.tsx";
 
 interface Props {
   title?: string;
+  description?: string;
 }
-const { title = "juneja" } = Astro.props;
+const { title = "juneja", description = "Learning by breaking, understanding by rebuilding" } = Astro.props;
 ---
 
 <!doctype html>
@@ -17,10 +18,13 @@ const { title = "juneja" } = Astro.props;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#0A0710" />
+    <meta name="description" content={description} />
     <meta property="og:title" content="juneja" />
     <meta property="og:type" content="website" />
+    <meta property="og:description" content={description} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="juneja" />
+    <meta name="twitter:description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
