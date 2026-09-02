@@ -42,24 +42,28 @@ const chapters = [
       <span class="font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text">les réalisations</span>
     </div>
 
-    <div class="flex flex-col gap-16 sm:gap-18">
-      {chapters.map((ch) => (
-        <div class="flex flex-col gap-8">
-          <div class="flex flex-col sm:flex-row gap-4 sm:gap-6">
-            <div class="w-full sm:w-[170px] shrink-0 bg-accent flex flex-col items-center justify-center py-5 sm:py-6 border border-accent shadow-[4px_4px_0px_#21172C]">
-              <span class="font-dm text-[10px] leading-none tracking-[0.08em] uppercase text-background/60">YEAR</span>
-              <span class="font-dm font-bold text-2xl leading-none text-background">{ch.badge}</span>
-            </div>
-            <div class="flex-1 bg-surface border border-line p-5 sm:p-6 flex flex-col gap-2.5">
-              <div class="flex items-center gap-3">
-                <h3 class="font-dm font-bold text-[17px] sm:text-[18px] tracking-tight text-text uppercase">{ch.title}</h3>
-                <span class="inline-flex items-center bg-accent/10 border border-accent/20 px-2.5 py-1 font-dm text-[11px] tracking-[0.08em] uppercase text-accent">{ch.team}</span>
+    <div class="flex flex-col gap-10 sm:gap-12">
+      {chapters.map((ch, idx) => (
+        <details class="group/details bg-transparent" open={idx === 0}>
+          <summary class="list-none cursor-pointer [&::-webkit-details-marker]:hidden">
+            <div class="flex flex-col sm:flex-row gap-4 sm:gap-6 group/details-summary">
+              <div class="w-full sm:w-[170px] shrink-0 bg-accent flex flex-col items-center justify-center py-5 sm:py-6 border border-accent shadow-[4px_4px_0px_#21172C] relative">
+                <span class="font-dm text-[10px] leading-none tracking-[0.08em] uppercase text-background/60">YEAR</span>
+                <span class="font-dm font-bold text-2xl leading-none text-background">{ch.badge}</span>
+                <span class="absolute right-3 top-1/2 -translate-y-1/2 sm:hidden font-dm text-background text-lg leading-none select-none !cursor-pointer group-open/details:rotate-180 transition-transform duration-200" style="cursor:pointer">⌄</span>
               </div>
-              <p class="font-outfit text-[15px] sm:text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">{ch.copy}</p>
+              <div class="flex-1 bg-surface border border-line p-5 sm:p-6 flex flex-col gap-2.5 relative">
+                <div class="flex items-center gap-3 pr-6 sm:pr-0">
+                  <h3 class="font-dm font-bold text-[17px] sm:text-[18px] tracking-tight text-text uppercase">{ch.title}</h3>
+                  <span class="inline-flex items-center bg-accent/10 border border-accent/20 px-2.5 py-1 font-dm text-[11px] tracking-[0.08em] uppercase text-accent">{ch.team}</span>
+                </div>
+                <p class="font-outfit text-[15px] sm:text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">{ch.copy}</p>
+                <span class="hidden sm:block absolute right-4 top-1/2 -translate-y-1/2 font-dm text-muted-text text-lg leading-none select-none !cursor-pointer group-open/details:rotate-180 transition-transform duration-200" style="cursor:pointer">⌄</span>
+                <span class="sm:hidden absolute right-4 top-1/2 -translate-y-1/2 font-dm text-muted-text text-lg leading-none select-none !cursor-pointer group-open/details:rotate-180 transition-transform duration-200" style="cursor:pointer">⌄</span>
+              </div>
             </div>
-          </div>
-
-          <div class="flex flex-col divide-y divide-line border-t border-line">
+          </summary>
+          <div class="flex flex-col divide-y divide-line border-t border-line mt-8">
             {ch.achievements.map((a) => (
               <div class="group flex flex-col sm:flex-row sm:items-stretch gap-4 sm:gap-5 py-5 sm:py-6 px-0 sm:px-4 hover:bg-[rgba(33,23,44,0.5)] transition-colors duration-150">
                 <div class="w-full sm:w-[170px] shrink-0 bg-raised-surface border border-line p-4 flex flex-col justify-center items-center text-center gap-1.5 group-hover:border-accent/40 transition-colors duration-150 sm:min-h-[88px]">
@@ -82,7 +86,7 @@ const chapters = [
               </div>
             ))}
           </div>
-        </div>
+        </details>
       ))}
     </div>
   </div>
