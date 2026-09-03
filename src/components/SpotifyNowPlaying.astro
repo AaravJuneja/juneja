@@ -1,10 +1,18 @@
 ---
 import { getImage } from "astro:assets";
-import spotifyCover from "../assets/spotify-cover.jpg";
+import spotifyCover from "../assets/spotify-cover.webp";
+import doorsCover from "../assets/doors-cover.webp";
 import SpotifyPlayer from "./react/SpotifyPlayer.tsx";
 
 const COLLAPSED = await getImage({ src: spotifyCover, width: 56, height: 56, format: "webp", quality: 90 });
 const EXPANDED = await getImage({ src: spotifyCover, width: 88, height: 88, format: "webp", quality: 90 });
+const DOORS_COLLAPSED = await getImage({ src: doorsCover, width: 56, height: 56, format: "webp", quality: 90 });
+const DOORS_EXPANDED = await getImage({ src: doorsCover, width: 88, height: 88, format: "webp", quality: 90 });
+
+const covers = {
+  default: { collapsed: COLLAPSED.src, expanded: EXPANDED.src },
+  doors: { collapsed: DOORS_COLLAPSED.src, expanded: DOORS_EXPANDED.src },
+};
 ---
 
-<SpotifyPlayer client:idle artSrcCollapsed={COLLAPSED.src} artSrcExpanded={EXPANDED.src} />
+<SpotifyPlayer client:idle covers={covers} />

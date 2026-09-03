@@ -56,9 +56,7 @@ export default function ArcadeRunnerLane() {
     const triggerDoorsGlitch = (ts: number) => {
       if (hasDoorsGlitchedRef.current) return;
       hasDoorsGlitchedRef.current = true;
-      const lane = laneRef.current;
       const runner = runnerRef.current;
-      const laneRect = lane?.getBoundingClientRect();
       const runnerRect = runner?.getBoundingClientRect();
       const maxX = maxXRef.current;
       const pointer = pointerRef.current;
@@ -73,9 +71,8 @@ export default function ArcadeRunnerLane() {
       if (reducedMotionRef.current) {
         const j = overdriveDirectionRef.current > 0 ? maxX : 0;
         xRef.current = j;
-        writeRunner(j, 1, "drop-shadow(0 0 10px #A869DB)");
+        writeRunner(j, 1, "drop-shadow(0 0 10px var(--color-accent))");
       }
-      if (laneRect) void laneRect.width;
     };
 
     const onPointerMove = (e: PointerEvent) => {
@@ -136,7 +133,7 @@ export default function ArcadeRunnerLane() {
 
       if (overdrive) {
         if (reducedMotionRef.current) {
-          writeRunner(xRef.current, 1, "drop-shadow(0 0 10px #A869DB)");
+          writeRunner(xRef.current, 1, "drop-shadow(0 0 10px var(--color-accent))");
         } else {
           const dir = overdriveDirectionRef.current;
           const targetX = dir > 0 ? maxX : 0;
@@ -148,7 +145,7 @@ export default function ArcadeRunnerLane() {
           writeRunner(
             xRef.current,
             scale,
-            `drop-shadow(${8 * dir}px 0 0 #A869DB) drop-shadow(${16 * dir}px 0 0 rgba(168,105,219,0.65)) drop-shadow(0 0 12px #A869DB)`
+            `drop-shadow(${8 * dir}px 0 0 var(--color-accent)) drop-shadow(${16 * dir}px 0 0 color-mix(in srgb, var(--color-accent) 65%, transparent)) drop-shadow(0 0 12px var(--color-accent))`
           );
         }
       } else {
@@ -166,7 +163,7 @@ export default function ArcadeRunnerLane() {
         const windupScale = 1 + 0.3 * windup;
         const windupFilter =
           ant > 0.02
-            ? `drop-shadow(0 0 ${(8 + 10 * ant).toFixed(1)}px #A869DB)`
+            ? `drop-shadow(0 0 ${(8 + 10 * ant).toFixed(1)}px var(--color-accent))`
             : "none";
         if (hovering) {
           targetVelocity = 0;

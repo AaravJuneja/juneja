@@ -1,32 +1,51 @@
 import { useEffect, useRef, useState } from "react";
 
 type Props = {
-  artSrcCollapsed: string;
-  artSrcExpanded: string;
+  covers: {
+    default: { collapsed: string; expanded: string };
+    doors: { collapsed: string; expanded: string };
+  };
 };
 
 type Track = {
   slug: string;
   title: string;
+  cover: "default" | "doors";
+  portrait?: boolean;
 };
 
 const TRACKS: Track[] = [
-  { slug: "rescue-you", title: "Rescue You" },
-  { slug: "do-it", title: "Do It" },
-  { slug: "release-me", title: "Release Me" },
-  { slug: "birthday-suit", title: "Birthday Suit" },
-  { slug: "x-ray", title: "X-Ray" },
-  { slug: "appointment", title: "Appointment" },
+  { slug: "rescue-you", title: "Rescue You", cover: "default" },
+  { slug: "do-it", title: "Do It", cover: "default" },
+  { slug: "release-me", title: "Release Me", cover: "default" },
+  { slug: "birthday-suit", title: "Birthday Suit", cover: "default" },
+  { slug: "x-ray", title: "X-Ray", cover: "default" },
+  { slug: "appointment", title: "Appointment", cover: "default" },
+  { slug: "elevator-jam", title: "Elevator Jam", cover: "doors", portrait: true },
 ];
 
+const POOL = TRACKS.map((t, i) => (t.portrait ? -1 : i)).filter((i) => i >= 0);
+const PORTRAIT_IDX = TRACKS.findIndex((t) => t.portrait);
+
 const pick = (exclude: number) => {
-  if (TRACKS.length < 2) return 0;
-  let i = Math.floor(Math.random() * TRACKS.length);
-  while (i === exclude) i = Math.floor(Math.random() * TRACKS.length);
-  return i;
+  const options = POOL.filter((i) => i !== exclude);
+  const list = options.length > 0 ? options : POOL;
+  return list[Math.floor(Math.random() * list.length)];
 };
 
-export default function SpotifyPlayer({ artSrcCollapsed, artSrcExpanded }: Props) {
+const getCookie = (n: string) =>
+  (typeof document !== "undefined" &&
+    document.cookie.match(new RegExp("(?:^|;)\\s*" + n + "=([^;]*)"))?.[1]) ||
+  undefined;
+const setCookie = (n: string, v: string, age: number) => {
+  try {
+    document.cookie = `${n}=${v}; max-age=${age}; path=/; SameSite=Lax`;
+  } catch {}
+};
+
+const isClaimed = () => getCookie("portrait") === "claimed";
+
+export default function SpotifyPlayer({ covers }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [current, setCurrent] = useState(0);
@@ -72,12 +91,28 @@ export default function SpotifyPlayer({ artSrcCollapsed, artSrcExpanded }: Props
   };
 
   useEffect(() => {
-    setTrackIdx(pick(-1));
+    if (isClaimed() && PORTRAIT_IDX >= 0) {
+      setTrackIdx(PORTRAIT_IDX);
+    } else {
+      setTrackIdx(pick(-1));
+    }
+    const onClaimed = () => {
+      if (PORTRAIT_IDX < 0) return;
+      playRef.current = false;
+      audioRef.current?.pause();
+      setPlaying(false);
+      setCurrent(0);
+      setTrackIdx(PORTRAIT_IDX);
+    };
+    window.addEventListener("portrait:claimed", onClaimed);
+    return () => window.removeEventListener("portrait:claimed", onClaimed);
   }, []);
 
   useEffect(() => {
     const a = audioRef.current;
     if (!a) return;
+    setCurrent(0);
+    setDuration(0);
     const preloadAudio = () => {
       a.preload = "metadata";
       a.load();
@@ -103,7 +138,14 @@ export default function SpotifyPlayer({ artSrcCollapsed, artSrcExpanded }: Props
     const onLoaded = () => setDuration(a.duration || 0);
     const onEnded = () => {
       setCurrent(0);
-      setTrackIdx((i) => pick(i));
+      if (TRACKS[trackIdx]?.portrait) {
+        setCookie("portrait", "cleared", 31536000);
+        playRef.current = false;
+        setTrackIdx(pick(-1));
+        window.dispatchEvent(new CustomEvent("portrait:cleared"));
+      } else {
+        setTrackIdx((i) => pick(i));
+      }
     };
     const onPlay = () => setPlaying(true);
     const onPause = () => setPlaying(false);
@@ -149,7 +191,7 @@ export default function SpotifyPlayer({ artSrcCollapsed, artSrcExpanded }: Props
         }}
       >
         <div className="w-7 h-7 rounded-full overflow-hidden border border-line shrink-0">
-          <img src={artSrcCollapsed} alt="Album Art" width={28} height={28} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="eager" decoding="async" fetchPriority="high" />
+          <img src={covers[track.cover].collapsed} alt="Album Art" width={28} height={28} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="eager" decoding="async" fetchPriority="high" />
         </div>
         <div className="flex flex-col min-w-0">
           <span className="font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text leading-none">Now Playing</span>
@@ -175,7 +217,7 @@ export default function SpotifyPlayer({ artSrcCollapsed, artSrcExpanded }: Props
         <div className="flex items-center gap-2.5">
           <div className="w-11 h-11 rounded-md overflow-hidden border border-line shrink-0 relative">
             <img
-              src={artSrcExpanded}
+              src={covers[track.cover].expanded}
               alt="Album Art"
               loading="lazy"
               decoding="async"
@@ -206,7 +248,7 @@ export default function SpotifyPlayer({ artSrcCollapsed, artSrcExpanded }: Props
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <div ref={barRef} onClick={onSeek} className="relative w-full h-1.5 rounded-full overflow-hidden cursor-pointer group" style={{ background: "rgba(58,43,70,0.6)" }}>
+          <div ref={barRef} onClick={onSeek} className="relative w-full h-1.5 rounded-full overflow-hidden cursor-pointer group" style={{ background: "color-mix(in srgb, var(--color-line) 60%, transparent)" }}>
             <div className="absolute inset-y-0 left-0 bg-accent rounded-full transition-all duration-75" style={{ width: `${pct}%` }} />
             <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-accent-soft rounded-full shadow border border-background transition-all opacity-0 group-hover:opacity-100" style={{ left: `calc(${pct}% - 6px)` }} />
           </div>
@@ -217,8 +259,8 @@ export default function SpotifyPlayer({ artSrcCollapsed, artSrcExpanded }: Props
         </div>
 
         <audio key={track.slug} ref={audioRef} preload="none" style={{ display: "none" }}>
-          <source src={`/${track.slug}.webm`} type="audio/webm" />
-          <source src={`/${track.slug}.mp3`} type="audio/mpeg" />
+          <source src={`/audio/${track.slug}.webm`} type="audio/webm" />
+          <source src={`/audio/${track.slug}.mp3`} type="audio/mpeg" />
         </audio>
       </div>
     </div>

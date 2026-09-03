@@ -12,7 +12,7 @@ import nightImg from "../../public/images/pixel/night.jpg";
       <p class="font-outfit text-[clamp(18px,2.1vw,21px)] leading-[1.55] text-muted-text max-w-[52ch] tracking-[-0.005em]">Learning by breaking, understanding by rebuilding</p>
       <p class="font-mono text-[13px] sm:text-[14px] text-muted-text" aria-hidden="true"><span class="text-accent">$</span> <span id="hero-typed">whoami</span><span class="animate-caret text-accent">_</span></p>
       <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
-        <a href="#journey" class="inline-flex items-center gap-3 bg-accent text-background px-4 py-3.5 font-dm text-[11px] leading-none tracking-[0.08em] uppercase hover:brightness-110 hover:-translate-x-px hover:-translate-y-px hover:shadow-[3px_3px_0px_0px_#DDBCF3] active:translate-x-0 active:translate-y-0 active:shadow-none transition-all duration-150 ease-out w-fit">
+        <a href="#journey" class="inline-flex items-center gap-3 bg-accent text-background px-4 py-3.5 font-dm text-[11px] leading-none tracking-[0.08em] uppercase hover:brightness-110 hover:-translate-x-px hover:-translate-y-px hover:shadow-[3px_3px_0px_0px_var(--color-accent-soft)] active:translate-x-0 active:translate-y-0 active:shadow-none transition-all duration-150 ease-out w-fit">
           VIEW CTF JOURNEY
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" aria-hidden="true"><path d="M4.66663 4.66602L11.3333 11.3327" stroke="#0A0710" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.3333 4.66602V11.3327H4.66663" stroke="#0A0710" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
@@ -21,13 +21,35 @@ import nightImg from "../../public/images/pixel/night.jpg";
     </div>
 
      <!-- Player HUD -->
-    <div class="w-full lg:w-[340px] shrink-0 bg-surface border border-line p-6 flex flex-col gap-5">
+    <div id="player-card" class="w-full lg:w-[340px] shrink-0 bg-surface border border-line p-6 flex flex-col gap-5">
       <div class="flex items-center justify-between">
         <p class="font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text">PLAYER PROFILE</p>
-        <img src="/images/trophy.svg" alt="" width="20" height="20" class="w-5 h-5" decoding="async" />
+        <img src="/images/trophy.svg" alt="" width="20" height="20" class="w-5 h-5 theme-icon" decoding="async" />
       </div>
 
-      <Image src={nightImg} alt="Night sky" width={340} height={340} class="w-full h-auto object-cover" loading="eager" decoding="async" fetchpriority="high" />
+      <div id="night-mirror" class="relative w-full overflow-hidden outline-none" role="button" tabindex="0" aria-label="night sky">
+        <Image src={nightImg} alt="Night sky" width={340} height={340} class="w-full h-auto object-cover" loading="eager" decoding="async" fetchpriority="high" />
+        <div id="night-refl" aria-hidden="true" class="absolute left-0 top-0 w-[19px] h-[19px] opacity-0 pointer-events-none will-change-transform">
+          <img src="/cursors/cursor-pixel.svg" alt="" width="19" height="19" class="w-full h-full" style="transform:scaleX(-1)" loading="lazy" decoding="async" />
+        </div>
+        <svg id="night-cracks" aria-hidden="true" viewBox="0 0 320 320" preserveAspectRatio="none" class="absolute inset-0 w-full h-full pointer-events-none">
+          <g id="night-crack-1" style="opacity:0" stroke="#a99eb0" stroke-width="1.5" fill="none">
+            <path d="M160 0 L150 75 L165 150 L140 225 L155 320" />
+            <path d="M150 75 L110 110 M165 150 L210 175" />
+          </g>
+          <g id="night-crack-2" style="opacity:0" stroke="#a99eb0" stroke-width="1.5" fill="none">
+            <path d="M60 320 L100 225 L90 140 L120 50" />
+            <path d="M100 225 L150 250 M90 140 L40 125" />
+            <path d="M260 320 L230 235 L245 150 L220 60" />
+            <path d="M230 235 L180 260" />
+          </g>
+          <g id="night-crack-3" style="opacity:0;stroke:var(--color-accent-soft)" stroke-width="2" fill="none">
+            <path d="M0 160 L80 155 L160 168 L240 160 L320 165" />
+            <path d="M160 168 L160 250 M80 155 L70 100" />
+          </g>
+        </svg>
+        <div id="night-dim" class="absolute inset-0 bg-background/40 pointer-events-none" style="display:none"></div>
+      </div>
 
       <div class="flex flex-col gap-3">
         <div class="flex items-center justify-between">
@@ -38,7 +60,7 @@ import nightImg from "../../public/images/pixel/night.jpg";
 
       <div class="flex flex-wrap gap-2">
         <div class="group inline-flex items-center gap-1.5 bg-raised-surface border border-line px-2.5 py-1.5 hover:border-accent/30 hover:-translate-y-px transition-all duration-150">
-          <img src="/images/pixel/heart-pixel.svg" alt="" width="12" height="12" class="w-3 h-3 group-hover:scale-110 transition-transform duration-150" loading="lazy" decoding="async" fetchpriority="low" />
+          <img src="/images/pixel/heart-pixel.svg" alt="" width="12" height="12" class="w-3 h-3 group-hover:scale-110 transition-transform duration-150 theme-icon" loading="lazy" decoding="async" fetchpriority="low" />
           <span class="font-dm text-[11px] leading-none tracking-[0.08em] uppercase text-text">REV</span>
         </div>
         <div class="inline-flex items-center bg-raised-surface border border-line px-2.5 py-1.5 hover:border-accent/30 hover:-translate-y-px transition-all duration-150">
@@ -53,7 +75,17 @@ import nightImg from "../../public/images/pixel/night.jpg";
 </section>
 <script>
   const el = document.getElementById("hero-typed");
-  const phrases = ["whoami", ":(){ :|:& };:", "sudo rm -rf --no-preserve-root /", "dd if=/dev/random of=/dev/sda", "mv / /dev/null", "mkfs.ext4 /dev/sda1"];
+const phrases = [
+  "whoami", 
+  "git gc --prune=now --aggressive", 
+  "git clean -fdx", 
+  "DROP DATABASE prod CASCADE;", 
+  "sudo shred -vzn 3 /dev/sda", 
+  "dd if=/dev/random of=/dev/sda", 
+  "mkfs.ext4 /dev/sda1", 
+  "sudo rm -rf --no-preserve-root /", 
+  ":(){ :|:& };:"
+];
   if (el && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     let pi = 0;
     let ci = phrases[0].length;
@@ -83,5 +115,99 @@ import nightImg from "../../public/images/pixel/night.jpg";
       }
     };
     window.setTimeout(tick, 1200);
+  }
+</script>
+<script>
+  const mirror = document.getElementById("night-mirror");
+  const dim = document.getElementById("night-dim");
+  const cracks = [
+    document.getElementById("night-crack-1"),
+    document.getElementById("night-crack-2"),
+    document.getElementById("night-crack-3"),
+  ];
+  const BREAK_AT = 20000;
+  const STAGES = [7000, 13000, 17000];
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const getCookie = (n: string) => (document.cookie.match(new RegExp("(?:^|;)\\s*" + n + "=([^;]*)")) || [])[1];
+  const setCookie = (n: string, v: string) => { try { document.cookie = n + "=" + v + "; max-age=31536000; path=/; SameSite=Lax"; } catch {} };
+  const storedCracked = getCookie("mirror") === "cracked";
+  let broken = storedCracked;
+  let hovering = false;
+  let holdStart: number | null = null;
+  let keyHeld = false;
+  let raf: number | null = null;
+  const showCracks = (n: number) => {
+    cracks.forEach((c, i) => { if (c) c.style.opacity = i < n ? "1" : "0"; });
+  };
+  const loadHotel = () => {
+    const img = document.getElementById("hotel-img");
+    if (img instanceof HTMLImageElement && !img.src) img.src = "/images/new-hotel.webp";
+  };
+  if (broken) {
+    showCracks(3);
+    if (dim) dim.style.display = "block";
+  }
+  if (getCookie("portrait") === "claimed") loadHotel();
+  window.addEventListener("portrait:cleared", () => {
+    document.documentElement.removeAttribute("data-portrait");
+  });
+  const claim = () => {
+    if (broken) return;
+    broken = true;
+    setCookie("mirror", "cracked");
+    setCookie("portrait", "claimed");
+    document.documentElement.setAttribute("data-portrait", "");
+    loadHotel();
+    showCracks(3);
+    if (dim) dim.style.display = "block";
+    if (refl) refl.style.opacity = "0";
+    if (!reduced && mirror) {
+      mirror.classList.remove("mirror-shatter");
+      void mirror.offsetWidth;
+      mirror.classList.add("mirror-shatter");
+    }
+    window.dispatchEvent(new CustomEvent("portrait:claimed"));
+  };
+  let charge = 0;
+  let prev = 0;
+  const loop = (ts: number) => {
+    raf = null;
+    if (!broken) {
+      if (!prev) prev = ts;
+      const dt = Math.min(0.1, Math.max(0, (ts - prev) / 1000));
+      prev = ts;
+      const charging = hovering || holdStart !== null || keyHeld;
+      const rate = keyHeld ? 2 : 1;
+      charge = charging ? charge + dt * 1000 * rate : 0;
+      const ms = charge;
+      showCracks(ms > STAGES[2] ? 3 : ms > STAGES[1] ? 2 : ms > STAGES[0] ? 1 : 0);
+      if (mirror) mirror.classList.toggle("mirror-flicker", ms > STAGES[2] && !reduced);
+      if (ms >= BREAK_AT) claim();
+    }
+    if (!broken) raf = window.requestAnimationFrame(loop);
+  };
+  const kick = () => { if (raf === null && !broken) raf = window.requestAnimationFrame(loop); };
+  const refl = document.getElementById("night-refl");
+  let seenPointer = false;
+  const onReflMove = (e: PointerEvent) => {
+    if (e.pointerType === "touch" || !mirror || !refl || broken) return;
+    const rect = mirror.getBoundingClientRect();
+    const px = e.clientX - rect.left;
+    const py = e.clientY - rect.top;
+    if (!seenPointer) { seenPointer = true; refl.style.opacity = "0.6"; }
+    refl.style.transform = `translate(${rect.width - px - 19}px, ${py}px)`;
+  };
+  if (mirror && !broken) {
+    window.addEventListener("pointermove", onReflMove, { passive: true });
+    mirror.addEventListener("mouseenter", () => { hovering = true; kick(); });
+    mirror.addEventListener("mouseleave", () => { hovering = false; });
+    mirror.addEventListener("touchstart", () => { holdStart = performance.now(); kick(); }, { passive: true });
+    mirror.addEventListener("touchend", () => { holdStart = null; });
+    mirror.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      e.preventDefault();
+      if (!keyHeld) { keyHeld = true; kick(); }
+    });
+    mirror.addEventListener("keyup", () => { keyHeld = false; });
   }
 </script>

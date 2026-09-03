@@ -34,8 +34,9 @@ const canonical = new URL(Astro.url.pathname, "https://squeakyfiddlepro.me/");
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="preload" as="font" type="font/woff2" href="/fonts/outfit-latin-500-normal.woff2" crossorigin />
-    <link rel="preload" as="image" href="/cursors-doors/rush-static.cur" fetchpriority="low" />
+    <link rel="preload" as="image" href="/cursors/rush-static.cur" fetchpriority="low" />
     <meta name="generator" content={Astro.generator} />
+    <script>try{if(/(?:^|;)\s*portrait=claimed(;|$)/.test(document.cookie))document.documentElement.setAttribute("data-portrait","")}catch{}</script>
     <title>{title}</title>
     <ClientRouter />
   </head>
