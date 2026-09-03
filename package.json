@@ -14,18 +14,18 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^7.2.10",
+    "astro": "^7.3.1",
     "fast-uri": "4.1.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
-    "@astrojs/cloudflare": "^14.2.6",
+    "@astrojs/cloudflare": "^14.3.0",
     "@astrojs/react": "^6.0.5",
     "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.5",
+    "@types/react-dom": "^19.2.7",
     "tailwindcss": "^4.3.3",
     "typescript": "5.9.3",
     "wrangler": "^4.128.0"
