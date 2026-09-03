@@ -8,23 +8,24 @@ export default function ArcadeRunnerLane() {
   const pointerRef = useRef<Point | null>(null);
   const pointerActiveRef = useRef(false);
   const reducedMotionRef = useRef(false);
+  const visibleRef = useRef(true);
   const xRef = useRef(0);
   const vRef = useRef(0);
   const patrolDirRef = useRef<1 | -1>(1);
   const maxXRef = useRef(0);
   const lastWrapRef = useRef(0);
   const hoverStartRef = useRef<number | null>(null);
+  const antRef = useRef(0);
   const isHoveringRef = useRef(false);
   const overdriveUntilRef = useRef(0);
   const overdriveDirectionRef = useRef<1 | -1>(1);
   const frameRef = useRef<number | null>(null);
   const roRef = useRef<ResizeObserver | null>(null);
+  const ioRef = useRef<IntersectionObserver | null>(null);
   const lastTsRef = useRef(0);
   const hasDoorsGlitchedRef = useRef(false);
+  const dismissTimerRef = useRef<number | null>(null);
 
-  const [x, setX] = useState(0);
-  const [scale, setScale] = useState(1);
-  const [filter, setFilter] = useState("none");
   const [doorsGlitch, setDoorsGlitch] = useState(false);
 
   useEffect(() => {
@@ -33,6 +34,13 @@ export default function ArcadeRunnerLane() {
     const updateReduced = () => (reducedMotionRef.current = mql.matches);
     updateReduced();
     mql.addEventListener?.("change", updateReduced);
+
+    const writeRunner = (x: number, scale: number, filter: string) => {
+      const runner = runnerRef.current;
+      if (!runner) return;
+      runner.style.transform = `translateX(${x}px) scale(${scale})`;
+      runner.style.filter = filter;
+    };
 
     const readBounds = () => {
       const lane = laneRef.current;
@@ -43,7 +51,31 @@ export default function ArcadeRunnerLane() {
       const maxX = Math.max(0, laneRect.width - runnerRect.width - 14);
       maxXRef.current = maxX;
       xRef.current = Math.max(0, Math.min(maxX, xRef.current));
-      setX(xRef.current);
+    };
+
+    const triggerDoorsGlitch = (ts: number) => {
+      if (hasDoorsGlitchedRef.current) return;
+      hasDoorsGlitchedRef.current = true;
+      const lane = laneRef.current;
+      const runner = runnerRef.current;
+      const laneRect = lane?.getBoundingClientRect();
+      const runnerRect = runner?.getBoundingClientRect();
+      const maxX = maxXRef.current;
+      const pointer = pointerRef.current;
+      setDoorsGlitch(true);
+      if (dismissTimerRef.current !== null) window.clearTimeout(dismissTimerRef.current);
+      dismissTimerRef.current = window.setTimeout(() => setDoorsGlitch(false), 900);
+      const dur = reducedMotionRef.current ? 175 : 825;
+      overdriveUntilRef.current = ts + dur;
+      overdriveDirectionRef.current =
+        pointer && runnerRect ? (pointer.x < runnerRect.left + runnerRect.width / 2 ? 1 : -1) : 1;
+      hoverStartRef.current = null;
+      if (reducedMotionRef.current) {
+        const j = overdriveDirectionRef.current > 0 ? maxX : 0;
+        xRef.current = j;
+        writeRunner(j, 1, "drop-shadow(0 0 10px #A869DB)");
+      }
+      if (laneRect) void laneRect.width;
     };
 
     const onPointerMove = (e: PointerEvent) => {
@@ -68,10 +100,11 @@ export default function ArcadeRunnerLane() {
     };
 
     const tick = (ts: number) => {
+      frameRef.current = null;
       const lane = laneRef.current;
       const runner = runnerRef.current;
       if (!lane || !runner) {
-        frameRef.current = window.requestAnimationFrame(tick);
+        if (visibleRef.current) frameRef.current = window.requestAnimationFrame(tick);
         return;
       }
       const prev = lastTsRef.current || ts;
@@ -83,7 +116,11 @@ export default function ArcadeRunnerLane() {
       maxXRef.current = maxX;
       const pointer = pointerRef.current;
       const hasPointer = !!pointer && pointerActiveRef.current && pointer.type !== "touch";
-      const laneNear = hasPointer && pointer ? distanceToRect(pointer.x, pointer.y, laneRect) < 120 || distanceToRect(pointer.x, pointer.y, runnerRect) < 180 : false;
+      const laneNear =
+        hasPointer && pointer
+          ? distanceToRect(pointer.x, pointer.y, laneRect) < 120 ||
+            distanceToRect(pointer.x, pointer.y, runnerRect) < 180
+          : false;
       const overdrive = ts < overdriveUntilRef.current;
       let targetVelocity = 0;
       const hovering = isHoveringRef.current;
@@ -91,18 +128,7 @@ export default function ArcadeRunnerLane() {
       if (hovering && !overdrive && !hasDoorsGlitchedRef.current) {
         if (hoverStartRef.current === null) hoverStartRef.current = ts;
         if (hoverStartRef.current !== null && ts - hoverStartRef.current >= 350) {
-          hasDoorsGlitchedRef.current = true;
-          setDoorsGlitch(true);
-          setTimeout(() => setDoorsGlitch(false), 900);
-          const dur = reducedMotionRef.current ? 175 : 825;
-          overdriveUntilRef.current = ts + dur;
-          overdriveDirectionRef.current = pointer ? (pointer.x < runnerRect.left + runnerRect.width / 2 ? 1 : -1) : 1;
-          hoverStartRef.current = null;
-          if (reducedMotionRef.current) {
-            const j = overdriveDirectionRef.current > 0 ? maxX : 0;
-            xRef.current = j;
-            setX(j);
-          }
+          triggerDoorsGlitch(ts);
         }
       } else {
         hoverStartRef.current = null;
@@ -110,8 +136,7 @@ export default function ArcadeRunnerLane() {
 
       if (overdrive) {
         if (reducedMotionRef.current) {
-          setScale(1);
-          setFilter("drop-shadow(0 0 10px #A869DB)");
+          writeRunner(xRef.current, 1, "drop-shadow(0 0 10px #A869DB)");
         } else {
           const dir = overdriveDirectionRef.current;
           const targetX = dir > 0 ? maxX : 0;
@@ -119,14 +144,33 @@ export default function ArcadeRunnerLane() {
             xRef.current += (targetX - xRef.current) * 0.35;
           }
           const pulse = 1 + Math.sin((overdriveUntilRef.current - ts) * 0.08) * 0.08;
-          setScale(Math.max(1, pulse + 0.05));
-          setFilter(`drop-shadow(${8 * dir}px 0 0 #A869DB) drop-shadow(${16 * dir}px 0 0 rgba(168,105,219,0.65)) drop-shadow(0 0 12px #A869DB)`);
+          const scale = Math.max(1, pulse + 0.05);
+          writeRunner(
+            xRef.current,
+            scale,
+            `drop-shadow(${8 * dir}px 0 0 #A869DB) drop-shadow(${16 * dir}px 0 0 rgba(168,105,219,0.65)) drop-shadow(0 0 12px #A869DB)`
+          );
         }
       } else {
-        setScale(1);
-        setFilter("none");
+        let ant = 0;
+        if (hovering && !hasDoorsGlitchedRef.current) {
+          const start = hoverStartRef.current ?? ts;
+          const raw = Math.max(0, Math.min(1, (ts - start) / 350));
+          ant = raw * raw;
+          antRef.current = ant;
+        } else {
+          ant = Math.max(0, antRef.current - dt / 0.15);
+          antRef.current = ant;
+        }
+        const windup = reducedMotionRef.current ? 0 : ant;
+        const windupScale = 1 + 0.3 * windup;
+        const windupFilter =
+          ant > 0.02
+            ? `drop-shadow(0 0 ${(8 + 10 * ant).toFixed(1)}px #A869DB)`
+            : "none";
         if (hovering) {
           targetVelocity = 0;
+          writeRunner(xRef.current, windupScale, windupFilter);
         } else if (laneNear && hasPointer && pointer) {
           const centerX = runnerRect.left + runnerRect.width / 2;
           const dx = centerX - pointer.x;
@@ -135,10 +179,10 @@ export default function ArcadeRunnerLane() {
           const closeness = 1 - Math.min(distance, 240) / 240;
           const speed = reducedMotionRef.current ? 90 : 70 + closeness * 680;
           targetVelocity = speed * direction;
-          const pushingEdge = (xRef.current <= 0.5 && direction < 0) || (xRef.current >= maxX - 0.5 && direction > 0);
+          const pushingEdge =
+            (xRef.current <= 0.5 && direction < 0) || (xRef.current >= maxX - 0.5 && direction > 0);
           if (!reducedMotionRef.current && pushingEdge && closeness > 0.45 && ts - lastWrapRef.current > 280) {
             xRef.current = direction > 0 ? 0 : maxX;
-            setX(xRef.current);
             lastWrapRef.current = ts;
           }
         } else if (!reducedMotionRef.current) {
@@ -152,15 +196,22 @@ export default function ArcadeRunnerLane() {
         if (reducedMotionRef.current) {
           xRef.current = Math.max(0, Math.min(maxX, xRef.current + Math.sign(targetVelocity) * 24));
           vRef.current = 0;
-          setX(xRef.current);
+          writeRunner(xRef.current, windupScale, windupFilter);
         } else {
           vRef.current += (targetVelocity - vRef.current) * 0.14;
           xRef.current += vRef.current * dt;
           xRef.current = Math.max(0, Math.min(maxX, xRef.current));
-          setX(xRef.current);
+          writeRunner(xRef.current, windupScale, windupFilter);
         }
       }
-      frameRef.current = window.requestAnimationFrame(tick);
+      if (visibleRef.current) frameRef.current = window.requestAnimationFrame(tick);
+    };
+
+    const startLoop = () => {
+      if (frameRef.current === null) {
+        lastTsRef.current = 0;
+        frameRef.current = window.requestAnimationFrame(tick);
+      }
     };
 
     readBounds();
@@ -171,22 +222,24 @@ export default function ArcadeRunnerLane() {
       runnerRef.current.addEventListener("mouseenter", onEnter);
       runnerRef.current.addEventListener("mouseleave", onLeave);
     }
-    window.addEventListener("pointermove", onPointerMove as any, { passive: true });
+    ioRef.current = new IntersectionObserver(
+      (entries) => {
+        visibleRef.current = entries[0]?.isIntersecting ?? true;
+        if (visibleRef.current) startLoop();
+      },
+      { threshold: 0 }
+    );
+    if (laneRef.current) ioRef.current.observe(laneRef.current);
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
     window.addEventListener("mousemove", onMouseMove, { passive: true });
     window.addEventListener("resize", readBounds);
     window.addEventListener("scroll", readBounds, true);
-    const onDoors = () => {
-      if (!hasDoorsGlitchedRef.current) {
-        hasDoorsGlitchedRef.current = true;
-        setDoorsGlitch(true);
-        setTimeout(() => setDoorsGlitch(false), 900);
-      }
-    };
+    const onDoors = () => triggerDoorsGlitch(performance.now());
     window.addEventListener("arcade:doors", onDoors);
-    frameRef.current = window.requestAnimationFrame(tick);
+    startLoop();
     return () => {
       mql.removeEventListener?.("change", updateReduced);
-      window.removeEventListener("pointermove", onPointerMove as any);
+      window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("resize", readBounds);
       window.removeEventListener("scroll", readBounds, true);
@@ -196,9 +249,29 @@ export default function ArcadeRunnerLane() {
         runnerRef.current.removeEventListener("mouseleave", onLeave);
       }
       if (frameRef.current !== null) window.cancelAnimationFrame(frameRef.current);
+      frameRef.current = null;
       if (roRef.current) roRef.current.disconnect();
+      if (ioRef.current) ioRef.current.disconnect();
+      if (dismissTimerRef.current !== null) window.clearTimeout(dismissTimerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (!doorsGlitch) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (dismissTimerRef.current !== null) window.clearTimeout(dismissTimerRef.current);
+        setDoorsGlitch(false);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [doorsGlitch]);
+
+  const activateFromInput = () => {
+    if (hasDoorsGlitchedRef.current) return;
+    window.dispatchEvent(new CustomEvent("arcade:doors"));
+  };
 
   return (
     <>
@@ -216,12 +289,18 @@ export default function ArcadeRunnerLane() {
 
         <div
           ref={runnerRef}
-          style={{
-            transform: `translateX(${x}px) scale(${scale})`,
-            filter,
-            willChange: "transform, filter",
+          role="button"
+          tabIndex={0}
+          aria-label="arcade runner"
+          onClick={activateFromInput}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              activateFromInput();
+            }
           }}
-          className="absolute left-0 top-0 w-[28px] h-[30px] select-none"
+          style={{ willChange: "transform, filter" }}
+          className="absolute left-0 top-0 w-[28px] h-[30px] select-none cursor-pointer outline-none"
         >
           <div className="absolute left-[3px] top-[24px] w-[22px] h-[4px] rounded-full opacity-[0.22] bg-accent" />
           <div className="absolute left-0 top-0 w-[28px] h-[27px]">
@@ -242,37 +321,21 @@ export default function ArcadeRunnerLane() {
       </div>
 
       {doorsGlitch && (
-        <div
-          className="fixed inset-0 z-[999999] flex items-center justify-center pointer-events-none overflow-hidden"
-          style={{
-            background: "repeating-linear-gradient(0deg, rgba(0,0,0,0.85), rgba(0,0,0,0.85) 2px, transparent 2px, transparent 4px), repeating-linear-gradient(90deg, rgba(168,105,219,0.3), rgba(168,105,219,0.3) 2px, transparent 2px, transparent 4px)",
-            backgroundColor: "rgba(10,7,16,0.96)",
-            animation: "flee-glitch 0.12s infinite, flee-fade 0.9s forwards",
-            cursor: "url('/cursors-doors/rush.ani'), url('/cursors-doors/rush-static.cur'), url('/cursor-pwned.svg'), auto",
-          }}
-        >
-          <div
-            className="absolute top-[8%] left-[5%] font-dm text-[min(8vw,110px)] text-accent mix-blend-screen tracking-tight"
-            style={{ textShadow: "4px 4px 0px #DDBCF3, -4px -4px 0px #fff", animation: "doors-shake 0.06s infinite" }}
-          >
+        <div className="doors-overlay">
+          <div className="doors-binary doors-binary-tl" aria-hidden="true">
             01010
           </div>
-          <div
-            className="absolute bottom-[10%] right-[5%] font-dm text-[min(7vw,90px)] text-accent-soft mix-blend-screen"
-            style={{ textShadow: "3px 3px 0px #A869DB", animation: "doors-shake 0.08s infinite reverse" }}
-          >
+          <div className="doors-binary doors-binary-br" aria-hidden="true">
             10101
           </div>
-          <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-dm text-[min(14vw,180px)] text-white tracking-widest mix-blend-difference"
-            style={{ textShadow: "6px 6px 0px #A869DB, -6px -6px 0px #DDBCF3, 0 0 30px rgba(168,105,219,0.8)", animation: "doors-shake 0.04s infinite" }}
-          >
+          <div className="doors-bar doors-bar-a" aria-hidden="true" />
+          <div className="doors-bar doors-bar-b" aria-hidden="true" />
+          <div className="doors-ghost" aria-hidden="true">
+            5Y5T3M_BR34CH
+          </div>
+          <div className="doors-word" data-text="PWNED" role="img" aria-label="PWNED">
             PWNED
           </div>
-          <style>{`
-            @keyframes flee-glitch {0%{filter:invert(0) hue-rotate(0deg) contrast(1)}20%{filter:invert(1) hue-rotate(90deg) contrast(2)}40%{filter:invert(0) hue-rotate(180deg) contrast(1.5)}60%{filter:invert(1) hue-rotate(270deg) contrast(3)}80%{filter:invert(0) hue-rotate(360deg) contrast(1)}100%{filter:invert(1) hue-rotate(45deg) contrast(2)}}
-            @keyframes flee-fade{0%{opacity:0}5%{opacity:1}90%{opacity:1}100%{opacity:0}}
-          `}</style>
         </div>
       )}
     </>

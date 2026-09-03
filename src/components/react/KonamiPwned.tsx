@@ -16,6 +16,7 @@ export default function KonamiPwned() {
       localStorage.setItem("pwned", "1");
     } catch {}
     window.dispatchEvent(new CustomEvent("konami:pwned"));
+    window.dispatchEvent(new CustomEvent("arcade:doors"));
   };
 
   useEffect(() => {
