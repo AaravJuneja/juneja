@@ -166,6 +166,14 @@ const phrases = [
       void mirror.offsetWidth;
       mirror.classList.add("mirror-shatter");
     }
+    const hotelImg = document.getElementById("hotel-img");
+    const loaderEl = document.querySelector(".loader");
+    const hideLoader = () => { if (loaderEl) loaderEl.classList.add("loader--hidden"); };
+    if (hotelImg instanceof HTMLImageElement && (!hotelImg.complete || hotelImg.naturalWidth === 0)) {
+      if (loaderEl) loaderEl.classList.remove("loader--hidden");
+      hotelImg.addEventListener("load", hideLoader, { once: true });
+      hotelImg.addEventListener("error", hideLoader, { once: true });
+    }
     window.dispatchEvent(new CustomEvent("portrait:claimed"));
   };
   let charge = 0;
@@ -181,7 +189,10 @@ const phrases = [
       charge = charging ? charge + dt * 1000 * rate : 0;
       const ms = charge;
       showCracks(ms > STAGES[2] ? 3 : ms > STAGES[1] ? 2 : ms > STAGES[0] ? 1 : 0);
-      if (mirror) mirror.classList.toggle("mirror-flicker", ms > STAGES[2] && !reduced);
+      if (ms > STAGES[2]) {
+        loadHotel();
+        if (mirror) mirror.classList.toggle("mirror-flicker", !reduced);
+      }
       if (ms >= BREAK_AT) claim();
     }
     if (!broken) raf = window.requestAnimationFrame(loop);
