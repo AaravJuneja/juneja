@@ -27,9 +27,14 @@ export default function ArcadeRunnerLane() {
   const dismissTimerRef = useRef<number | null>(null);
 
   const [doorsGlitch, setDoorsGlitch] = useState(false);
+  const [hoverable, setHoverable] = useState(true);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (window.matchMedia("(hover: none)").matches) {
+      setHoverable(false);
+      return;
+    };
     const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
     const updateReduced = () => (reducedMotionRef.current = mql.matches);
     updateReduced();
@@ -269,6 +274,8 @@ export default function ArcadeRunnerLane() {
     if (hasDoorsGlitchedRef.current) return;
     window.dispatchEvent(new CustomEvent("arcade:doors"));
   };
+
+  if (!hoverable) return null;
 
   return (
     <>
