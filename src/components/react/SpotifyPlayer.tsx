@@ -3,25 +3,53 @@ import { useEffect, useRef, useState } from "react";
 type Props = {
   artSrcCollapsed: string;
   artSrcExpanded: string;
+};
+
+type Track = {
+  slug: string;
   title: string;
 };
 
-export default function SpotifyPlayer({ artSrcCollapsed, artSrcExpanded, title }: Props) {
+const TRACKS: Track[] = [
+  { slug: "rescue-you", title: "Rescue You" },
+  { slug: "do-it", title: "Do It" },
+  { slug: "release-me", title: "Release Me" },
+  { slug: "birthday-suit", title: "Birthday Suit" },
+  { slug: "x-ray", title: "X-Ray" },
+  { slug: "appointment", title: "Appointment" },
+];
+
+const pick = (exclude: number) => {
+  if (TRACKS.length < 2) return 0;
+  let i = Math.floor(Math.random() * TRACKS.length);
+  while (i === exclude) i = Math.floor(Math.random() * TRACKS.length);
+  return i;
+};
+
+export default function SpotifyPlayer({ artSrcCollapsed, artSrcExpanded }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [current, setCurrent] = useState(0);
-  const [duration, setDuration] = useState(294);
+  const [duration, setDuration] = useState(0);
   const [audioError, setAudioError] = useState(false);
+  const [trackIdx, setTrackIdx] = useState(() => pick(-1));
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const barRef = useRef<HTMLDivElement | null>(null);
+  const playRef = useRef(false);
+  const track = TRACKS[trackIdx];
 
   const toggle = () => {
     const a = audioRef.current;
     if (!a || audioError) return;
     if (playing) {
+      playRef.current = false;
       a.pause();
     } else {
-      a.play().catch(() => setAudioError(true));
+      playRef.current = true;
+      a.play().catch(() => {
+        playRef.current = false;
+        setAudioError(true);
+      });
     }
   };
 
@@ -49,6 +77,12 @@ export default function SpotifyPlayer({ artSrcCollapsed, artSrcExpanded, title }
     const preloadAudio = () => {
       a.preload = "metadata";
       a.load();
+      if (playRef.current) {
+        a.play().catch(() => {
+          playRef.current = false;
+          setPlaying(false);
+        });
+      }
     };
     if (document.readyState === "complete") {
       preloadAudio();
@@ -56,14 +90,17 @@ export default function SpotifyPlayer({ artSrcCollapsed, artSrcExpanded, title }
       window.addEventListener("load", preloadAudio, { once: true });
       return () => window.removeEventListener("load", preloadAudio);
     }
-  }, []);
+  }, [trackIdx]);
 
   useEffect(() => {
     const a = audioRef.current;
     if (!a) return;
     const onTime = () => setCurrent(a.currentTime);
     const onLoaded = () => setDuration(a.duration || 0);
-    const onEnded = () => setPlaying(false);
+    const onEnded = () => {
+      setCurrent(0);
+      setTrackIdx((i) => pick(i));
+    };
     const onPlay = () => setPlaying(true);
     const onPause = () => setPlaying(false);
     const onError = () => setAudioError(true);
@@ -84,7 +121,7 @@ export default function SpotifyPlayer({ artSrcCollapsed, artSrcExpanded, title }
       a.removeEventListener("pause", onPause);
       a.removeEventListener("error", onError);
     };
-  }, []);
+  }, [trackIdx]);
 
   const pct = duration ? (current / duration) * 100 : 0;
 
@@ -112,7 +149,7 @@ export default function SpotifyPlayer({ artSrcCollapsed, artSrcExpanded, title }
         </div>
         <div className="flex flex-col min-w-0">
           <span className="font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text leading-none">Now Playing</span>
-          <span className="font-outfit font-medium text-[14px] text-text leading-none truncate tracking-[-0.003em]">{title}</span>
+          <span className="font-outfit font-medium text-[14px] text-text leading-none truncate tracking-[-0.003em]">{track.title}</span>
         </div>
       </div>
 
@@ -144,7 +181,7 @@ export default function SpotifyPlayer({ artSrcCollapsed, artSrcExpanded, title }
           </div>
           <div className="flex flex-col min-w-0">
             <span className="font-dm text-[11px] tracking-[0.08em] uppercase text-accent-soft">Now Playing</span>
-            <span className="font-outfit font-medium text-[14px] text-text truncate tracking-[-0.003em]">{title}</span>
+            <span className="font-outfit font-medium text-[14px] text-text truncate tracking-[-0.003em]">{track.title}</span>
           </div>
           <div className="flex items-end gap-0.5 h-3 ml-1 shrink-0" aria-hidden="true">
             <span className={`w-0.5 bg-accent rounded-full origin-bottom ${playing ? "animate-bar-1 h-3" : ""}`} style={!playing ? { height: 6 } : undefined} />
@@ -175,9 +212,9 @@ export default function SpotifyPlayer({ artSrcCollapsed, artSrcExpanded, title }
           </div>
         </div>
 
-        <audio ref={audioRef} preload="none" style={{ display: "none" }}>
-          <source src="/thenoise.webm" type="audio/webm" />
-          <source src="/thenoise.mp3" type="audio/mpeg" />
+        <audio key={track.slug} ref={audioRef} preload="none" style={{ display: "none" }}>
+          <source src={`/${track.slug}.webm`} type="audio/webm" />
+          <source src={`/${track.slug}.mp3`} type="audio/mpeg" />
         </audio>
       </div>
     </div>

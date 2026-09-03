@@ -160,7 +160,7 @@ export default function NotFoundScatter() {
       </div>
       <div className="flex flex-col items-center gap-4 text-center">
         <p className="font-dm font-bold text-[22px] sm:text-[26px] leading-none tracking-tight text-text uppercase">Everything is STILL AWESOME!</p>
-        <p className="font-outfit text-[14px] leading-[1.5] text-muted-text max-w-[42ch]">Maybe the real website was the friends we made along the way.</p>
+        <p className="font-outfit text-[14px] leading-[1.5] text-muted-text max-w-[42ch] sm:max-w-none sm:whitespace-nowrap">Maybe the real website was the friends we made along the way.</p>
         <div className="flex items-center gap-6">
           <ScrambleLink href="/">RETURN HOME</ScrambleLink>
           <span className="text-line">/</span>

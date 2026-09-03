@@ -15,7 +15,7 @@ const chapters = [
     badge: "2026",
     title: "THE TRIO LEVELS UP",
     team: "SYNDICATION",
-    copy: "Kept competing as a trio seperate from the larger & experienced squad.",
+    copy: "Kept competing as a trio separate from the larger and experienced squad.",
     achievements: achievements2026Syndication,
   },
   {
@@ -37,14 +37,25 @@ const chapters = [
       <p class="font-outfit text-[clamp(18px,2.1vw,21px)] leading-[1.55] text-muted-text tracking-[-0.005em]">Some sleepless nights and loads of caffeine</p>
     </div>
 
-    <div class="flex items-center gap-3.5 bg-surface border border-dashed border-accent px-4 py-4 mb-12 sm:mb-16">
-      <img src="/images/medal.svg" alt="" width="20" height="20" class="w-5 h-5" loading="lazy" decoding="async" />
-      <span class="font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text">les réalisations</span>
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3 bg-surface border border-dashed border-accent px-4 py-4 mb-8">
+      <div class="flex items-center gap-3.5 flex-1">
+        <img src="/images/medal.svg" alt="" width="20" height="20" class="w-5 h-5" loading="lazy" decoding="async" />
+        <span class="font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text">les réalisations</span>
+      </div>
+      <input id="journey-search" type="search" placeholder="FILTER EVENTS" autocomplete="off" spellcheck="false" aria-label="Filter events" class="w-full sm:w-[240px] bg-raised-surface border border-line px-3 py-2.5 font-dm text-[11px] tracking-[0.08em] uppercase text-text placeholder:text-muted-text/60 focus:border-accent focus:outline-none" />
+    </div>
+
+    <div class="sticky top-[56px] sm:top-[60px] z-30 py-3 bg-background/90 backdrop-blur-sm flex flex-wrap gap-2 mb-8">
+      {chapters.map((ch) => (
+        <a href={`#${ch.id}`} class="inline-flex items-center gap-2 bg-surface border border-line px-3 py-2 font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text hover:text-text hover:border-accent/40 transition-colors">
+          {ch.badge} {ch.team}
+        </a>
+      ))}
     </div>
 
     <div class="flex flex-col gap-10 sm:gap-12">
       {chapters.map((ch, idx) => (
-        <details class="group/details bg-transparent" open={idx === 0}>
+        <details id={ch.id} data-chapter class="group/details bg-transparent scroll-mt-36" open={idx === 0}>
           <summary class="list-none cursor-pointer [&::-webkit-details-marker]:hidden">
             <div class="flex flex-col sm:flex-row gap-4 sm:gap-6 group/details-summary">
               <div class="w-full sm:w-[170px] shrink-0 bg-accent flex flex-col items-center justify-center py-5 sm:py-6 border border-accent shadow-[4px_4px_0px_#21172C] relative">
@@ -65,7 +76,7 @@ const chapters = [
           </summary>
           <div class="flex flex-col divide-y divide-line border-t border-line mt-8">
             {ch.achievements.map((a) => (
-              <div class="group flex flex-col sm:flex-row sm:items-stretch gap-4 sm:gap-5 py-5 sm:py-6 px-0 sm:px-4 hover:bg-[rgba(33,23,44,0.5)] transition-colors duration-150">
+              <div class="group journey-row flex flex-col sm:flex-row sm:items-stretch gap-4 sm:gap-5 py-5 sm:py-6 px-0 sm:px-4 hover:bg-[rgba(33,23,44,0.5)] transition-colors duration-150" data-search={`${a.title} ${a.organizer} ${a.team} ${a.dates}`.toLowerCase()}>
                 <div class="w-full sm:w-[170px] shrink-0 bg-raised-surface border border-line p-4 flex flex-col justify-center items-center text-center gap-1.5 group-hover:border-accent/40 transition-colors duration-150 sm:min-h-[88px]">
                   <p class="font-dm font-bold text-[15px] text-text leading-none">{a.rating}</p>
                   <p class="font-outfit font-medium text-[13px] tracking-[0.02em] text-accent-soft uppercase">{a.source && a.source !== "-" ? a.source : ""}</p>
@@ -89,5 +100,31 @@ const chapters = [
         </details>
       ))}
     </div>
+
+    <div id="journey-empty" class="hidden border border-dashed border-line px-4 py-10 mt-10 text-center font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text">NO EVENTS MATCH THAT FILTER</div>
   </div>
 </section>
+
+<script>
+  const input = document.getElementById("journey-search");
+  const empty = document.getElementById("journey-empty");
+  const rows = Array.from(document.querySelectorAll(".journey-row"));
+  const boxes = Array.from(document.querySelectorAll("details[data-chapter]")) as HTMLDetailsElement[];
+  const paint = () => {
+    const q = ((input instanceof HTMLInputElement && input.value) || "").trim().toLowerCase();
+    let shown = 0;
+    rows.forEach((r) => {
+      const hit = !q || (r.getAttribute("data-search") || "").includes(q);
+      r.classList.toggle("hidden", !hit);
+      if (hit) shown += 1;
+    });
+    boxes.forEach((d) => {
+      if (q) d.open = true;
+    });
+    if (empty) empty.classList.toggle("hidden", shown !== 0);
+  };
+  if (input) {
+    input.addEventListener("input", paint);
+    paint();
+  }
+</script>

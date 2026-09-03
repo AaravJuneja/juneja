@@ -7,4 +7,4 @@ const COLLAPSED = await getImage({ src: spotifyCover, width: 56, height: 56, for
 const EXPANDED = await getImage({ src: spotifyCover, width: 88, height: 88, format: "webp", quality: 90 });
 ---
 
-<SpotifyPlayer client:idle artSrcCollapsed={COLLAPSED.src} artSrcExpanded={EXPANDED.src} title="Birthday Suit" />
+<SpotifyPlayer client:idle artSrcCollapsed={COLLAPSED.src} artSrcExpanded={EXPANDED.src} />

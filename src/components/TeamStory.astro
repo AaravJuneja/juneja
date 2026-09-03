@@ -38,15 +38,15 @@
       <!-- Rating Grid -->
       <div class="w-full lg:w-[480px] shrink-0 grid grid-cols-2 gap-3.5">
         <div class="group bg-raised-surface border border-line p-5 flex flex-col items-center justify-center gap-2 text-center hover:border-accent/30 hover:-translate-y-0.5 transition-all duration-150">
-          <p class="font-dm font-bold text-[22px] text-text group-hover:text-accent transition-colors duration-150">219.890</p>
+          <p class="font-dm font-bold text-[22px] text-text tabular-nums group-hover:text-accent transition-colors duration-150" data-count="219.89" data-decimals="3">219.890</p>
           <p class="font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text leading-tight whitespace-nowrap">2025 RATING POINTS</p>
         </div>
         <div class="group bg-raised-surface border border-accent p-5 flex flex-col items-center justify-center gap-2 text-center hover:shadow-[4px_4px_0px_0px_#A869DB] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-150">
-          <p class="font-dm font-bold text-[22px] text-text">455.576</p>
+          <p class="font-dm font-bold text-[22px] text-text tabular-nums" data-count="455.576" data-decimals="3">455.576</p>
           <p class="font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text leading-tight whitespace-nowrap">0BSCURI7Y · 2026 RP</p>
         </div>
         <div class="group bg-raised-surface border border-line p-5 flex flex-col items-center justify-center gap-2 text-center hover:border-accent/30 hover:-translate-y-0.5 transition-all duration-150">
-          <p class="font-dm font-bold text-[22px] text-text group-hover:text-accent transition-colors duration-150">#12</p>
+          <p class="font-dm font-bold text-[22px] text-text tabular-nums group-hover:text-accent transition-colors duration-150"><span data-count="12" data-decimals="0" data-prefix="#">#12</span></p>
           <p class="font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text leading-tight whitespace-nowrap">INDIA · 2025</p>
         </div>
         <div class="group bg-raised-surface border border-line p-5 flex flex-col items-center justify-center gap-2 text-center hover:border-accent/30 hover:-translate-y-0.5 transition-all duration-150">
@@ -57,3 +57,39 @@
     </div>
   </div>
 </section>
+
+<script>
+  const nums = Array.from(document.querySelectorAll("[data-count]"));
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const expo = (p: number) => (p >= 1 ? 1 : 1 - Math.pow(2, -10 * p));
+  const run = (el: Element, delay: number) => {
+    const target = parseFloat(el.getAttribute("data-count") || "0");
+    const decimals = parseInt(el.getAttribute("data-decimals") || "0", 10);
+    const prefix = el.getAttribute("data-prefix") || "";
+    if (reduced || !isFinite(target)) return;
+    const dur = 1600;
+    let start = 0;
+    const step = (t: number) => {
+      if (!start) start = t;
+      const p = Math.min(1, Math.max(0, (t - start - delay) / dur));
+      el.textContent = prefix + (target * expo(p)).toFixed(decimals);
+      if (p < 1 && el.isConnected) window.requestAnimationFrame(step);
+      else el.textContent = prefix + target.toFixed(decimals);
+    };
+    window.requestAnimationFrame(step);
+  };
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            run(e.target, nums.indexOf(e.target) * 120);
+            io.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.4 }
+    );
+    nums.forEach((n) => io.observe(n));
+  }
+</script>
