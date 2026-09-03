@@ -16,7 +16,6 @@ export default function KonamiPwned() {
       localStorage.setItem("pwned", "1");
     } catch {}
     window.dispatchEvent(new CustomEvent("konami:pwned"));
-    window.dispatchEvent(new CustomEvent("arcade:doors"));
   };
 
   useEffect(() => {
@@ -55,24 +54,15 @@ export default function KonamiPwned() {
 
   if (!pwned) return null;
   return (
-    <div
-      style={{
-        position: "fixed",
-        bottom: 20,
-        right: 20,
-        zIndex: 999998,
-        fontFamily: '"DM Retrograde", monospace',
-        fontSize: 14,
-        color: "var(--accent-soft)",
-        background: "rgba(10,7,16,0.9)",
-        border: "1px solid var(--accent)",
-        borderRadius: 12,
-        padding: "12px 16px",
-        lineHeight: 1.4,
-        whiteSpace: "pre",
-      }}
-    >
-      {`┌─────┐\n│ what did you expect ;-; │\n└─────┘`}
+    <div className="fixed bottom-5 right-5 z-[999998] w-[290px] bg-background/95 border border-accent rounded-xl p-4 flex flex-col gap-2.5 shadow-[6px_6px_0px_0px_var(--color-accent)]">
+      <div className="flex items-center gap-2">
+        <img src="/images/trophy.svg" alt="" width="16" height="16" className="w-4 h-4 theme-icon" loading="lazy" decoding="async" />
+        <p className="font-dm text-[11px] tracking-[0.08em] uppercase text-accent">CHEAT ACCEPTED</p>
+        <span className="ml-auto font-dm text-[11px] tracking-[0.08em] uppercase text-background bg-accent px-2 py-0.5">+9 LIVES</span>
+      </div>
+      <p className="font-outfit text-[14px] leading-snug text-text tracking-[-0.003em]">
+        congrats on getting free lives! no clue what you'll do with these but they're yours now. try not to waste them.
+      </p>
     </div>
   );
 }
