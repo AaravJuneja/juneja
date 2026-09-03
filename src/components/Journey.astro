@@ -32,22 +32,22 @@ const chapters = [
 <section id="journey" data-reveal class="w-full">
   <div class="w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-12 pt-20 sm:pt-24 pb-16 sm:pb-20">
     <div class="max-w-[820px] flex flex-col gap-4 mb-6">
-      <p class="font-dm text-[11px] tracking-[0.08em] uppercase text-accent">RECEIPTS</p>
-      <h2 class="font-dm font-bold text-[clamp(26px,4vw,34px)] leading-tight text-text uppercase">CTF ACHIEVEMENTS</h2>
+      <p class="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-accent">RECEIPTS</p>
+      <h2 class="font-dm trim-caps font-bold text-[clamp(26px,4vw,34px)] leading-tight text-text uppercase">CTF ACHIEVEMENTS</h2>
       <p class="font-outfit text-[clamp(18px,2.1vw,21px)] leading-[1.55] text-muted-text tracking-[-0.005em]">Some sleepless nights and loads of caffeine</p>
     </div>
 
     <div class="flex flex-col sm:flex-row sm:items-center gap-3 bg-surface border border-dashed border-accent px-4 py-4 mb-8">
       <div class="flex items-center gap-3.5 flex-1">
         <img src="/images/medal.svg" alt="" width="20" height="20" class="w-5 h-5 theme-icon" loading="lazy" decoding="async" />
-        <span class="font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text">les réalisations</span>
+        <span class="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-muted-text">les réalisations</span>
       </div>
-      <input id="journey-search" type="search" placeholder="FILTER EVENTS" autocomplete="off" spellcheck="false" aria-label="Filter events" class="w-full sm:w-[240px] bg-raised-surface border border-line px-3 py-2.5 font-dm text-[11px] tracking-[0.08em] uppercase text-text placeholder:text-muted-text/60 focus:border-accent focus:outline-none" />
+      <input id="journey-search" type="search" placeholder="FILTER EVENTS" autocomplete="off" spellcheck="false" aria-label="Filter events" class="w-full sm:w-[240px] bg-raised-surface border border-line px-3 py-2.5 font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-text placeholder:text-muted-text/60 focus:border-accent focus:outline-none" />
     </div>
 
     <div class="sticky top-[56px] sm:top-[60px] z-30 py-3 bg-background/90 backdrop-blur-sm flex flex-wrap gap-2 mb-8">
       {chapters.map((ch) => (
-        <a href={`#${ch.id}`} class="inline-flex items-center gap-2 bg-surface border border-line px-3 py-2 font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text hover:text-text hover:border-accent/40 transition-colors">
+        <a href={`#${ch.id}`} class="inline-flex items-center gap-2 bg-surface border border-line px-3 py-2 font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-muted-text hover:text-text hover:border-accent/40 transition-colors">
           {ch.badge} {ch.team}
         </a>
       ))}
@@ -59,17 +59,17 @@ const chapters = [
           <summary class="list-none cursor-pointer [&::-webkit-details-marker]:hidden">
             <div class="flex flex-col sm:flex-row gap-4 sm:gap-6 group/details-summary">
               <div class="w-full sm:w-[170px] shrink-0 bg-accent flex flex-col items-center justify-center py-5 sm:py-6 border border-accent shadow-[4px_4px_0px_var(--color-raised-surface)] relative">
-                <span class="font-dm text-[10px] leading-none tracking-[0.08em] uppercase text-background/60">YEAR</span>
-                <span class="font-dm font-bold text-2xl leading-none text-background">{ch.badge}</span>
+                <span class="font-dm trim-caps text-[10px] leading-none tracking-[0.08em] uppercase text-background/60">YEAR</span>
+                <span class="font-dm trim-caps font-bold text-2xl leading-none text-background">{ch.badge}</span>
               </div>
               <div class="flex-1 bg-surface border border-line p-5 sm:p-6 flex flex-col gap-2.5 relative">
                 <div class="flex flex-wrap items-center gap-x-3 gap-y-2 pr-6 sm:pr-0">
-                  <h3 class="font-dm font-bold text-[17px] sm:text-[18px] tracking-tight text-text uppercase">{ch.title}</h3>
-                  <span class="inline-flex items-center bg-accent/10 border border-accent/20 px-2.5 py-1 font-dm text-[11px] tracking-[0.08em] uppercase text-accent">{ch.team}</span>
+                  <h3 class="font-dm trim-caps font-bold text-[17px] sm:text-[18px] tracking-tight text-text uppercase">{ch.title}</h3>
+                  <span class="inline-flex items-center bg-accent/10 border border-accent/20 px-2.5 py-1 font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-accent">{ch.team}</span>
                 </div>
                 <p class="font-outfit text-[15px] sm:text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">{ch.copy}</p>
-                <span class="hidden sm:block absolute right-4 top-1/2 -translate-y-1/2 font-dm text-muted-text text-lg leading-none select-none !cursor-pointer group-open/details:rotate-180 transition-transform duration-200" style="cursor:pointer">⌄</span>
-                <span class="sm:hidden absolute right-4 top-1/2 -translate-y-1/2 font-dm text-muted-text text-lg leading-none select-none !cursor-pointer group-open/details:rotate-180 transition-transform duration-200" style="cursor:pointer">⌄</span>
+                <span class="hidden sm:block absolute right-4 top-1/2 -translate-y-1/2 font-dm trim-caps text-muted-text text-lg leading-none select-none !cursor-pointer group-open/details:rotate-180 transition-transform duration-200" style="cursor:pointer">⌄</span>
+                <span class="sm:hidden absolute right-4 top-1/2 -translate-y-1/2 font-dm trim-caps text-muted-text text-lg leading-none select-none !cursor-pointer group-open/details:rotate-180 transition-transform duration-200" style="cursor:pointer">⌄</span>
               </div>
             </div>
           </summary>
@@ -77,13 +77,13 @@ const chapters = [
             {ch.achievements.map((a) => (
               <div class="group journey-row flex flex-col sm:flex-row sm:items-stretch gap-4 sm:gap-5 py-5 sm:py-6 px-0 sm:px-4 hover:bg-[color-mix(in_srgb,var(--color-raised-surface)_50%,transparent)] transition-colors duration-150" data-search={`${a.title} ${a.organizer} ${a.team} ${a.dates}`.toLowerCase()}>
                 <div class="w-full sm:w-[170px] shrink-0 bg-raised-surface border border-line p-4 flex flex-col justify-center items-center text-center gap-1.5 group-hover:border-accent/40 transition-colors duration-150 sm:min-h-[88px]">
-                  <p class="font-dm font-bold text-[15px] text-text leading-none">{a.rating}</p>
+                  <p class="font-dm trim-caps font-bold text-[15px] text-text leading-none">{a.rating}</p>
                   <p class="font-outfit font-medium text-[13px] tracking-[0.02em] text-accent-soft uppercase">{a.source && a.source !== "-" ? a.source : ""}</p>
                 </div>
                 <div class="flex-1 flex flex-col gap-2.5 min-w-0">
                   <div class="flex flex-wrap items-center gap-3">
-                    <a href={a.href} target="_blank" rel="noopener noreferrer" class="font-dm font-bold text-[16px] sm:text-[18px] text-text hover:text-accent transition-colors break-words">{a.title}</a>
-                    <span class="ml-auto inline-flex items-center border border-line px-2 py-1 font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text group-hover:border-accent/30 transition-colors duration-150">{a.team}</span>
+                    <a href={a.href} target="_blank" rel="noopener noreferrer" class="font-dm trim-caps font-bold text-[16px] sm:text-[18px] text-text hover:text-accent transition-colors break-words">{a.title}</a>
+                    <span class="ml-auto inline-flex items-center border border-line px-2 py-1 font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-muted-text group-hover:border-accent/30 transition-colors duration-150">{a.team}</span>
                   </div>
                   <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <span class="font-outfit font-medium text-[14px] text-muted-text tracking-[-0.003em]">{a.dates}</span>
@@ -100,7 +100,7 @@ const chapters = [
       ))}
     </div>
 
-    <div id="journey-empty" class="hidden border border-dashed border-line px-4 py-10 mt-10 text-center font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text">NO EVENTS MATCH THAT FILTER</div>
+    <div id="journey-empty" class="hidden border border-dashed border-line px-4 py-10 mt-10 text-center font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-muted-text">NO EVENTS MATCH THAT FILTER</div>
   </div>
 </section>
 

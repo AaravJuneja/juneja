@@ -5,8 +5,8 @@ import { repositories } from "../data.ts";
 <section id="writeups" data-reveal class="w-full bg-surface">
   <div class="w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-12 py-16 sm:py-22">
     <div class="max-w-[820px] flex flex-col gap-4 mb-11">
-      <p class="font-dm text-[11px] tracking-[0.08em] uppercase text-accent">WRITEUPS</p>
-      <h2 class="font-dm font-bold text-[clamp(26px,4vw,34px)] leading-tight text-text uppercase">PUBLIC CTF WRITEUPS</h2>
+      <p class="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-accent">WRITEUPS</p>
+      <h2 class="font-dm trim-caps font-bold text-[clamp(26px,4vw,34px)] leading-tight text-text uppercase">PUBLIC CTF WRITEUPS</h2>
       <p class="font-outfit text-[clamp(18px,2.1vw,21px)] leading-[1.55] text-muted-text tracking-[-0.005em]">Three public repositories documenting solved challenges,<br class="hidden sm:block" />official releases and the work behind the flags.</p>
     </div>
 
@@ -17,20 +17,20 @@ import { repositories } from "../data.ts";
             <div class="flex flex-col gap-3">
               <div class="flex items-center gap-2.5">
                 <img src="/images/github-icon.svg" alt="" width="18" height="18" class="w-[18px] h-[18px] theme-icon" loading="lazy" decoding="async" />
-                <span class="font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text">{repo.owner}</span>
-                <span class="font-dm text-[10px] tracking-[0.08em] uppercase text-background bg-accent px-2 py-0.5">LATEST</span>
+                <span class="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-muted-text">{repo.owner}</span>
+                <span class="font-dm trim-caps text-[10px] tracking-[0.08em] uppercase text-background bg-accent px-2 py-0.5">LATEST</span>
               </div>
-              <h3 class="font-dm font-bold text-[20px] sm:text-[22px] leading-tight text-text break-words">{repo.title}</h3>
+              <h3 class="font-dm trim-caps font-bold text-[20px] sm:text-[22px] leading-tight text-text break-words">{repo.title}</h3>
               <p class="font-outfit text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">{repo.summary}</p>
             </div>
             <div class="flex flex-col justify-between gap-6">
               <div class="flex flex-wrap gap-1.5 sm:justify-end">
                 {repo.coverage.split("·").map((c) => (
-                  <span class="inline-flex items-center bg-accent/10 border border-accent/20 px-2 py-1 font-dm text-[10px] tracking-[0.08em] uppercase text-accent-soft">{c.trim()}</span>
+                  <span class="inline-flex items-center bg-accent/10 border border-accent/20 px-2 py-1 font-dm trim-caps text-[10px] tracking-[0.08em] uppercase text-accent-soft">{c.trim()}</span>
                 ))}
               </div>
               <div class="flex items-center justify-between border-t border-accent/35 pt-4">
-                <span class="font-dm text-[10px] tracking-[0.08em] uppercase text-muted-text">{repo.updated}</span>
+                <span class="font-dm trim-caps text-[10px] tracking-[0.08em] uppercase text-muted-text">{repo.updated}</span>
                 <img src="/images/arrow-up-right.svg" alt="" width="18" height="18" class="w-[18px] h-[18px] opacity-60 group-hover:opacity-100 theme-icon group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-150" loading="lazy" decoding="async" />
               </div>
             </div>
@@ -40,17 +40,17 @@ import { repositories } from "../data.ts";
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2.5">
                 <img src="/images/github-icon.svg" alt="" width="18" height="18" class="w-[18px] h-[18px] theme-icon" loading="lazy" decoding="async" />
-                <span class="font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text">{repo.owner}</span>
+                <span class="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-muted-text">{repo.owner}</span>
               </div>
               <img src="/images/arrow-up-right.svg" alt="" width="18" height="18" class="w-[18px] h-[18px] opacity-60 group-hover:opacity-100 theme-icon group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-150" loading="lazy" decoding="async" />
             </div>
 
             <div class="flex flex-col gap-3 flex-1">
-              <h3 class="font-dm font-bold text-[17px] sm:text-[18px] leading-tight text-text break-words">{repo.title}</h3>
+              <h3 class="font-dm trim-caps font-bold text-[17px] sm:text-[18px] leading-tight text-text break-words">{repo.title}</h3>
               <p class="font-outfit text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">{repo.summary}</p>
               <div class="flex flex-wrap gap-1.5">
                 {repo.coverage.split("·").map((c) => (
-                  <span class="inline-flex items-center bg-accent/10 border border-accent/20 px-2 py-1 font-dm text-[10px] tracking-[0.08em] uppercase text-accent-soft">{c.trim()}</span>
+                  <span class="inline-flex items-center bg-accent/10 border border-accent/20 px-2 py-1 font-dm trim-caps text-[10px] tracking-[0.08em] uppercase text-accent-soft">{c.trim()}</span>
                 ))}
               </div>
             </div>
@@ -58,14 +58,14 @@ import { repositories } from "../data.ts";
             <div class="h-px bg-accent/35"></div>
 
             <div class="flex items-center">
-              <span class="font-dm text-[10px] tracking-[0.08em] uppercase text-muted-text">{repo.updated}</span>
+              <span class="font-dm trim-caps text-[10px] tracking-[0.08em] uppercase text-muted-text">{repo.updated}</span>
             </div>
           </a>
         )
       ))}
       <a href="https://github.com/AaravJuneja?tab=repositories" target="_blank" rel="noopener noreferrer" class="group md:col-span-2 lg:col-span-2 bg-transparent border border-dashed border-line p-5 sm:p-6 flex items-center justify-between gap-4 hover:border-accent/50 transition-colors duration-150">
         <div class="flex flex-col gap-1.5">
-          <span class="font-dm font-bold text-[17px] sm:text-[18px] text-text uppercase">VIEW ALL REPOS</span>
+          <span class="font-dm trim-caps font-bold text-[17px] sm:text-[18px] text-text uppercase">VIEW ALL REPOS</span>
           <span class="font-mono text-[12px] text-muted-text">github.com/AaravJuneja</span>
         </div>
         <img src="/images/arrow-up-right.svg" alt="" width="18" height="18" class="w-[18px] h-[18px] opacity-60 group-hover:opacity-100 theme-icon group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-150" loading="lazy" decoding="async" />

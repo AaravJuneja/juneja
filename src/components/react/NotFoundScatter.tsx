@@ -49,7 +49,7 @@ function ScrambleLink({ href, children }: { href: string; children: string }) {
       href={href}
       onMouseEnter={start}
       onMouseLeave={stop}
-      className="font-dm text-[11px] tracking-[0.08em] uppercase text-accent hover:text-accent-soft transition-colors underline underline-offset-4 decoration-accent/30 hover:decoration-accent"
+      className="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-accent hover:text-accent-soft transition-colors underline underline-offset-4 decoration-accent/30 hover:decoration-accent"
     >
       {children}
     </a>
@@ -151,7 +151,7 @@ export default function NotFoundScatter() {
             ref={(el) => {
               if (el) cellsRef.current[i] = el;
             }}
-            className="flex items-center justify-center font-dm font-bold text-[48px] sm:text-[56px] leading-none border border-line bg-raised-surface text-text"
+            className="flex items-center justify-center font-dm trim-caps font-bold text-[48px] sm:text-[56px] leading-none border border-line bg-raised-surface text-text"
             style={{ opacity: 0, willChange: "transform, opacity" }}
           >
             {ch}
@@ -159,7 +159,7 @@ export default function NotFoundScatter() {
         ))}
       </div>
       <div className="flex flex-col items-center gap-4 text-center">
-        <p className="font-dm font-bold text-[22px] sm:text-[26px] leading-none tracking-tight text-text uppercase">Everything is STILL AWESOME!</p>
+        <p className="font-dm trim-caps font-bold text-[22px] sm:text-[26px] leading-none tracking-tight text-text uppercase">Everything is STILL AWESOME!</p>
         <p className="font-outfit text-[14px] leading-[1.5] text-muted-text max-w-[42ch] sm:max-w-none sm:whitespace-nowrap">Maybe the real website was the friends we made along the way.</p>
         <div className="flex items-center gap-6">
           <ScrambleLink href="/">RETURN HOME</ScrambleLink>

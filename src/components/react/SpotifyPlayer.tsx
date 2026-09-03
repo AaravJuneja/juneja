@@ -194,7 +194,7 @@ export default function SpotifyPlayer({ covers }: Props) {
           <img src={covers[track.cover].collapsed} alt="Album Art" width={28} height={28} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="eager" decoding="async" fetchPriority="high" />
         </div>
         <div className="flex flex-col min-w-0">
-          <span className="font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text leading-none">Now Playing</span>
+          <span className="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-muted-text leading-none">Now Playing</span>
           <span className="font-outfit font-medium text-[14px] text-text leading-none truncate tracking-[-0.003em]">{track.title}</span>
         </div>
       </div>
@@ -226,7 +226,7 @@ export default function SpotifyPlayer({ covers }: Props) {
             <div className="absolute inset-0 bg-accent/10 mix-blend-overlay" />
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="font-dm text-[11px] tracking-[0.08em] uppercase text-accent-soft">Now Playing</span>
+            <span className="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-accent-soft">Now Playing</span>
             <span className="font-outfit font-medium text-[14px] text-text truncate tracking-[-0.003em]">{track.title}</span>
           </div>
           <div className="flex items-end gap-0.5 h-3 ml-1 shrink-0" aria-hidden="true">
