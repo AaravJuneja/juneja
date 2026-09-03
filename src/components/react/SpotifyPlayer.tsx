@@ -176,7 +176,7 @@ export default function SpotifyPlayer({ covers }: Props) {
       onMouseEnter={() => setExpanded(true)}
       onMouseLeave={() => setExpanded(false)}
       className="relative shrink-0"
-      style={{ width: expanded ? 340 : 180, height: 44, transition: "all 200ms ease" }}
+      style={{ width: expanded ? "min(340px, calc(100vw - 48px))" : 180, height: 44, transition: "all 200ms ease" }}
     >
       <div
         className="absolute inset-0 flex items-center gap-3 px-3 border border-line hover:border-line transition-colors cursor-pointer"
@@ -202,7 +202,7 @@ export default function SpotifyPlayer({ covers }: Props) {
       <div
         className="absolute right-0 top-0 flex flex-col gap-3 p-3 border border-line overflow-hidden"
         style={{
-          width: 340,
+          width: "min(340px, calc(100vw - 48px))",
           height: "auto",
           minHeight: 110,
           borderRadius: 12,
