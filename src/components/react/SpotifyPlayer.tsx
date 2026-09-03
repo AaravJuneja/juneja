@@ -32,7 +32,7 @@ export default function SpotifyPlayer({ artSrcCollapsed, artSrcExpanded }: Props
   const [current, setCurrent] = useState(0);
   const [duration, setDuration] = useState(0);
   const [audioError, setAudioError] = useState(false);
-  const [trackIdx, setTrackIdx] = useState(() => pick(-1));
+  const [trackIdx, setTrackIdx] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const barRef = useRef<HTMLDivElement | null>(null);
   const playRef = useRef(false);
@@ -70,6 +70,10 @@ export default function SpotifyPlayer({ artSrcCollapsed, artSrcExpanded }: Props
     a.currentTime = pct * duration;
     setCurrent(pct * duration);
   };
+
+  useEffect(() => {
+    setTrackIdx(pick(-1));
+  }, []);
 
   useEffect(() => {
     const a = audioRef.current;
