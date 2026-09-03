@@ -14,6 +14,7 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
     "astro": "^7.3.1",
     "fast-uri": "4.1.4",
     "react": "^19.2.8",
@@ -27,7 +28,7 @@
     "@types/react-dom": "^19.2.7",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
-    "wrangler": "^4.128.0"
+    "wrangler": "^4.129.0"
   },
   "allowScripts": {
     "esbuild": true
