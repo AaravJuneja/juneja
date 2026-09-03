@@ -39,7 +39,7 @@ const chapters = [
 
     <div class="flex flex-col sm:flex-row sm:items-center gap-3 bg-surface border border-dashed border-accent px-4 py-4 mb-8">
       <div class="flex items-center gap-3.5 flex-1">
-        <img src="/images/medal.svg" alt="" width="20" height="20" class="w-5 h-5" loading="lazy" decoding="async" />
+        <img src="/images/medal.svg" alt="" width="20" height="20" class="w-5 h-5 theme-icon" loading="lazy" decoding="async" />
         <span class="font-dm text-[11px] tracking-[0.08em] uppercase text-muted-text">les réalisations</span>
       </div>
       <input id="journey-search" type="search" placeholder="FILTER EVENTS" autocomplete="off" spellcheck="false" aria-label="Filter events" class="w-full sm:w-[240px] bg-raised-surface border border-line px-3 py-2.5 font-dm text-[11px] tracking-[0.08em] uppercase text-text placeholder:text-muted-text/60 focus:border-accent focus:outline-none" />
@@ -58,7 +58,7 @@ const chapters = [
         <details id={ch.id} data-chapter class="group/details bg-transparent scroll-mt-36" open={idx === 0}>
           <summary class="list-none cursor-pointer [&::-webkit-details-marker]:hidden">
             <div class="flex flex-col sm:flex-row gap-4 sm:gap-6 group/details-summary">
-              <div class="w-full sm:w-[170px] shrink-0 bg-accent flex flex-col items-center justify-center py-5 sm:py-6 border border-accent shadow-[4px_4px_0px_#21172C] relative">
+              <div class="w-full sm:w-[170px] shrink-0 bg-accent flex flex-col items-center justify-center py-5 sm:py-6 border border-accent shadow-[4px_4px_0px_var(--color-raised-surface)] relative">
                 <span class="font-dm text-[10px] leading-none tracking-[0.08em] uppercase text-background/60">YEAR</span>
                 <span class="font-dm font-bold text-2xl leading-none text-background">{ch.badge}</span>
                 <span class="absolute right-3 top-1/2 -translate-y-1/2 sm:hidden font-dm text-background text-lg leading-none select-none !cursor-pointer group-open/details:rotate-180 transition-transform duration-200" style="cursor:pointer">⌄</span>
@@ -76,7 +76,7 @@ const chapters = [
           </summary>
           <div class="flex flex-col divide-y divide-line border-t border-line mt-8">
             {ch.achievements.map((a) => (
-              <div class="group journey-row flex flex-col sm:flex-row sm:items-stretch gap-4 sm:gap-5 py-5 sm:py-6 px-0 sm:px-4 hover:bg-[rgba(33,23,44,0.5)] transition-colors duration-150" data-search={`${a.title} ${a.organizer} ${a.team} ${a.dates}`.toLowerCase()}>
+              <div class="group journey-row flex flex-col sm:flex-row sm:items-stretch gap-4 sm:gap-5 py-5 sm:py-6 px-0 sm:px-4 hover:bg-[color-mix(in_srgb,var(--color-raised-surface)_50%,transparent)] transition-colors duration-150" data-search={`${a.title} ${a.organizer} ${a.team} ${a.dates}`.toLowerCase()}>
                 <div class="w-full sm:w-[170px] shrink-0 bg-raised-surface border border-line p-4 flex flex-col justify-center items-center text-center gap-1.5 group-hover:border-accent/40 transition-colors duration-150 sm:min-h-[88px]">
                   <p class="font-dm font-bold text-[15px] text-text leading-none">{a.rating}</p>
                   <p class="font-outfit font-medium text-[13px] tracking-[0.02em] text-accent-soft uppercase">{a.source && a.source !== "-" ? a.source : ""}</p>
@@ -119,7 +119,11 @@ const chapters = [
       if (hit) shown += 1;
     });
     boxes.forEach((d) => {
-      if (q) d.open = true;
+      const hits = Array.from(d.querySelectorAll(".journey-row")).filter(
+        (r) => !r.classList.contains("hidden")
+      ).length;
+      d.classList.toggle("hidden", q !== "" && hits === 0);
+      if (q && hits > 0) d.open = true;
     });
     if (empty) empty.classList.toggle("hidden", shown !== 0);
   };
