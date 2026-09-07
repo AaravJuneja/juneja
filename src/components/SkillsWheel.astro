@@ -1,0 +1,278 @@
+---
+const C = [
+  {k:"object i", t:"the flag", p:"breaks things carefully with friends. the point is never the breaking, it is finding out what was holding it together.",
+   pts:[[0,-22],[0,22],[0,-22],[22,-12],[0,-2]], edges:[[0,1],[0,3],[3,4]]},
+  {k:"object ii", t:"the arm", p:"builds robots that win (lose) gracefully. wires, motors, a lot of tape and a plan that lasts until the first collision.",
+   pts:[[-20,20],[-8,4],[8,-6],[22,-18],[14,-24],[18,-8]], edges:[[0,1],[1,2],[2,3],[3,4],[3,5]]},
+  {k:"object iii", t:"the whistle", p:"stands on the other side of the flag. builds the challenges, releases them, watches ai agents solve them faster than expected, sadmon.",
+   pts:[[-22,6],[-6,6],[-6,-10],[14,-10],[22,0],[14,10],[-6,10]], edges:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,1]]},
+  {k:"object iv", t:"the book", p:"reads past midnight. dostoevsky, kafka, coelho. the hidden library must never be found.",
+   pts:[[-22,-14],[0,-8],[22,-14],[22,14],[0,20],[-22,14]], edges:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[1,4]]},
+  {k:"object v", t:"the ball", p:"football most weekends. sometimes maybe good sometimes maybe sheet. visca el barça.",
+   pts:[[0,-22],[21,-7],[13,18],[-13,18],[-21,-7],[0,0]], edges:[[0,1],[1,2],[2,3],[3,4],[4,0],[5,0],[5,1],[5,2],[5,3],[5,4]]},
+  {k:"object vi", t:"the headphones", p:"xo 'til we overdose. the noise on loop through everything.",
+   pts:[[-20,4],[-16,-14],[0,-22],[16,-14],[20,4],[-20,16],[20,16]], edges:[[0,1],[1,2],[2,3],[3,4],[0,5],[4,6]]},
+  {k:"object vii", t:"the controller", p:"plays games that are not football. the gamer half of the site's voice had to come from somewhere.",
+   pts:[[-22,2],[-14,-12],[14,-12],[22,2],[14,14],[-14,14],[-8,2],[8,2]], edges:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[6,7]]}
+];
+const N = C.length, STEP = 360 / N;
+const ICONS = [
+  '<svg viewBox="0 0 24 24"><path d="M6 21V3M6 4h11l-3 4 3 4H6"/></svg>',
+  '<svg viewBox="0 0 24 24"><path d="M4 20l5-5M9 15l6-6M15 9l3-3M18 6l2-2M15 9l3 3"/><circle cx="4" cy="20" r="1.5"/></svg>',
+  '<svg viewBox="0 0 24 24"><path d="M3 12h4v-4h8a5 5 0 0 1 0 10H7v-4"/></svg>',
+  '<svg viewBox="0 0 24 24"><path d="M4 5c3-1 6-1 8 1 2-2 5-2 8-1v14c-3-1-6-1-8 1-2-2-5-2-8-1zM12 6v14"/></svg>',
+  '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7l4.5 3.3-1.7 5.4H9.2L7.5 10.3z"/></svg>',
+  '<svg viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="13" width="4" height="7" rx="1.5"/><rect x="17" y="13" width="4" height="7" rx="1.5"/></svg>',
+  '<svg viewBox="0 0 24 24"><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/><path d="M6 11h4M8 9v4M15 12h.01M18 10h.01"/></svg>'
+];
+let seed = 1337;
+const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+const stars = Array.from({ length: 120 }, () => {
+  const a = rnd() * Math.PI * 2, r = Math.sqrt(rnd()) * 178;
+  return { x: 200 + Math.cos(a) * r, y: 200 + Math.sin(a) * r, r: rnd() * 0.9 + 0.3, o: rnd() * 0.6 + 0.2 };
+});
+const discTicks = Array.from({ length: 144 }, (_, k) => {
+  const d = k * 2.5, big = d % 30 === 0, r1 = big ? 184 : 187, r2 = 190, rad = (d - 90) * Math.PI / 180;
+  return { x1: 200 + Math.cos(rad) * r1, y1: 200 + Math.sin(rad) * r1, x2: 200 + Math.cos(rad) * r2, y2: 200 + Math.sin(rad) * r2, big };
+});
+const maskTicks = Array.from({ length: 96 }, (_, k) => {
+  const d = k * 3.75, big = d % 15 === 0, r1 = big ? 190 : 193, r2 = 196, rad = (d - 90) * Math.PI / 180;
+  return { x1: 200 + Math.cos(rad) * r1, y1: 200 + Math.sin(rad) * r1, x2: 200 + Math.cos(rad) * r2, y2: 200 + Math.sin(rad) * r2, big, d };
+});
+const hourLabel = (d: number) => String((d / 15 + 12) % 24).padStart(2, "0");
+const hourPos = (d: number) => { const rad = (d - 90) * Math.PI / 180; return { x: 200 + Math.cos(rad) * 183, y: 200 + Math.sin(rad) * 183 + 2 }; };
+const months = ["january","february","march","april","may","june","july","august","september","october","november","december"];
+const monthRing = months.map((m) => m + "  ·  ").join("");
+const first = C[0];
+---
+
+<section id="skills" data-reveal class="w-full">
+  <div class="w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-12 py-16 sm:py-20">
+    <div class="max-w-[760px] flex flex-col gap-4 mb-11">
+      <p class="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-accent">SKILLS</p>
+      <h2 class="font-dm trim-caps font-bold text-[clamp(26px,4vw,34px)] leading-tight text-text uppercase">PRESS A TAB. SEE WHAT I DO.</h2>
+      <p class="font-outfit text-[clamp(18px,2.1vw,21px)] leading-[1.55] text-muted-text tracking-[-0.005em]">seven tabs around one wheel, one for everything i rotate between</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,520px)_1fr] gap-7 lg:gap-14 items-center pb-14">
+      <div class="sw-wrap" id="sw-wrap">
+        <div class="sw-wheel" id="sw-wheel" tabindex="0" role="group" aria-label="skill wheel, use left and right arrow keys to turn">
+          <svg class="sw-disc" id="sw-disc" viewBox="0 0 400 400" aria-hidden="true">
+            <defs>
+              <radialGradient id="sw-skyg" cx="50%" cy="40%" r="70%">
+                <stop offset="0" stop-color="#2a3468" stop-opacity=".9"></stop>
+                <stop offset="1" stop-color="#0d1128"></stop>
+              </radialGradient>
+              <path id="sw-monthArc" d="M200 200m-190 0a190 190 0 1 1 380 0a190 190 0 1 1 -380 0"></path>
+            </defs>
+            <circle cx="200" cy="200" r="200" fill="#141a3a"></circle>
+            <circle cx="200" cy="200" r="200" fill="url(#sw-skyg)"></circle>
+            {stars.map((s) => <circle cx={s.x} cy={s.y} r={s.r.toFixed(2)} class="sw-star" opacity={s.o.toFixed(2)}></circle>)}
+            <path d="M40 260C120 190 190 240 260 150S330 110 380 130" fill="none" class="sw-star" stroke-width="38" opacity=".05" stroke-linecap="round"></path>
+            {[70, 120, 170].map((r) => <circle cx="200" cy="200" r={r} fill="none" class="sw-ring" stroke-width=".5" stroke-dasharray="2 4"></circle>)}
+            <circle cx="200" cy="200" r="182" fill="none" class="sw-ring-solid" stroke-width=".6"></circle>
+            <text class="sw-month" font-size="7.5" letter-spacing="2.2"><textPath href="#sw-monthArc" startOffset="0">{monthRing}</textPath></text>
+            {discTicks.map((t) => <line x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2} class={t.big ? "sw-tick-big" : "sw-tick"} stroke-width={t.big ? 0.9 : 0.5}></line>)}
+            {C.map((c, i) => (
+              <g transform={`translate(200 200) rotate(${i * STEP}) translate(0 -112)`}>
+                {c.edges.map(([a, b]) => <line x1={c.pts[a][0]} y1={c.pts[a][1]} x2={c.pts[b][0]} y2={c.pts[b][1]} class="sw-edge" stroke-width=".7"></line>)}
+                {c.pts.map(([x, y], j) => (
+                  <>
+                    <circle cx={x} cy={y} r={j === 0 ? 2.6 : 1.9} class="sw-star"></circle>
+                    <circle cx={x} cy={y} r={j === 0 ? 5 : 3.5} class="sw-star" opacity=".14"></circle>
+                  </>
+                ))}
+                <text x="0" y="38" text-anchor="middle" font-size="9" class="sw-clabel">{c.t}</text>
+              </g>
+            ))}
+          </svg>
+          <svg class="sw-mask" viewBox="0 0 400 400" aria-hidden="true">
+            <path class="sw-card" fill-rule="evenodd" d="M200 0a200 200 0 1 0 0.01 0Z M107.5 39.8A185 185 0 0 1 292.5 39.8L227.5 152.4A55 55 0 0 0 172.5 152.4Z"></path>
+            <circle cx="200" cy="200" r="197" fill="none" class="sw-brass" stroke-width="1"></circle>
+            <circle cx="200" cy="200" r="176" fill="none" class="sw-brass" stroke-width=".6" stroke-dasharray="1 5"></circle>
+            <path d="M107.5 39.8A185 185 0 0 1 292.5 39.8L227.5 152.4A55 55 0 0 0 172.5 152.4Z" fill="none" class="sw-brass-strong" stroke-width="1.4"></path>
+            <text x="101" y="44" font-size="7" letter-spacing="1.5" text-anchor="end" class="sw-mini">w</text>
+            <text x="299" y="44" font-size="7" letter-spacing="1.5" class="sw-mini">e</text>
+            <g class="sw-tickmask" stroke-width="1">
+              {maskTicks.map((t) => <line x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2} opacity={t.big ? 0.9 : 0.45}></line>)}
+            </g>
+            <g font-size="6.5" letter-spacing="1" class="sw-mini">
+              {maskTicks.filter((t) => t.big).map((t) => <text x={hourPos(t.d).x} y={hourPos(t.d).y} text-anchor="middle" opacity={t.d > 60 && t.d < 300 ? 0.55 : 1}>{hourLabel(t.d)}</text>)}
+            </g>
+            <circle cx="200" cy="200" r="34" class="sw-card" stroke-width="1"></circle>
+            <circle cx="200" cy="200" r="4" class="sw-hub"></circle>
+          </svg>
+        </div>
+        <div id="sw-tabs">
+          {C.map((c, i) => (
+            <button class="sw-tab" style={`--i:${i}`} type="button" aria-label={c.t} aria-pressed={i === 0 ? "true" : "false"} set:html={ICONS[i]}></button>
+          ))}
+        </div>
+      </div>
+      <div>
+        <div class="bg-raised-surface border border-line p-5 sm:p-7 min-h-[190px]" aria-live="polite" id="sw-plate">
+          <div class="sw-body">
+            <span class="font-dm trim-caps text-[11px] tracking-[0.18em] uppercase text-accent" id="sw-pk">{first.k}</span>
+            <h3 class="font-outfit italic font-medium text-[clamp(24px,3.2vw,32px)] leading-[1.1] text-text mt-1.5 mb-2.5" id="sw-ph">{first.t}</h3>
+            <p class="font-outfit text-[17px] leading-[1.5] text-muted-text tracking-[-0.003em]" id="sw-pp">{first.p}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .sw-wrap{position:relative;width:var(--sw-size);height:var(--sw-size);margin:1.75rem auto;justify-self:center;--sw-size:min(100vw - 3rem,520px)}
+  .sw-wheel{position:absolute;inset:0;border-radius:50%;touch-action:none;cursor:grab;outline:none}
+  .sw-wheel:focus-visible{box-shadow:0 0 0 3px var(--color-background),0 0 0 6px var(--color-accent)}
+  .sw-wheel.dragging{cursor:grabbing}
+  .sw-wheel svg{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible}
+  .sw-disc{transform:rotate(var(--a,0deg));transform-origin:50% 50%;transition:transform .8s cubic-bezier(.2,.8,.2,1)}
+  .sw-wheel.dragging .sw-disc,.sw-wheel.spinning .sw-disc,.sw-noanim .sw-disc{transition:none}
+  .sw-mask{pointer-events:none;filter:drop-shadow(0 18px 30px rgba(0,0,0,.45))}
+  .sw-star{fill:var(--color-text)}
+  .sw-ring{stroke:var(--color-text);opacity:.12}
+  .sw-ring-solid{stroke:var(--color-text);opacity:.35}
+  .sw-month{fill:var(--color-text);opacity:.75;font-family:var(--font-dm)}
+  .sw-tick{stroke:var(--color-text);opacity:.3}
+  .sw-tick-big{stroke:var(--color-text);opacity:.7}
+  .sw-edge{stroke:var(--color-text);opacity:.55}
+  .sw-clabel{fill:var(--color-text);opacity:.7;font-style:italic;font-family:var(--font-outfit)}
+  .sw-card{fill:var(--color-surface);stroke:var(--color-line)}
+  .sw-brass{stroke:var(--color-line)}
+  .sw-brass-strong{stroke:var(--color-muted-text)}
+  .sw-mini{fill:var(--color-muted-text);font-family:var(--font-dm)}
+  .sw-tickmask{stroke:var(--color-muted-text)}
+  .sw-hub{fill:var(--color-muted-text)}
+  .sw-tab{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;border:1px solid var(--color-line);background:var(--color-surface);color:var(--color-muted-text);cursor:pointer;display:grid;place-items:center;padding:0;transform:rotate(calc(var(--i) * 51.4286deg)) translateY(calc(var(--sw-size) * -.5 - 8px)) rotate(calc(var(--i) * -51.4286deg));transition:background .2s,color .2s,transform .2s}
+  .sw-tab:hover,.sw-tab:focus-visible{background:var(--color-accent);border-color:var(--color-accent);color:var(--color-background);outline:none}
+  .sw-tab[aria-pressed="true"]{background:var(--color-accent);border-color:var(--color-accent);color:var(--color-background)}
+  .sw-tab :global(svg){width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .sw-body{transition:opacity .25s}
+  .sw-swap .sw-body{opacity:0}
+  @media (prefers-reduced-motion:reduce){.sw-disc,.sw-tab,.sw-body{transition:none}}
+</style>
+
+<script type="application/json" id="sw-data" is:inline set:html={JSON.stringify({ items: C, step: STEP, count: N })}></script>
+
+<script>
+  type WheelItem = { k: string; t: string; p: string };
+  const raw = document.getElementById("sw-data")?.textContent ?? "{}";
+  const parsed = JSON.parse(raw) as { items: WheelItem[]; step: number; count: number };
+  const items = parsed.items ?? [];
+  const step = parsed.step ?? 0;
+  const count = parsed.count ?? 0;
+  const wheel = document.getElementById("sw-wheel");
+  const disc = document.getElementById("sw-disc");
+  const plate = document.getElementById("sw-plate");
+  const wrap = document.getElementById("sw-wrap");
+  const tabs = Array.from(document.querySelectorAll(".sw-tab"));
+  if (wheel && disc && plate) {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) wheel.classList.add("sw-noanim");
+    let visible = true;
+    if (wrap && "IntersectionObserver" in window) {
+      new IntersectionObserver((es) => es.forEach((e) => { visible = e.isIntersecting; }), { threshold: 0 }).observe(wrap);
+    }
+    const now = new Date();
+    const ist = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", timeZone: "Asia/Kolkata" }).formatToParts(now);
+    let idx = parseInt(ist.find((p) => p.type === "hour")?.value ?? "0", 10) % count;
+    if (!isFinite(idx)) idx = 0;
+    let angle = -idx * step;
+    const pk = document.getElementById("sw-pk");
+    const ph = document.getElementById("sw-ph");
+    const pp = document.getElementById("sw-pp");
+    let swapTimer = 0;
+    const render = () => {
+      disc.style.setProperty("--a", angle + "deg");
+      tabs.forEach((t, i) => t.setAttribute("aria-pressed", String(i === idx)));
+      const c = items[idx];
+      const paint = () => {
+        if (pk) pk.textContent = c.k;
+        if (ph) ph.textContent = c.t;
+        if (pp) pp.textContent = c.p;
+        plate.classList.remove("sw-swap");
+      };
+      if (reduce || !plate.dataset.ready) { paint(); plate.dataset.ready = "1"; return; }
+      plate.classList.add("sw-swap");
+      window.clearTimeout(swapTimer);
+      swapTimer = window.setTimeout(paint, 220);
+    };
+    const snap = () => {
+      const ni = ((Math.round(-angle / step) % count) + count) % count;
+      const target = -ni * step;
+      angle += ((target - angle) % 360 + 540) % 360 - 180;
+      if (ni !== idx) { idx = ni; render(); }
+      else disc.style.setProperty("--a", angle + "deg");
+    };
+    const goTo = (i: number) => {
+      const target = -i * step;
+      angle += ((target - angle) % 360 + 540) % 360 - 180;
+      idx = i;
+      render();
+    };
+    tabs.forEach((t, i) => t.addEventListener("click", () => goTo(i)));
+    let dragging = false, startA = 0, startAngle = 0, moved = false, vel = 0, lastT = 0, lastA = 0, raf = 0;
+    const centerAngle = (e: PointerEvent) => {
+      const r = wheel.getBoundingClientRect();
+      return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)) * 180 / Math.PI;
+    };
+    wheel.addEventListener("pointerdown", (e) => {
+      window.cancelAnimationFrame(raf);
+      wheel.classList.remove("spinning");
+      dragging = true; moved = false;
+      startA = centerAngle(e); startAngle = angle;
+      vel = 0; lastT = performance.now(); lastA = angle;
+      wheel.classList.add("dragging");
+      wheel.setPointerCapture(e.pointerId);
+    });
+    wheel.addEventListener("pointermove", (e) => {
+      if (!dragging) return;
+      let d = centerAngle(e) - startA;
+      if (d > 180) d -= 360;
+      if (d < -180) d += 360;
+      if (Math.abs(d) > 1) moved = true;
+      angle = startAngle + d;
+      const t = performance.now();
+      if (t - lastT > 16) { vel = (angle - lastA) / (t - lastT); lastT = t; lastA = angle; }
+      disc.style.setProperty("--a", angle + "deg");
+    });
+    const coast = () => {
+      if (reduce || !visible || Math.abs(vel) < 0.02) { snap(); return; }
+      wheel.classList.add("spinning");
+      const move = () => {
+        angle += vel * 16;
+        vel *= 0.94;
+        disc.style.setProperty("--a", angle + "deg");
+        if (Math.abs(vel) < 0.02 || !visible) { wheel.classList.remove("spinning"); snap(); return; }
+        raf = window.requestAnimationFrame(move);
+      };
+      raf = window.requestAnimationFrame(move);
+    };
+    const endDrag = () => {
+      if (!dragging) return;
+      dragging = false;
+      wheel.classList.remove("dragging");
+      if (moved) coast();
+      else goTo((idx + 1) % count);
+    };
+    wheel.addEventListener("pointerup", endDrag);
+    wheel.addEventListener("pointercancel", endDrag);
+    let wheelTimer = 0;
+    wheel.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      angle += (e.deltaY + e.deltaX) * 0.12;
+      disc.style.setProperty("--a", angle + "deg");
+      window.clearTimeout(wheelTimer);
+      wheelTimer = window.setTimeout(snap, 160);
+    }, { passive: false });
+    wheel.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") { e.preventDefault(); goTo((idx + 1) % count); }
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") { e.preventDefault(); goTo((idx - 1 + count) % count); }
+      if (e.key === "Home") { e.preventDefault(); goTo(0); }
+      if (e.key === "End") { e.preventDefault(); goTo(count - 1); }
+    });
+    render();
+  }
+</script>

@@ -4,6 +4,7 @@ import Navigation from "../components/Navigation.astro";
 import Hero from "../components/Hero.astro";
 import SocialLinks from "../components/SocialLinks.astro";
 import TeamStory from "../components/TeamStory.astro";
+import SkillsWheel from "../components/SkillsWheel.astro";
 import Writeups from "../components/Writeups.astro";
 import Journey from "../components/Journey.astro";
 import Footer from "../components/Footer.astro";
@@ -41,13 +42,7 @@ import ArcadeRunnerLane from "../components/react/ArcadeRunnerLane.tsx";
   </div>
 
   <TeamStory />
-  <div class="w-screen max-w-none ml-[calc(50%-50vw)] bg-surface flex items-center justify-center gap-3 py-6">
-    <div class="h-px bg-line w-16 sm:w-24"></div>
-    <img src="/images/pixel/star-pixel.svg" alt="" width="12" height="12" class="w-3 h-3 opacity-60 theme-icon" loading="lazy" decoding="async" />
-    <span class="font-dm trim-caps text-[10px] tracking-[0.08em] uppercase text-muted-text">•</span>
-    <img src="/images/pixel/heart-pixel.svg" alt="" width="12" height="12" class="w-3 h-3 opacity-60 theme-icon" loading="lazy" decoding="async" />
-    <div class="h-px bg-line w-16 sm:w-24"></div>
-  </div>
+  <SkillsWheel />
   <Writeups />
   <Journey />
   <Footer />
