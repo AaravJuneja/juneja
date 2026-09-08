@@ -3,12 +3,21 @@ import { useEffect, useState } from "react";
 export default function Loader() {
   const [hidden, setHidden] = useState(false);
   useEffect(() => {
-    const hide = () => setHidden(true);
+    const root = document.documentElement;
+    const prev = root.style.overflow;
+    root.style.overflow = "hidden";
+    const hide = () => {
+      setHidden(true);
+      root.style.overflow = prev;
+    };
     if (document.readyState === "complete") {
       hide();
     } else {
       window.addEventListener("load", hide, { once: true });
-      return () => window.removeEventListener("load", hide);
+      return () => {
+        window.removeEventListener("load", hide);
+        root.style.overflow = prev;
+      };
     }
   }, []);
   return (
