@@ -9,12 +9,12 @@ const KONAMI_CODES = [
 export default function KonamiPwned() {
   const [pwned, setPwned] = useState(false);
   const timerRef = useRef<number | null>(null);
+  const firedRef = useRef(false);
 
   const trigger = () => {
+    if (firedRef.current) return;
+    firedRef.current = true;
     setPwned(true);
-    try {
-      localStorage.setItem("pwned", "1");
-    } catch {}
     window.dispatchEvent(new CustomEvent("konami:pwned"));
   };
 
@@ -22,10 +22,7 @@ export default function KonamiPwned() {
     if (!pwned) return;
     timerRef.current = window.setTimeout(() => {
       setPwned(false);
-      try {
-        localStorage.removeItem("pwned");
-      } catch {}
-    }, 5000);
+    }, 7000);
     return () => {
       if (timerRef.current !== null) window.clearTimeout(timerRef.current);
     };
@@ -45,12 +42,6 @@ export default function KonamiPwned() {
       window.removeEventListener("keydown", onKey);
     };
   }, [pwned]);
-
-  useEffect(() => {
-    try {
-      if (localStorage.getItem("pwned") === "1") setPwned(true);
-    } catch {}
-  }, []);
 
   if (!pwned) return null;
   return (
