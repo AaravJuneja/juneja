@@ -44,6 +44,44 @@
   font-weight: 700;
 }
 
+@font-face {
+  font-family: Anton;
+  src: url("/fonts/mbox-anton-latin-400-normal.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+}
+@font-face {
+  font-family: Archivo;
+  src: url("/fonts/mbox-archivo-latin-400-normal.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+}
+@font-face {
+  font-family: Archivo;
+  src: url("/fonts/mbox-archivo-latin-600-normal.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 600;
+}
+@font-face {
+  font-family: "Yatra One";
+  src: url("/fonts/mbox-yatra-one-latin-400-normal.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+  unicode-range: U+0000-00FF, U+2000-206F;
+}
+@font-face {
+  font-family: "Yatra One";
+  src: url("/fonts/mbox-yatra-one-devanagari-400-normal.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+  unicode-range: U+0900-097F;
+}
+
 @theme {
   --color-accent: #a869db;
   --color-accent-soft: #ddbcf3;
@@ -766,4 +804,113 @@ select {
   .animate-caret {
     animation: none;
   }
+}
+
+/* Matchbox labels (faithful port, scoped) */
+.mbox {
+  --kraft: #e9d8b4;
+  --kraft-dark: #d9c497;
+  --cream: #f6ebd2;
+  --verm: #d63a22;
+  --cobalt: #1f4da1;
+  --mustard: #e7b63a;
+  --green: #1f6b45;
+  --black: #1a1a1a;
+  --anton: "Anton", Impact, sans-serif;
+  --archivo: "Archivo", system-ui, sans-serif;
+  --dev: "Yatra One", sans-serif;
+  color: var(--black);
+  font-family: var(--archivo);
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+.mbox .label {
+  margin: 0;
+  outline: none;
+}
+.mbox .inner {
+  position: relative;
+}
+.mbox .face {
+  position: relative;
+  background: var(--paper, var(--cream));
+  color: var(--ink, var(--black));
+  padding: 18px;
+  min-height: var(--h, 220px);
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  gap: 6px;
+  box-shadow: 0 12px 24px -12px rgba(26, 26, 26, 0.6), 0 0 0 1px rgba(26, 26, 26, 0.15) inset;
+  clip-path: polygon(0 2px, 3% 0, 8% 3px, 14% 0, 21% 2px, 29% 0, 36% 3px, 44% 0, 51% 2px, 59% 0, 66% 3px, 74% 0, 81% 2px, 89% 0, 95% 3px, 100% 0, 100% calc(100% - 2px), 96% 100%, 90% calc(100% - 3px), 84% 100%, 77% calc(100% - 2px), 70% 100%, 63% calc(100% - 3px), 56% 100%, 49% calc(100% - 2px), 42% 100%, 35% calc(100% - 3px), 28% 100%, 21% calc(100% - 2px), 14% 100%, 7% calc(100% - 3px), 0 100%);
+}
+.mbox .face::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border: 2px solid var(--ink, var(--black));
+  pointer-events: none;
+}
+.mbox .face::after {
+  content: "";
+  position: absolute;
+  inset: 11px;
+  border: 1px dashed var(--ink, var(--black));
+  opacity: 0.6;
+  pointer-events: none;
+}
+.mbox .face .m {
+  width: var(--mw, 74px);
+  height: auto;
+  color: var(--ink, var(--black));
+  filter: drop-shadow(1.5px 1.5px 0 var(--second, var(--mustard)));
+  margin-bottom: 4px;
+}
+.mbox .t1 {
+  font-family: var(--anton);
+  text-transform: uppercase;
+  line-height: 0.95;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  letter-spacing: 0.02em;
+  text-shadow: 2px 2px 0 var(--second, var(--mustard));
+}
+.mbox .dev {
+  font-family: var(--dev);
+  font-size: clamp(1.2rem, 2.4vw, 1.6rem);
+  line-height: 1.2;
+}
+.mbox .sm {
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.mbox .xs {
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.mbox .rule {
+  width: 60%;
+  height: 3px;
+  background: currentColor;
+  margin: 4px 0;
+}
+.mbox .rule.thin {
+  height: 1px;
+  opacity: 0.6;
+}
+.mbox .corner {
+  position: absolute;
+  font-family: var(--dev);
+  font-size: 0.8rem;
+  right: 16px;
+  bottom: 14px;
+  opacity: 0.85;
+  transform: rotate(-4deg);
+}
+.mbox .face:has(.corner) {
+  padding-bottom: 44px;
 }
