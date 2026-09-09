@@ -66,6 +66,13 @@
   font-weight: 600;
 }
 @font-face {
+  font-family: Rye;
+  src: url("/fonts/mbox-rye-latin-400-normal.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+}
+@font-face {
   font-family: "Yatra One";
   src: url("/fonts/mbox-yatra-one-latin-400-normal.woff2") format("woff2");
   font-display: swap;
@@ -817,6 +824,7 @@ select {
   --green: #1f6b45;
   --black: #1a1a1a;
   --anton: "Anton", Impact, sans-serif;
+  --rye: "Rye", serif;
   --archivo: "Archivo", system-ui, sans-serif;
   --dev: "Yatra One", sans-serif;
   color: var(--black);
@@ -824,12 +832,38 @@ select {
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
 }
+.mbox .label,
+.mbox .label *,
+.mbox a.label,
+.mbox a.label * {
+  cursor: pointer;
+}
 .mbox .label {
   margin: 0;
   outline: none;
+  perspective: 1200px;
+}
+.mbox .label:focus-visible .inner {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 4px;
 }
 .mbox .inner {
   position: relative;
+  transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-style: preserve-3d;
+}
+.mbox .label[data-flip].flip .inner {
+  transform: rotateY(180deg);
+}
+@media (hover: hover) {
+  .mbox .label[data-flip]:not(.touched):hover .inner {
+    transform: rotateY(180deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mbox .inner {
+    transition: none;
+  }
 }
 .mbox .face {
   position: relative;
@@ -875,6 +909,13 @@ select {
   letter-spacing: 0.02em;
   text-shadow: 2px 2px 0 var(--second, var(--mustard));
 }
+.mbox .t2 {
+  font-family: var(--rye);
+  text-transform: uppercase;
+  line-height: 1;
+  font-size: clamp(1.3rem, 2.6vw, 1.8rem);
+  text-shadow: 1.5px 1.5px 0 var(--second, var(--mustard));
+}
 .mbox .dev {
   font-family: var(--dev);
   font-size: clamp(1.2rem, 2.4vw, 1.6rem);
@@ -913,4 +954,121 @@ select {
 }
 .mbox .face:has(.corner) {
   padding-bottom: 44px;
+}
+.mbox .tin .face {
+  min-height: 150px;
+  border-radius: 4px;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+}
+.mbox .tin .face::before {
+  inset: 6px;
+  border-width: 3px;
+  border-style: double;
+}
+.mbox .tin .face::after {
+  display: none;
+}
+.mbox .tin .face .screw {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #eee, #666);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+.mbox .screw.a {
+  left: 10px;
+  top: 10px;
+}
+.mbox .screw.b {
+  right: 10px;
+  top: 10px;
+}
+.mbox .screw.c {
+  left: 10px;
+  bottom: 10px;
+}
+.mbox .screw.d {
+  right: 10px;
+  bottom: 10px;
+}
+.mbox a.label {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+.mbox .back {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+  background: var(--color-raised-surface);
+  color: var(--color-text);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  padding: 26px 22px;
+  align-content: center;
+  backface-visibility: hidden;
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 6px;
+}
+.mbox .back::before,
+.mbox .back::after {
+  display: none;
+}
+.mbox .back p {
+  margin: 0;
+}
+.mbox .back a {
+  color: var(--color-accent-soft);
+  font-weight: 700;
+  text-decoration: none;
+  border-bottom: 2px solid var(--color-accent-soft);
+}
+.mbox .back .stamp {
+  font-family: var(--archivo);
+  font-weight: 700;
+  font-size: 0.62rem;
+  line-height: 1;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  border: 2px solid var(--color-accent-soft);
+  color: var(--color-accent-soft);
+  padding: 4px 8px;
+  transform: rotate(-6deg);
+  margin-top: 12px;
+  opacity: 0.8;
+}
+.mbox .back .made {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  font-family: var(--archivo);
+  font-weight: 600;
+  font-size: 0.58rem;
+  line-height: 1;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+.mbox .face {
+  backface-visibility: hidden;
+}
+.mbox .ticket .face {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  border-radius: 6px;
+  min-height: 150px;
+  -webkit-mask: radial-gradient(circle at 0 50%, transparent 10px, #000 11px), radial-gradient(circle at 100% 50%, transparent 10px, #000 11px);
+  -webkit-mask-composite: source-in;
+  mask: radial-gradient(circle at 0 50%, transparent 10px, #000 11px), radial-gradient(circle at 100% 50%, transparent 10px, #000 11px);
+  mask-composite: intersect;
+}
+.mbox .ticket .face::before {
+  border-style: dashed;
+  border-width: 1px;
+}
+.mbox .ticket .face::after {
+  display: none;
 }

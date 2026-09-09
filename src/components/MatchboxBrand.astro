@@ -3,7 +3,7 @@
 ---
 
     <div class="mbox theme w-full max-w-[300px] mx-auto lg:mx-0 shrink-0">
-      <div class="label box">
+      <a class="label box" href="https://ctftime.org/user/230373" target="_blank" rel="noopener" aria-label="juneja on ctftime">
         <div class="inner" style="--paper:#151020;--ink:#f7f2fa;--second:#a869db;--h:340px">
           <div class="face front">
             <span class="sm">est. gurugram · registered trade mark</span>
@@ -18,13 +18,34 @@
             </svg>
             <span class="t1">aarav<br />brand</span>
             <span class="rule"></span>
-            <span class="sm">breaks &amp; rebuilds</span>
             <span class="dev" lang="hi">ठोंक बजाकर देखिए</span>
             <span class="corner" lang="hi">नक़ल से सावधान</span>
           </div>
         </div>
-      </div>
+      </a>
     </div>
+
+<script>
+  document.querySelectorAll("[data-flip]").forEach((el) => {
+    const card = el as HTMLElement;
+    if (card.dataset.flipBound) return;
+    card.dataset.flipBound = "1";
+    const toggle = (e: Event) => {
+      if ((e.target as HTMLElement).closest("a")) return;
+      const on = !card.classList.contains("flip");
+      card.classList.toggle("flip", on);
+      card.classList.add("touched");
+      card.setAttribute("aria-pressed", String(on));
+    };
+    card.addEventListener("click", toggle);
+    card.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        toggle(e);
+      }
+    });
+  });
+</script>
 
 <style>
   .theme .sm {

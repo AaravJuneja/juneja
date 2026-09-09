@@ -16,26 +16,48 @@ import MatchboxBrand from "./MatchboxBrand.astro";
     <div class="flex flex-col lg:flex-row gap-10">
       <!-- Chapters -->
       <div class="flex-1 flex flex-col gap-3.5">
-        <div class="group bg-raised-surface border border-line p-5 sm:p-6 flex flex-col gap-3 hover:border-accent/20 hover:-translate-y-0.5 transition-all duration-150">
-          <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-            <div class="flex items-center gap-2 min-w-0">
-              <img src="/images/pixel/cat-pixel.svg" alt="" width="16" height="16" class="w-4 h-4 group-hover:scale-110 transition-transform duration-150 theme-icon shrink-0" loading="lazy" decoding="async" />
-              <h3 class="font-dm trim-caps font-bold text-[17px] sm:text-[18px] text-text">SYNDICATION</h3>
+        <div class="mbox theme">
+          <div class="label ticket" tabindex="0" role="button" aria-pressed="false" data-flip aria-label="syndication label, press to turn over">
+            <div class="inner" style="--paper:#151020;--ink:#f7f2fa;--second:#a869db">
+              <div class="face front">
+                <svg class="m" style="--mw:64px" viewBox="0 0 120 90" aria-hidden="true">
+                  <path d="M10 60h100l-16 20H26z" fill="currentColor" />
+                  <path d="M62 8v50h40z" fill="currentColor" />
+                  <path d="M56 22v36H26z" fill="var(--second,#e7b63a)" />
+                  <path d="M8 84c10-6 20-6 30 0s20 6 30 0 20-6 30 0" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" />
+                </svg>
+                <span class="t1" style="font-size:1.6rem">syndication</span>
+                <span class="xs">2025-present</span>
+              </div>
+              <div class="face back">
+                <a href="https://ctftime.org/team/395280/" target="_blank" rel="noopener">syndication on ctftime</a>
+                <span class="made">the original</span>
+              </div>
             </div>
-            <p class="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-muted-text shrink-0">2025-Present</p>
           </div>
-          <p class="font-outfit text-[17px] leading-[1.5] text-muted-text tracking-[-0.003em]">og trio</p>
         </div>
 
-        <div class="group bg-raised-surface border border-accent p-5 sm:p-6 flex flex-col gap-3 hover:shadow-[6px_6px_0px_0px_var(--color-accent)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-150">
-          <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-            <div class="flex items-center gap-2 min-w-0">
-              <img src="/images/pixel/ghost-pixel.svg" alt="" width="16" height="16" class="w-4 h-4 theme-icon shrink-0" loading="lazy" decoding="async" />
-              <h3 class="font-dm trim-caps font-bold text-[17px] sm:text-[18px] text-text">0BSCURI7Y</h3>
+        <div class="mbox theme">
+          <div class="label tin" tabindex="0" role="button" aria-pressed="false" data-flip aria-label="0bscuri7y label, press to turn over">
+            <div class="inner" style="--paper:#151020;--ink:#f7f2fa;--second:#a869db">
+              <div class="face front">
+                <i class="screw a"></i><i class="screw b"></i><i class="screw c"></i><i class="screw d"></i>
+                <svg class="m" style="--mw:64px" viewBox="0 0 100 100" aria-hidden="true">
+                  <circle cx="24" cy="28" r="13" fill="currentColor" /><circle cx="76" cy="28" r="13" fill="currentColor" />
+                  <circle cx="50" cy="54" r="34" fill="currentColor" />
+                  <circle cx="38" cy="48" r="5" fill="var(--paper,#fff)" /><circle cx="62" cy="48" r="5" fill="var(--paper,#fff)" />
+                  <path d="M44 62h12l-6 8z" fill="var(--second,#e7b63a)" />
+                  <path d="M50 24v12M38 28l5 10M62 28l-5 10M22 56l10 2M78 56l-10 2M24 66l10-2M76 66l-10-2" stroke="var(--paper,#fff)" stroke-width="3" stroke-linecap="round" />
+                </svg>
+                <span class="t2">0bscuri7y</span>
+                <span class="xs">2026</span>
+              </div>
+              <div class="face back">
+                <a href="https://ctftime.org/team/370140/" target="_blank" rel="noopener">0bscuri7y on ctftime</a>
+                <span class="made">since january 2026</span>
+              </div>
             </div>
-            <p class="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-muted-text shrink-0">2026</p>
           </div>
-          <p class="font-outfit text-[17px] leading-[1.5] text-muted-text tracking-[-0.003em]">Invited at the start of 2026 to compete with an established Indian team</p>
         </div>
       </div>
 
@@ -45,13 +67,13 @@ import MatchboxBrand from "./MatchboxBrand.astro";
           <p class="font-dm trim-caps font-bold text-[22px] text-text tabular-nums group-hover:text-accent transition-colors duration-150" data-count="219.89" data-decimals="3">219.890</p>
           <p class="font-dm trim-caps text-[10px] sm:text-[11px] tracking-[0.08em] uppercase text-muted-text leading-tight whitespace-normal sm:whitespace-nowrap">2025 RATING POINTS</p>
         </div>
-        <div class="group bg-raised-surface border border-accent p-3 sm:p-5 flex flex-col items-center justify-center gap-2 text-center hover:shadow-[4px_4px_0px_0px_var(--color-accent)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-150">
-          <p class="font-dm trim-caps font-bold text-[22px] text-text tabular-nums" data-count="455.576" data-decimals="3">455.576</p>
-          <p class="font-dm trim-caps text-[10px] sm:text-[11px] tracking-[0.08em] uppercase text-muted-text leading-tight whitespace-normal sm:whitespace-nowrap">0BSCURI7Y · 2026 RP</p>
-        </div>
         <div class="group bg-raised-surface border border-line p-3 sm:p-5 flex flex-col items-center justify-center gap-2 text-center hover:border-accent/30 hover:-translate-y-0.5 transition-all duration-150">
           <p class="font-dm trim-caps font-bold text-[22px] text-text tabular-nums group-hover:text-accent transition-colors duration-150"><span data-count="12" data-decimals="0" data-prefix="#">#12</span></p>
           <p class="font-dm trim-caps text-[10px] sm:text-[11px] tracking-[0.08em] uppercase text-muted-text leading-tight whitespace-normal sm:whitespace-nowrap">INDIA · 2025</p>
+        </div>
+        <div class="group bg-raised-surface border border-accent p-3 sm:p-5 flex flex-col items-center justify-center gap-2 text-center hover:shadow-[4px_4px_0px_0px_var(--color-accent)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-150">
+          <p class="font-dm trim-caps font-bold text-[22px] text-text tabular-nums" data-count="455.576" data-decimals="3">455.576</p>
+          <p class="font-dm trim-caps text-[10px] sm:text-[11px] tracking-[0.08em] uppercase text-muted-text leading-tight whitespace-normal sm:whitespace-nowrap">0BSCURI7Y · 2026 RP</p>
         </div>
         <div class="group bg-raised-surface border border-line p-3 sm:p-5 flex flex-col items-center justify-center gap-2 text-center hover:border-accent/30 hover:-translate-y-0.5 transition-all duration-150">
           <p class="font-dm trim-caps font-bold text-[22px] text-text group-hover:text-accent transition-colors duration-150">NOW #6</p>
