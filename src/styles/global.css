@@ -100,6 +100,8 @@
   --color-text: #f7f2fa;
   --font-outfit: Outfit, sans-serif;
   --font-dm: "DM Retrograde", serif;
+  --font-anton: Anton, Impact, sans-serif;
+  --font-archivo: Archivo, system-ui, sans-serif;
 }
 
 :root {

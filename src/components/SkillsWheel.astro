@@ -123,9 +123,11 @@ const first = C[0];
 
 <style>
   .sw-wrap{position:relative;width:var(--sw-size);height:var(--sw-size);margin:1.75rem auto;justify-self:center;--sw-size:min(100vw - 3rem,520px)}
-  .sw-wheel{position:absolute;inset:0;border-radius:50%;touch-action:none;cursor:grab;outline:none}
+  .sw-wheel{position:absolute;inset:0;border-radius:50%;touch-action:none;cursor:pointer;outline:none}
+  .sw-wheel *{cursor:pointer}
   .sw-wheel:focus-visible{box-shadow:0 0 0 3px var(--color-background),0 0 0 6px var(--color-accent)}
-  .sw-wheel.dragging{cursor:grabbing}
+  .sw-wheel.dragging{cursor:pointer}
+  .sw-wheel.dragging *{cursor:pointer}
   .sw-wheel svg{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible}
   .sw-disc{transform:rotate(var(--a,0deg));transform-origin:50% 50%;transition:transform .8s cubic-bezier(.2,.8,.2,1)}
   .sw-wheel.dragging .sw-disc,.sw-wheel.spinning .sw-disc,.sw-noanim .sw-disc{transition:none}
@@ -146,6 +148,7 @@ const first = C[0];
   .sw-tab{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;border:1px solid var(--color-line);background:var(--color-surface);color:var(--color-muted-text);cursor:pointer;display:grid;place-items:center;padding:0;transform:rotate(calc(var(--i) * 51.4286deg)) translateY(calc(var(--sw-size) * -.5 - 8px)) rotate(calc(var(--i) * -51.4286deg));transition:background .2s,color .2s,transform .2s}
   .sw-tab:hover,.sw-tab:focus-visible{background:var(--color-accent);border-color:var(--color-accent);color:var(--color-background);outline:none}
   .sw-tab[aria-pressed="true"]{background:var(--color-accent);border-color:var(--color-accent);color:var(--color-background)}
+  .sw-tab,.sw-tab *{cursor:pointer}
   .sw-tab :global(svg){width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
   .sw-body{transition:opacity .25s}
   .sw-swap .sw-body{opacity:0}
