@@ -46,7 +46,7 @@ const canonical = new URL(Astro.url.pathname, "https://squeakyfiddlepro.me/");
     <title>{title}</title>
     <ClientRouter />
   </head>
-  <body class="bg-background text-text antialiased overflow-x-hidden">
+  <body class="bg-background text-text antialiased overflow-x-clip">
     <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[9999999] focus:bg-accent focus:text-background focus:px-3 focus:py-2 font-dm trim-caps text-[12px] tracking-[0.08em] uppercase">SKIP TO CONTENT</a>
     <Loader client:load />
     <RevealWatcher client:load />

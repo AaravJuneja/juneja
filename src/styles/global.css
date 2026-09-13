@@ -205,6 +205,7 @@ body {
   letter-spacing: normal;
   margin: 0;
   overflow-x: hidden;
+  overflow-x: clip;
   min-height: 100vh;
   min-height: 100dvh;
   font-feature-settings: "blwf", "cv03", "cv04", "cv09", "cv11";
@@ -236,8 +237,16 @@ a:active {
   text-decoration: none;
 }
 
-img {
+img,
+video,
+canvas,
+svg,
+iframe {
   max-width: 100%;
+}
+
+img,
+video {
   height: auto;
 }
 
@@ -483,6 +492,11 @@ html.js [data-reveal][data-in] > * {
 @media (hover: hover) {
   .doors-overlay {
     cursor: url('/cursors/rush-static.cur'), url('/cursors/cursor-pixel.svg'), auto;
+  }
+}
+@media (hover: none), (pointer: coarse) {
+  .arcade-lane {
+    display: none;
   }
 }
 

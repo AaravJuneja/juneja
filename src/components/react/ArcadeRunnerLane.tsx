@@ -33,7 +33,7 @@ export default function ArcadeRunnerLane() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (window.matchMedia("(hover: none)").matches) {
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
       setHoverable(false);
       return;
     };
@@ -306,7 +306,7 @@ export default function ArcadeRunnerLane() {
 
   return (
     <>
-      <div ref={laneRef} className="relative w-full max-w-[1088px] h-[34px] mx-auto">
+      <div ref={laneRef} className="arcade-lane relative w-full max-w-[1088px] h-[34px] mx-auto overflow-hidden">
         <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-px bg-accent opacity-[0.45]" />
         <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[6px] flex items-center justify-between">
           <div className="w-[6px] h-[6px] bg-accent" />

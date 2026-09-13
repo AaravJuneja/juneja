@@ -44,9 +44,9 @@ const chapters = [
       <button id="journey-clear" type="button" class="hidden font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-accent hover:text-accent-soft transition-colors border border-line px-3 py-2.5">CLEAR</button>
     </div>
 
-    <div class="sticky top-[72px] sm:top-[76px] z-30 py-3 bg-background/90 backdrop-blur-sm flex flex-wrap gap-2 mb-8">
+    <div class="sticky top-[72px] sm:top-[76px] z-30 py-3 bg-background/90 backdrop-blur-sm flex flex-nowrap overflow-x-auto sm:flex-wrap sm:overflow-visible gap-2 mb-8">
       {chapters.map((ch) => (
-        <a href={`#${ch.id}`} class="inline-flex items-center gap-2 bg-surface border border-line px-3 py-2 font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-muted-text hover:text-text hover:border-accent/40 transition-colors">
+        <a href={`#${ch.id}`} class="inline-flex shrink-0 whitespace-nowrap items-center gap-2 bg-surface border border-line px-3 py-2 font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-muted-text hover:text-text hover:border-accent/40 transition-colors min-h-[44px]">
           {ch.badge} {ch.team} ({ch.achievements.length})
         </a>
       ))}

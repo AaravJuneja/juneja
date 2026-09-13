@@ -27,19 +27,26 @@ const TRACKS: Track[] = [
 const POOL = TRACKS.map((t, i) => (t.portrait ? -1 : i)).filter((i) => i >= 0);
 const PORTRAIT_IDX = TRACKS.findIndex((t) => t.portrait);
 
-const CROSSFADE: Record<string, { in: number; out: number }> = {
-  "birthday-suit": { in: 0.35, out: 4.75 },
-  "do-it": { in: 0.35, out: 6.25 },
-  "release-me": { in: 0.45, out: 6.0 },
-  "rescue-you": { in: 0.45, out: 6.5 },
-  "appointment": { in: 0.4, out: 2.5 },
-  "x-ray": { in: 0.4, out: 7.0 },
+const FADE_IN: Record<string, number> = {
+  "birthday-suit": 4.0,
+  "do-it": 4.0,
+  "release-me": 6.0,
+  "rescue-you": 6.0,
+  "appointment": 6.0,
+  "x-ray": 4.0,
 };
 
-const pick = (exclude: number) => {
-  const options = POOL.filter((i) => i !== exclude);
-  const list = options.length > 0 ? options : POOL;
-  return list[Math.floor(Math.random() * list.length)];
+const shufflePool = (exclude: number) => {
+  const base = POOL.filter((i) => i !== exclude);
+  const list = base.length > 0 ? base : [...POOL];
+  for (let i = list.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [list[i], list[j]] = [list[j], list[i]];
+  }
+  if (list.length > 1 && exclude >= 0 && list[0] === exclude) {
+    [list[0], list[1]] = [list[1], list[0]];
+  }
+  return list;
 };
 
 const getCookie = (n: string) =>
@@ -54,6 +61,8 @@ const delCookie = (n: string) => {
 
 const isClaimed = () => getCookie("portrait") === "claimed";
 
+const fadeInOf = (slug: string) => FADE_IN[slug] ?? 4.0;
+
 export default function SpotifyPlayer({ covers }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -61,24 +70,220 @@ export default function SpotifyPlayer({ covers }: Props) {
   const [duration, setDuration] = useState(0);
   const [audioError, setAudioError] = useState(false);
   const [trackIdx, setTrackIdx] = useState(0);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const nextAudioRef = useRef<HTMLAudioElement | null>(null);
-  const crossfadeRef = useRef<{ outgoing: number; incoming: number; startTime: number } | null>(null);
+  const [seen, setSeen] = useState(false);
+
+  const deckRef = useRef<(HTMLAudioElement | null)[]>([null, null]);
+  const activeRef = useRef(0);
+  const fadeTimerRef = useRef<number | null>(null);
+  const crossfadeRef = useRef<{ out: number; startTime: number } | null>(null);
   const barRef = useRef<HTMLDivElement | null>(null);
   const playRef = useRef(false);
   const stashRef = useRef<{ idx: number; time: number; playing: boolean } | null>(null);
   const pendingSeekRef = useRef<number | null>(null);
+  const queueRef = useRef<number[]>([]);
+  const posRef = useRef(0);
+  const nextIdxRef = useRef(-1);
+  const initRef = useRef(false);
   const idxRef = useRef(0);
   idxRef.current = trackIdx;
   const track = TRACKS[trackIdx];
-  const crossfade = CROSSFADE[track.slug] || { in: 0.35, out: 5.0 };
+
+  const activeDeck = () => deckRef.current[activeRef.current] ?? null;
+  const standbyDeck = () => deckRef.current[1 - activeRef.current] ?? null;
+
+  const takeNext = (currentIdx: number) => {
+    let q = queueRef.current;
+    if (q.length === 0 || posRef.current >= q.length) {
+      q = shufflePool(currentIdx);
+      queueRef.current = q;
+      posRef.current = 0;
+    }
+    const at = posRef.current;
+    posRef.current = at + 1;
+    return q[at];
+  };
+
+  const peekNext = () => {
+    let q = queueRef.current;
+    if (q.length === 0 || posRef.current >= q.length) {
+      q = shufflePool(idxRef.current);
+      queueRef.current = q;
+      posRef.current = 0;
+    }
+    return q[posRef.current];
+  };
+
+  const setDeckSrc = (deck: HTMLAudioElement | null, slug: string) => {
+    if (!deck || deck.dataset.slug === slug) return;
+    deck.dataset.slug = slug;
+    deck.dataset.fallback = "";
+    deck.src = `/audio/${slug}.webm`;
+    deck.load();
+  };
+
+  const cancelFade = () => {
+    if (fadeTimerRef.current !== null) {
+      window.clearInterval(fadeTimerRef.current);
+      fadeTimerRef.current = null;
+    }
+    crossfadeRef.current = null;
+    const a = activeDeck();
+    const s = standbyDeck();
+    if (a) a.volume = 1;
+    if (s) {
+      if (!s.paused) s.pause();
+      s.volume = 0;
+    }
+  };
+
+  const primeStandby = (nextIdx: number) => {
+    const s = standbyDeck();
+    if (!s || nextIdx < 0 || TRACKS[nextIdx]?.portrait) return;
+    nextIdxRef.current = nextIdx;
+    s.pause();
+    s.volume = 0;
+    s.currentTime = 0;
+    s.preload = "auto";
+    setDeckSrc(s, TRACKS[nextIdx].slug);
+  };
+
+  const fadeInActive = (deck: HTMLAudioElement, secs: number) => {
+    const t0 = performance.now();
+    const step = () => {
+      if (deck !== activeDeck() || deck.paused) return;
+      const p = Math.min(1, (performance.now() - t0) / (secs * 1000));
+      deck.volume = Math.sin((p * Math.PI) / 2);
+      if (p < 1) window.requestAnimationFrame(step);
+      else if (deck === activeDeck()) deck.volume = 1;
+    };
+    window.requestAnimationFrame(step);
+  };
+
+  const finishFade = () => {
+    if (fadeTimerRef.current !== null) {
+      window.clearInterval(fadeTimerRef.current);
+      fadeTimerRef.current = null;
+    }
+    const a = activeDeck();
+    const s = standbyDeck();
+    const finishedIdx = nextIdxRef.current;
+    crossfadeRef.current = null;
+    nextIdxRef.current = -1;
+    if (finishedIdx < 0 || !s) return;
+    if (a) {
+      a.pause();
+      a.volume = 1;
+    }
+    s.volume = 1;
+    activeRef.current = 1 - activeRef.current;
+    playRef.current = true;
+    setPlaying(true);
+    setCurrent(s.currentTime);
+    setDuration(s.duration || 0);
+    posRef.current += 1;
+    setTrackIdx(finishedIdx);
+    primeStandby(peekNext());
+  };
+
+  const startFade = () => {
+    const a = activeDeck();
+    const s = standbyDeck();
+    const nextIdx = nextIdxRef.current;
+    if (!a || !s || nextIdx < 0 || crossfadeRef.current) return;
+    if (!s.duration || TRACKS[idxRef.current]?.portrait) return;
+    const overlap = fadeInOf(TRACKS[nextIdx]?.slug || "");
+    crossfadeRef.current = { out: overlap, startTime: a.currentTime };
+    s.volume = 0;
+    s.currentTime = 0;
+    s.play().catch(() => {});
+    fadeTimerRef.current = window.setInterval(() => {
+      const cur = activeDeck();
+      const nxt = standbyDeck();
+      const fade = crossfadeRef.current;
+      if (!cur || !nxt || !fade || cur !== a || nxt !== s) {
+        if (fadeTimerRef.current !== null) window.clearInterval(fadeTimerRef.current);
+        fadeTimerRef.current = null;
+        return;
+      }
+      const elapsed = cur.currentTime - fade.startTime;
+      const progress = Math.min(1, Math.max(0, elapsed / fade.out));
+      cur.volume = Math.cos((progress * Math.PI) / 2);
+      nxt.volume = Math.sin((progress * Math.PI) / 2);
+      if (progress >= 1) finishFade();
+    }, 50);
+  };
+
+  const advanceFrom = (fromIdx: number) => {
+    cancelFade();
+    const nxt = takeNext(fromIdx);
+    const outgoing = activeDeck();
+    const incoming = standbyDeck();
+    if (!incoming) return;
+    if (outgoing) {
+      outgoing.pause();
+      outgoing.volume = 1;
+    }
+    activeRef.current = 1 - activeRef.current;
+    nextIdxRef.current = -1;
+    incoming.volume = 0;
+    incoming.currentTime = 0;
+    incoming.preload = "auto";
+    setDeckSrc(incoming, TRACKS[nxt].slug);
+    setCurrent(0);
+    setDuration(0);
+    setTrackIdx(nxt);
+    if (playRef.current) {
+      incoming.play().then(() => fadeInActive(incoming, fadeInOf(TRACKS[nxt]?.slug || ""))).catch(() => {
+        playRef.current = false;
+        setPlaying(false);
+      });
+    }
+    primeStandby(peekNext());
+  };
+
+  const restoreTrack = (idx: number) => {
+    cancelFade();
+    const a = activeDeck();
+    if (!a) return;
+    nextIdxRef.current = -1;
+    a.volume = 1;
+    a.preload = "auto";
+    const same = a.dataset.slug === TRACKS[idx]?.slug && a.readyState >= 1;
+    setDeckSrc(a, TRACKS[idx].slug);
+    setCurrent(0);
+    setDuration(a.duration || 0);
+    setTrackIdx(idx);
+    if (same) {
+      if (pendingSeekRef.current !== null) {
+        const t = Math.min(pendingSeekRef.current, (a.duration || 0) - 0.25);
+        pendingSeekRef.current = null;
+        if (t > 0) {
+          try {
+            a.currentTime = t;
+          } catch {}
+          setCurrent(t);
+        }
+      }
+      if (playRef.current) {
+        a.play().catch(() => {
+          playRef.current = false;
+          setPlaying(false);
+        });
+      }
+    }
+    primeStandby(peekNext());
+  };
 
   const toggle = () => {
-    const a = audioRef.current;
+    const a = activeDeck();
     if (!a || audioError) return;
     if (playing) {
+      cancelFade();
       playRef.current = false;
       a.pause();
+    } else if (a.ended) {
+      playRef.current = true;
+      advanceFrom(idxRef.current);
     } else {
       playRef.current = true;
       a.play().catch(() => {
@@ -96,9 +301,10 @@ export default function SpotifyPlayer({ covers }: Props) {
   };
 
   const seekTo = (clientX: number) => {
-    const a = audioRef.current;
+    const a = activeDeck();
     const bar = barRef.current;
     if (!a || !bar || !duration) return;
+    cancelFade();
     const rect = bar.getBoundingClientRect();
     const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
     a.currentTime = pct * duration;
@@ -110,214 +316,199 @@ export default function SpotifyPlayer({ covers }: Props) {
   };
 
   const onSeekKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    const a = audioRef.current;
+    const a = activeDeck();
     if (!a || !duration) return;
     const step = e.key.startsWith("Page") ? 30 : 5;
     if (e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "PageUp") {
       e.preventDefault();
+      cancelFade();
       a.currentTime = Math.min(duration, a.currentTime + step);
     }
     if (e.key === "ArrowLeft" || e.key === "ArrowDown" || e.key === "PageDown") {
       e.preventDefault();
+      cancelFade();
       a.currentTime = Math.max(0, a.currentTime - step);
     }
     if (e.key === "Home") {
       e.preventDefault();
+      cancelFade();
       a.currentTime = 0;
     }
     if (e.key === "End") {
       e.preventDefault();
+      cancelFade();
       a.currentTime = duration;
     }
   };
 
   useEffect(() => {
-    if (isClaimed() && PORTRAIT_IDX >= 0) {
-      setTrackIdx(PORTRAIT_IDX);
-    } else {
-      setTrackIdx(pick(-1));
-    }
+    const decks = deckRef.current;
+    if (!decks[0] || !decks[1] || initRef.current) return;
+    initRef.current = true;
+
+    const onTime = (e: Event) => {
+      const el = e.currentTarget as HTMLAudioElement;
+      if (el !== activeDeck()) return;
+      setCurrent(el.currentTime);
+      if (crossfadeRef.current || TRACKS[idxRef.current]?.portrait) return;
+      const nxt = peekNext();
+      if (nextIdxRef.current !== nxt) {
+        primeStandby(nxt);
+        return;
+      }
+      const s = standbyDeck();
+      if (!s?.duration) return;
+      const overlap = fadeInOf(TRACKS[nxt]?.slug || "");
+      if (!el.duration) return;
+      if (el.duration - el.currentTime <= overlap) startFade();
+    };
+    const onLoaded = (e: Event) => {
+      const el = e.currentTarget as HTMLAudioElement;
+      if (el !== activeDeck()) return;
+      setDuration(el.duration || 0);
+      if (pendingSeekRef.current !== null) {
+        const t = Math.min(pendingSeekRef.current, (el.duration || 0) - 0.25);
+        pendingSeekRef.current = null;
+        if (t > 0) {
+          try {
+            el.currentTime = t;
+          } catch {}
+          setCurrent(t);
+        }
+      }
+      if (playRef.current && el.paused) {
+        el.play().catch(() => {
+          playRef.current = false;
+          setPlaying(false);
+        });
+      }
+    };
+    const onEnded = (e: Event) => {
+      const el = e.currentTarget as HTMLAudioElement;
+      if (el !== activeDeck()) return;
+      setCurrent(0);
+      if (TRACKS[idxRef.current]?.portrait) {
+        delCookie("portrait");
+        playRef.current = false;
+        const stash = stashRef.current;
+        stashRef.current = null;
+        nextIdxRef.current = -1;
+        setPlaying(false);
+        if (stash) {
+          pendingSeekRef.current = stash.time;
+          if (stash.playing) playRef.current = true;
+          restoreTrack(stash.idx);
+        } else {
+          advanceFrom(-1);
+        }
+        window.dispatchEvent(new CustomEvent("portrait:cleared"));
+      } else if (crossfadeRef.current) {
+        finishFade();
+      } else {
+        advanceFrom(idxRef.current);
+      }
+    };
+    const onPlayState = (e: Event) => {
+      const el = e.currentTarget as HTMLAudioElement;
+      if (el !== activeDeck()) return;
+      setPlaying(!el.paused);
+    };
+    const onDeckError = (e: Event) => {
+      const el = e.currentTarget as HTMLAudioElement;
+      const slug = el.dataset.slug || "";
+      if (!slug || el.dataset.fallback) {
+        if (el === activeDeck()) setAudioError(true);
+        return;
+      }
+      el.dataset.fallback = "1";
+      el.src = `/audio/${slug}.mp3`;
+      el.load();
+      if (el === activeDeck() && playRef.current) {
+        el.play().catch(() => {
+          playRef.current = false;
+          setPlaying(false);
+        });
+      }
+    };
+
+    decks.forEach((d) => {
+      d?.addEventListener("timeupdate", onTime);
+      d?.addEventListener("loadedmetadata", onLoaded);
+      d?.addEventListener("durationchange", onLoaded);
+      d?.addEventListener("ended", onEnded);
+      d?.addEventListener("play", onPlayState);
+      d?.addEventListener("pause", onPlayState);
+      d?.addEventListener("error", onDeckError);
+    });
+
     const onClaimed = () => {
       if (PORTRAIT_IDX < 0) return;
       const cur = idxRef.current;
       if (!TRACKS[cur]?.portrait && !stashRef.current) {
         stashRef.current = {
           idx: cur,
-          time: audioRef.current?.currentTime || 0,
+          time: activeDeck()?.currentTime || 0,
           playing: playRef.current,
         };
       }
+      cancelFade();
       playRef.current = false;
-      if (nextAudioRef.current) {
-        nextAudioRef.current.pause();
-        nextAudioRef.current = null;
-      }
-      audioRef.current?.pause();
+      activeDeck()?.pause();
+      standbyDeck()?.pause();
+      nextIdxRef.current = -1;
       setPlaying(false);
       setCurrent(0);
+      const a = activeDeck();
+      if (a) {
+        a.volume = 1;
+        a.preload = "auto";
+        setDeckSrc(a, TRACKS[PORTRAIT_IDX].slug);
+      }
       setTrackIdx(PORTRAIT_IDX);
     };
     window.addEventListener("portrait:claimed", onClaimed);
-    return () => window.removeEventListener("portrait:claimed", onClaimed);
+
+    const begin = () => {
+      const a = activeDeck();
+      if (!a) return;
+      a.volume = 1;
+      a.preload = "metadata";
+      if (isClaimed() && PORTRAIT_IDX >= 0) {
+        queueRef.current = shufflePool(-1);
+        posRef.current = 0;
+        setDeckSrc(a, TRACKS[PORTRAIT_IDX].slug);
+        setTrackIdx(PORTRAIT_IDX);
+      } else {
+        const queue = shufflePool(-1);
+        queueRef.current = queue;
+        posRef.current = 1;
+        setDeckSrc(a, TRACKS[queue[0]].slug);
+        setTrackIdx(queue[0]);
+        primeStandby(queue[1] ?? peekNext());
+      }
+    };
+    if (document.readyState === "complete") {
+      begin();
+    } else {
+      window.addEventListener("load", begin, { once: true });
+    }
+    return () => {
+      window.removeEventListener("portrait:claimed", onClaimed);
+      window.removeEventListener("load", begin);
+      if (fadeTimerRef.current !== null) window.clearInterval(fadeTimerRef.current);
+      decks.forEach((d) => {
+        d?.removeEventListener("timeupdate", onTime);
+        d?.removeEventListener("loadedmetadata", onLoaded);
+        d?.removeEventListener("durationchange", onLoaded);
+        d?.removeEventListener("ended", onEnded);
+        d?.removeEventListener("play", onPlayState);
+        d?.removeEventListener("pause", onPlayState);
+        d?.removeEventListener("error", onDeckError);
+      });
+    };
   }, []);
 
-  useEffect(() => {
-    const a = audioRef.current;
-    if (!a) return;
-    setCurrent(0);
-    setDuration(0);
-
-    if (nextAudioRef.current) {
-      nextAudioRef.current.pause();
-      nextAudioRef.current = null;
-    }
-    crossfadeRef.current = null;
-
-    const currentTrack = TRACKS[trackIdx];
-    const isPortrait = currentTrack?.portrait;
-    const cf = isPortrait ? { in: 0, out: 0 } : (CROSSFADE[currentTrack?.slug || ""] || { in: 0.35, out: 5.0 });
-
-    const preloadAudio = () => {
-      a.preload = "metadata";
-      a.load();
-      if (playRef.current) {
-        a.play().catch(() => {
-          playRef.current = false;
-          setPlaying(false);
-        });
-      }
-
-      if (!isPortrait) {
-        const nextIdx = pick(trackIdx);
-        const nextTrack = TRACKS[nextIdx];
-        if (nextTrack && !nextTrack.portrait) {
-          const nextAudio = new Audio();
-          nextAudio.preload = "metadata";
-          nextAudio.src = `/audio/${nextTrack.slug}.webm`;
-          nextAudio.addEventListener("error", () => {
-            nextAudio.src = `/audio/${nextTrack.slug}.mp3`;
-            nextAudio.load();
-          });
-          nextAudio.load();
-          nextAudioRef.current = nextAudio;
-        }
-      }
-    };
-
-    if (document.readyState === "complete") {
-      preloadAudio();
-    } else {
-      window.addEventListener("load", preloadAudio, { once: true });
-      return () => window.removeEventListener("load", preloadAudio);
-    }
-  }, [trackIdx]);
-
-  useEffect(() => {
-    const a = audioRef.current;
-    if (!a) return;
-
-    const currentTrack = TRACKS[trackIdx];
-    const isPortrait = currentTrack?.portrait;
-    const cf = isPortrait ? { in: 0, out: 0 } : (CROSSFADE[currentTrack?.slug || ""] || { in: 0.35, out: 5.0 });
-
-    let crossfadeTimer: number | null = null;
-
-    const onTime = () => {
-      setCurrent(a.currentTime);
-
-      if (!isPortrait && crossfadeRef.current === null && nextAudioRef.current && a.duration) {
-        const remaining = a.duration - a.currentTime;
-        if (remaining <= cf.out) {
-          crossfadeRef.current = { outgoing: cf.out, incoming: cf.in, startTime: a.currentTime };
-          const next = nextAudioRef.current;
-          next.volume = 0;
-          next.currentTime = 0;
-          next.play().catch(() => {});
-
-          crossfadeTimer = window.setInterval(() => {
-            if (!audioRef.current || audioRef.current !== a) {
-              if (crossfadeTimer) window.clearInterval(crossfadeTimer);
-              return;
-            }
-            const elapsed = audioRef.current.currentTime - (crossfadeRef.current?.startTime || 0);
-            const progress = Math.min(1, elapsed / cf.out);
-            const fadeOut = Math.cos(progress * Math.PI / 2);
-            const fadeIn = Math.sin(progress * Math.PI / 2);
-            audioRef.current.volume = fadeOut;
-            if (nextAudioRef.current) nextAudioRef.current.volume = fadeIn;
-
-            if (progress >= 1) {
-              window.clearInterval(crossfadeTimer!);
-              crossfadeTimer = null;
-              if (audioRef.current) audioRef.current.pause();
-              const next = nextAudioRef.current;
-              audioRef.current = next;
-              nextAudioRef.current = null;
-              crossfadeRef.current = null;
-              if (next) setDuration(next.duration || 0);
-            }
-          }, 50);
-        }
-      }
-    };
-    const onLoaded = () => {
-      setDuration(a.duration || 0);
-      if (pendingSeekRef.current !== null) {
-        const t = Math.min(pendingSeekRef.current, (a.duration || 0) - 0.25);
-        pendingSeekRef.current = null;
-        if (t > 0) {
-          try {
-            a.currentTime = t;
-          } catch {}
-          setCurrent(t);
-        }
-      }
-    };
-    const onEnded = () => {
-      setCurrent(0);
-      if (TRACKS[trackIdx]?.portrait) {
-        delCookie("portrait");
-        playRef.current = false;
-        const stash = stashRef.current;
-        stashRef.current = null;
-        if (stash) {
-          pendingSeekRef.current = stash.time;
-          if (stash.playing) playRef.current = true;
-          setTrackIdx(stash.idx);
-        } else {
-          setTrackIdx(pick(-1));
-        }
-        window.dispatchEvent(new CustomEvent("portrait:cleared"));
-      } else {
-        setTrackIdx((i) => pick(i));
-      }
-    };
-    const onPlay = () => setPlaying(true);
-    const onPause = () => setPlaying(false);
-    const onError = () => setAudioError(true);
-    a.addEventListener("timeupdate", onTime);
-    a.addEventListener("loadedmetadata", onLoaded);
-    a.addEventListener("durationchange", onLoaded);
-    a.addEventListener("ended", onEnded);
-    a.addEventListener("play", onPlay);
-    a.addEventListener("pause", onPause);
-    a.addEventListener("error", onError);
-    if (a.duration) setDuration(a.duration);
-    return () => {
-      if (crossfadeTimer) window.clearInterval(crossfadeTimer);
-      a.removeEventListener("timeupdate", onTime);
-      a.removeEventListener("loadedmetadata", onLoaded);
-      a.removeEventListener("durationchange", onLoaded);
-      a.removeEventListener("ended", onEnded);
-      a.removeEventListener("play", onPlay);
-      a.removeEventListener("pause", onPause);
-      a.removeEventListener("error", onError);
-    };
-  }, [trackIdx]);
-
   const pct = duration ? (current / duration) * 100 : 0;
-
-  const [seen, setSeen] = useState(false);
 
   return (
     <div
@@ -335,7 +526,7 @@ export default function SpotifyPlayer({ covers }: Props) {
         setExpanded(false);
       }}
       className="relative shrink-0"
-      style={{ width: expanded ? "min(340px, calc(100vw - 48px))" : 180, height: 44, transition: "opacity 200ms ease, transform 200ms ease" }}
+      style={{ width: expanded ? "min(340px, calc(100vw - 48px))" : "min(180px, calc(100vw - 48px))", height: 44, transition: "opacity 200ms ease, transform 200ms ease" }}
     >
       <button
         type="button"
@@ -345,7 +536,8 @@ export default function SpotifyPlayer({ covers }: Props) {
         }}
         className="absolute inset-0 flex items-center gap-3 px-3 border border-line hover:border-line transition-opacity cursor-pointer text-left"
         style={{
-          width: 180,
+          width: "min(180px, calc(100vw - 48px))",
+          maxWidth: "100%",
           height: 44,
           borderRadius: expanded ? 12 : 9999,
           background: "#251a3a",
@@ -355,7 +547,7 @@ export default function SpotifyPlayer({ covers }: Props) {
         }}
       >
         <div className="w-7 h-7 rounded-full overflow-hidden border border-line shrink-0">
-          <img src={covers[track.cover].collapsed} alt="Album Art" width={28} height={28} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="eager" decoding="async" fetchPriority="low" />
+          <img src={covers[track.cover].collapsed} alt="Album Art" width={28} height={28} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="eager" decoding="async" fetchPriority="high" />
         </div>
         <div className="flex flex-col min-w-0">
           <span className="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-muted-text leading-none">Now Playing</span>
@@ -435,10 +627,8 @@ export default function SpotifyPlayer({ covers }: Props) {
         </div>
       </div>
       )}
-      <audio key={track.slug} ref={audioRef} preload="none" style={{ display: "none" }}>
-        <source src={`/audio/${track.slug}.webm`} type="audio/webm" />
-        <source src={`/audio/${track.slug}.mp3`} type="audio/mpeg" />
-      </audio>
+      <audio ref={(el) => { deckRef.current[0] = el; }} preload="none" style={{ display: "none" }} />
+      <audio ref={(el) => { deckRef.current[1] = el; }} preload="none" style={{ display: "none" }} />
     </div>
   );
 }
