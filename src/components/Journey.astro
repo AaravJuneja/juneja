@@ -32,58 +32,56 @@ const chapters = [
 <section id="journey" data-reveal class="w-full">
   <div class="w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-12 pt-20 sm:pt-24 pb-16 sm:pb-20">
     <div class="max-w-[820px] flex flex-col gap-4 mb-6">
-      <p class="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-accent">RECEIPTS</p>
+      <p class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-accent">RECEIPTS</p>
       <h2 class="font-dm trim-caps font-bold text-[clamp(26px,4vw,34px)] leading-tight text-text uppercase">CTF ACHIEVEMENTS</h2>
       <p class="font-outfit text-[clamp(18px,2.1vw,21px)] leading-[1.55] text-muted-text tracking-[-0.005em]">Some sleepless nights and loads of caffeine</p>
     </div>
 
-    <div class="flex flex-col sm:flex-row sm:items-center gap-3 bg-surface border border-dashed border-accent px-4 py-4 mb-8">
-      <div class="flex items-center gap-3.5 flex-1">
-        <img src="/images/medal.svg" alt="" width="20" height="20" class="w-5 h-5 theme-icon" loading="lazy" decoding="async" />
-        <span class="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-muted-text">les réalisations</span>
-      </div>
-      <input id="journey-search" type="search" placeholder="FILTER EVENTS" autocomplete="off" spellcheck="false" aria-label="Filter events" class="w-full sm:w-[240px] bg-raised-surface border border-line px-3 py-2.5 font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-text placeholder:text-muted-text/60 focus:border-accent focus:outline-none" />
+    <div class="flex flex-row flex-wrap items-center gap-3 bg-surface border border-dashed border-accent px-4 py-4 mb-8">
+      <img src="/images/medal.svg" alt="" width="20" height="20" class="w-5 h-5 theme-icon shrink-0" loading="lazy" decoding="async" />
+      <input id="journey-search" type="search" placeholder="FILTER EVENTS" autocomplete="off" spellcheck="false" class="flex-1 min-w-[160px] sm:max-w-[240px] bg-raised-surface border border-line px-3 py-2.5 font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-text placeholder:text-muted-text/60 focus:border-accent focus:outline-none" />
+      <span id="journey-count" class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-muted-text whitespace-nowrap" aria-live="polite"></span>
+      <button id="journey-clear" type="button" class="hidden font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-accent hover:text-accent-soft transition-colors border border-line px-3 py-2.5">CLEAR</button>
     </div>
 
-    <div class="sticky top-[56px] sm:top-[60px] z-30 py-3 bg-background/90 backdrop-blur-sm flex flex-wrap gap-2 mb-8">
+    <div class="sticky top-[72px] sm:top-[76px] z-30 py-3 bg-background/90 backdrop-blur-sm flex flex-wrap gap-2 mb-8">
       {chapters.map((ch) => (
-        <a href={`#${ch.id}`} class="inline-flex items-center gap-2 bg-surface border border-line px-3 py-2 font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-muted-text hover:text-text hover:border-accent/40 transition-colors">
-          {ch.badge} {ch.team}
+        <a href={`#${ch.id}`} class="inline-flex items-center gap-2 bg-surface border border-line px-3 py-2 font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-muted-text hover:text-text hover:border-accent/40 transition-colors">
+          {ch.badge} {ch.team} ({ch.achievements.length})
         </a>
       ))}
     </div>
 
-    <div class="flex flex-col gap-10 sm:gap-12">
+    <div class="flex flex-col gap-12 sm:gap-16">
       {chapters.map((ch, idx) => (
         <details id={ch.id} data-chapter class="group/details bg-transparent scroll-mt-36" open={idx === 0}>
           <summary class="list-none cursor-pointer [&::-webkit-details-marker]:hidden">
-            <div class="flex flex-col sm:flex-row gap-4 sm:gap-6 group/details-summary">
-              <div class="w-full sm:w-[170px] shrink-0 bg-accent flex flex-col items-center justify-center py-5 sm:py-6 border border-accent shadow-[4px_4px_0px_var(--color-raised-surface)] relative">
+            <div class="flex flex-col sm:flex-row gap-5 sm:gap-6 group/details-summary">
+              <div class="w-full sm:w-[170px] shrink-0 bg-accent flex flex-col items-center justify-center gap-1.5 py-5 sm:py-6 border border-accent shadow-[4px_4px_0px_var(--color-raised-surface)] relative">
                 <span class="font-dm trim-caps text-[10px] leading-none tracking-[0.08em] uppercase text-background/60">YEAR</span>
                 <span class="font-dm trim-caps font-bold text-2xl leading-none text-background">{ch.badge}</span>
               </div>
               <div class="flex-1 bg-surface border border-line p-5 sm:p-6 flex flex-col gap-2.5 relative">
                 <div class="flex flex-wrap items-center gap-x-3 gap-y-2 pr-6 sm:pr-0">
                   <h3 class="font-dm trim-caps font-bold text-[17px] sm:text-[18px] tracking-tight text-text uppercase">{ch.title}</h3>
-                  <span class="inline-flex items-center bg-accent/10 border border-accent/20 px-2.5 py-1 font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-accent">{ch.team}</span>
+                  <span class="inline-flex items-center bg-accent/10 border border-accent/20 px-2.5 py-1 font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-accent">{ch.team}</span>
                 </div>
                 <p class="font-outfit text-[15px] sm:text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">{ch.copy}</p>
-                <span class="hidden sm:block absolute right-4 top-1/2 -translate-y-1/2 font-dm trim-caps text-muted-text text-lg leading-none select-none !cursor-pointer group-open/details:rotate-180 transition-transform duration-200" style="cursor:pointer">⌄</span>
-                <span class="sm:hidden absolute right-4 top-1/2 -translate-y-1/2 font-dm trim-caps text-muted-text text-lg leading-none select-none !cursor-pointer group-open/details:rotate-180 transition-transform duration-200" style="cursor:pointer">⌄</span>
+                <span class="absolute right-4 top-1/2 -translate-y-1/2 font-dm trim-caps text-muted-text text-lg leading-none select-none group-open/details:rotate-180 transition-transform duration-200" aria-hidden="true">⌄</span>
               </div>
             </div>
           </summary>
           <div class="flex flex-col divide-y divide-line border-t border-line mt-8">
             {ch.achievements.map((a) => (
-              <div class="group journey-row flex flex-col sm:flex-row sm:items-stretch gap-4 sm:gap-5 py-5 sm:py-6 px-0 sm:px-4 hover:bg-[color-mix(in_srgb,var(--color-raised-surface)_50%,transparent)] transition-colors duration-150" data-search={`${a.title} ${a.organizer} ${a.team} ${a.dates}`.toLowerCase()}>
+              <div class="group journey-row flex flex-col sm:flex-row sm:items-stretch gap-4 sm:gap-5 py-5 sm:py-6 px-0 sm:px-4 hover:bg-[color-mix(in_srgb,var(--color-raised-surface)_50%,transparent)] transition-colors duration-150" data-search={`${a.title} ${a.organizer} ${a.team} ${a.dates} ${a.finish} ${a.rating} ${a.scope}`.toLowerCase()}>
                 <div class="w-full sm:w-[170px] shrink-0 bg-raised-surface border border-line p-4 flex flex-col justify-center items-center text-center gap-1.5 group-hover:border-accent/40 transition-colors duration-150 sm:min-h-[88px]">
-                  <p class="font-dm trim-caps font-bold text-[15px] text-text leading-none">{a.rating}</p>
-                  <p class="font-outfit font-medium text-[13px] tracking-[0.02em] text-accent-soft uppercase">{a.source && a.source !== "-" ? a.source : ""}</p>
+                  {a.rating ? <p class="font-dm trim-caps font-bold text-[15px] text-text leading-none tabular-nums">{a.rating}</p> : null}
+                  {a.source ? <p class="font-outfit font-medium text-[13px] tracking-[0.02em] text-accent-soft uppercase">{a.source}</p> : null}
                 </div>
                 <div class="flex-1 flex flex-col gap-2.5 min-w-0">
                   <div class="flex flex-wrap items-center gap-3">
                     <a href={a.href} target="_blank" rel="noopener noreferrer" class="font-dm trim-caps font-bold text-[16px] sm:text-[18px] text-text hover:text-accent transition-colors break-words">{a.title}</a>
-                    <span class="ml-auto inline-flex items-center border border-line px-2 py-1 font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-muted-text group-hover:border-accent/30 transition-colors duration-150">{a.team}</span>
+                    <span class="ml-auto inline-flex items-center border border-line px-2 py-1 font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-muted-text group-hover:border-accent/30 transition-colors duration-150">{a.team}</span>
                   </div>
                   <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <span class="font-outfit font-medium text-[14px] text-muted-text tracking-[-0.003em]">{a.dates}</span>
@@ -100,34 +98,74 @@ const chapters = [
       ))}
     </div>
 
-    <div id="journey-empty" class="hidden border border-dashed border-line px-4 py-10 mt-10 text-center font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-muted-text">NO EVENTS MATCH THAT FILTER</div>
+    <div id="journey-empty" class="hidden border border-dashed border-line px-4 py-10 mt-10 text-center font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-muted-text">NO EVENTS MATCH THAT FILTER</div>
   </div>
 </section>
 
 <script>
-  const input = document.getElementById("journey-search");
-  const empty = document.getElementById("journey-empty");
-  const rows = Array.from(document.querySelectorAll(".journey-row"));
-  const boxes = Array.from(document.querySelectorAll("details[data-chapter]")) as HTMLDetailsElement[];
-  const paint = () => {
-    const q = ((input instanceof HTMLInputElement && input.value) || "").trim().toLowerCase();
-    let shown = 0;
-    rows.forEach((r) => {
-      const hit = !q || (r.getAttribute("data-search") || "").includes(q);
-      r.classList.toggle("hidden", !hit);
-      if (hit) shown += 1;
-    });
-    boxes.forEach((d) => {
-      const hits = Array.from(d.querySelectorAll(".journey-row")).filter(
-        (r) => !r.classList.contains("hidden")
-      ).length;
-      d.classList.toggle("hidden", q !== "" && hits === 0);
-      if (q && hits > 0) d.open = true;
-    });
-    if (empty) empty.classList.toggle("hidden", shown !== 0);
+  const openHash = () => {
+    const id = window.location.hash.slice(1);
+    if (!id) return;
+    const box = document.getElementById(id);
+    if (box instanceof HTMLDetailsElement) box.open = true;
   };
-  if (input) {
-    input.addEventListener("input", paint);
-    paint();
-  }
+  const initJourney = () => {
+    const input = document.getElementById("journey-search");
+    if (!(input instanceof HTMLInputElement)) return;
+    if (input.dataset.journeyBound) return;
+    input.dataset.journeyBound = "1";
+    const empty = document.getElementById("journey-empty");
+    const count = document.getElementById("journey-count");
+    const clear = document.getElementById("journey-clear");
+    const rows = Array.from(document.querySelectorAll(".journey-row"));
+    const boxes = Array.from(document.querySelectorAll("details[data-chapter]")) as HTMLDetailsElement[];
+    const total = rows.length;
+    let swapTimer = 0;
+    const paint = (push = true) => {
+      const q = input.value.trim().toLowerCase();
+      let shown = 0;
+      rows.forEach((r) => {
+        const hit = !q || (r.getAttribute("data-search") || "").includes(q);
+        r.classList.toggle("hidden", !hit);
+        if (hit) shown += 1;
+      });
+      boxes.forEach((d) => {
+        const hits = Array.from(d.querySelectorAll(".journey-row")).filter(
+          (r) => !r.classList.contains("hidden")
+        ).length;
+        d.classList.toggle("hidden", q !== "" && hits === 0);
+        if (q && hits > 0) d.open = true;
+      });
+      if (empty) empty.classList.toggle("hidden", shown !== 0);
+      if (count) count.textContent = q ? `${shown} / ${total}` : `${total} EVENTS`;
+      if (clear) clear.classList.toggle("hidden", q === "");
+    if (push) {
+      window.clearTimeout(swapTimer);
+      swapTimer = window.setTimeout(() => {
+        const url = new URL(window.location.href);
+        if (q) url.searchParams.set("q", q);
+        else url.searchParams.delete("q");
+        window.history.replaceState(null, "", url);
+      }, 200);
+    }
+  };
+    try {
+      const start = new URL(window.location.href).searchParams.get("q") || "";
+      if (start) input.value = start;
+    } catch {}
+    input.addEventListener("input", () => paint());
+    paint(false);
+    if (clear) {
+      clear.addEventListener("click", () => {
+        input.value = "";
+        paint();
+        input.focus();
+      });
+    }
+  };
+  initJourney();
+  openHash();
+  document.addEventListener("astro:page-load", initJourney);
+  document.addEventListener("astro:after-swap", initJourney);
+  window.addEventListener("hashchange", openHash);
 </script>

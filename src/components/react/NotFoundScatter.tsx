@@ -18,6 +18,7 @@ function ScrambleLink({ href, children }: { href: string; children: string }) {
   const intervalRef = useRef<number | null>(null);
 
   const start = () => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let iter = 0;
     if (intervalRef.current) window.clearInterval(intervalRef.current);
     intervalRef.current = window.setInterval(() => {
@@ -49,7 +50,9 @@ function ScrambleLink({ href, children }: { href: string; children: string }) {
       href={href}
       onMouseEnter={start}
       onMouseLeave={stop}
-      className="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-accent hover:text-accent-soft transition-colors underline underline-offset-4 decoration-accent/30 hover:decoration-accent"
+      onFocus={start}
+      onBlur={stop}
+      className="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-accent hover:text-accent-soft transition-colors underline underline-offset-4 decoration-accent/30 hover:decoration-accent"
     >
       {children}
     </a>
@@ -64,9 +67,19 @@ export default function NotFoundScatter() {
   const pointerRef = useRef({ x: -9999, y: -9999 });
 
   useEffect(() => {
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const rand = seededRandom(1337);
     const cells = cellsRef.current;
     if (!cells.length) return;
+
+    if (reduced) {
+      cells.forEach((el) => {
+        el.style.transition = "none";
+        el.style.transform = "none";
+        el.style.opacity = "1";
+      });
+      return;
+    }
 
     const scatter = cells.map(() => ({
       x: (rand() - 0.5) * 600,
@@ -89,15 +102,14 @@ export default function NotFoundScatter() {
     }, 80);
 
     const onPointerMove = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse" && e.pointerType !== "pen") return;
       pointerRef.current = { x: e.clientX, y: e.clientY };
     };
-    const onMouseMove = (e: MouseEvent) => {
-      pointerRef.current = { x: e.clientX, y: e.clientY };
-    };
-    window.addEventListener("pointermove", onPointerMove as any, { passive: true });
-    window.addEventListener("mousemove", onMouseMove, { passive: true });
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
 
     const tick = () => {
+      rafRef.current = null;
+      if (document.hidden) return;
       if (assembledRef.current && containerRef.current) {
         const pointer = pointerRef.current;
         cells.forEach((el) => {
@@ -109,33 +121,44 @@ export default function NotFoundScatter() {
           const dist = Math.hypot(dx, dy);
           if (dist < REPEL_RADIUS && dist > 0.1) {
             const force = (1 - dist / REPEL_RADIUS) * REPEL_STRENGTH / (dist * dist + 40);
-            const ox = (dx / dist) * force * 0.08;
-            const oy = (dy / dist) * force * 0.08;
+            const rawOx = (dx / dist) * force * 0.08;
+            const rawOy = (dy / dist) * force * 0.08;
+            const ox = Math.max(-48, Math.min(48, rawOx));
+            const oy = Math.max(-48, Math.min(48, rawOy));
             el.style.transform = `translate(${ox}px, ${oy}px) rotate(${ox * 0.3}deg)`;
           } else {
             el.style.transform = "translate(0,0) rotate(0deg)";
           }
         });
       }
-      rafRef.current = window.requestAnimationFrame(tick);
+      if (!document.hidden) rafRef.current = window.requestAnimationFrame(tick);
     };
-    rafRef.current = window.requestAnimationFrame(tick);
 
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduced) {
-      cells.forEach((el) => {
-        el.style.transition = "none";
-        el.style.transform = "none";
-        el.style.opacity = "1";
-      });
-      assembledRef.current = false;
-      if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
-    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          if (rafRef.current === null) rafRef.current = window.requestAnimationFrame(tick);
+        } else if (rafRef.current !== null) {
+          window.cancelAnimationFrame(rafRef.current);
+          rafRef.current = null;
+        }
+      },
+      { threshold: 0 }
+    );
+    if (containerRef.current) io.observe(containerRef.current);
+    const onVisible = () => {
+      if (!document.hidden && rafRef.current === null) {
+        rafRef.current = window.requestAnimationFrame(tick);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    rafRef.current = window.requestAnimationFrame(tick);
 
     return () => {
       window.clearTimeout(t);
-      window.removeEventListener("pointermove", onPointerMove as any);
-      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("pointermove", onPointerMove);
+      document.removeEventListener("visibilitychange", onVisible);
+      io.disconnect();
       if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
     };
   }, []);
@@ -165,6 +188,8 @@ export default function NotFoundScatter() {
           <ScrambleLink href="/">RETURN HOME</ScrambleLink>
           <span className="text-line">/</span>
           <ScrambleLink href="/#writeups">VIEW WRITEUPS</ScrambleLink>
+          <span className="text-line">/</span>
+          <ScrambleLink href="/journey">VIEW JOURNEY</ScrambleLink>
         </div>
       </div>
     </div>

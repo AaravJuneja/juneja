@@ -1,0 +1,63 @@
+---
+import type { Repository } from "../data.ts";
+
+interface Props {
+  repo: Repository;
+  featured?: boolean;
+}
+
+const { repo, featured = false } = Astro.props;
+---
+
+{featured ? (
+  <a href={repo.href} target="_blank" rel="noopener noreferrer" class="group md:col-span-2 lg:col-span-2 bg-raised-surface border border-accent p-5 sm:p-6 grid sm:grid-cols-2 gap-6 hover:border-accent-soft hover:shadow-[8px_8px_0px_0px_var(--color-accent)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-150 ease-out">
+    <div class="flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <img src="/images/github-icon.svg" alt="" width="18" height="18" class="w-[18px] h-[18px] theme-icon" loading="lazy" decoding="async" />
+          <span class="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-muted-text">{repo.owner}</span>
+          <span class="font-dm trim-caps text-[10px] tracking-[0.08em] uppercase text-background bg-accent px-2 py-0.5">LATEST</span>
+        </div>
+        <img src="/images/arrow-up-right.svg" alt="" width="18" height="18" class="w-[18px] h-[18px] opacity-60 group-hover:opacity-100 theme-icon group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-150" loading="lazy" decoding="async" />
+      </div>
+      <h3 class="font-dm trim-caps font-bold text-[20px] sm:text-[22px] leading-tight text-text break-words">{repo.title}</h3>
+      <p class="font-outfit text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">{repo.summary}</p>
+    </div>
+    <div class="flex flex-col justify-between gap-6">
+      <div class="flex flex-wrap gap-1.5 sm:justify-end">
+        {repo.coverage.map((c) => (
+          <span class="inline-flex items-center bg-accent/10 border border-accent/20 px-2 py-1 font-dm trim-caps text-[10px] tracking-[0.08em] uppercase text-accent-soft">{c}</span>
+        ))}
+      </div>
+      <div class="flex items-center justify-between border-t border-accent/35 pt-4">
+        <span class="font-dm trim-caps text-[10px] tracking-[0.08em] uppercase text-muted-text">{repo.updated}</span>
+      </div>
+    </div>
+  </a>
+) : (
+  <a href={repo.href} target="_blank" rel="noopener noreferrer" class="group bg-raised-surface border border-accent p-5 sm:p-6 flex flex-col gap-6 hover:border-accent-soft hover:shadow-[8px_8px_0px_0px_var(--color-accent)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-150 ease-out">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <img src="/images/github-icon.svg" alt="" width="18" height="18" class="w-[18px] h-[18px] theme-icon" loading="lazy" decoding="async" />
+        <span class="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-muted-text">{repo.owner}</span>
+      </div>
+      <img src="/images/arrow-up-right.svg" alt="" width="18" height="18" class="w-[18px] h-[18px] opacity-60 group-hover:opacity-100 theme-icon group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-150" loading="lazy" decoding="async" />
+    </div>
+
+    <div class="flex flex-col gap-3 flex-1">
+      <h3 class="font-dm trim-caps font-bold text-[17px] sm:text-[18px] leading-tight text-text break-words">{repo.title}</h3>
+      <p class="font-outfit text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">{repo.summary}</p>
+      <div class="flex flex-wrap gap-1.5">
+        {repo.coverage.map((c) => (
+          <span class="inline-flex items-center bg-accent/10 border border-accent/20 px-2 py-1 font-dm trim-caps text-[10px] tracking-[0.08em] uppercase text-accent-soft">{c}</span>
+        ))}
+      </div>
+    </div>
+
+    <div class="h-px bg-accent/35"></div>
+
+    <div class="flex items-center">
+      <span class="font-dm trim-caps text-[10px] tracking-[0.08em] uppercase text-muted-text">{repo.updated}</span>
+    </div>
+  </a>
+)}

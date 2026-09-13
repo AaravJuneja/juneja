@@ -3,7 +3,7 @@ export type Repository = {
   owner: string
   title: string
   summary: string
-  coverage: string
+  coverage: string[]
   updated: string
 }
 
@@ -12,24 +12,24 @@ export const repositories: Repository[] = [
     href: "https://github.com/techsyndicate/robo26-encryptid-writeups",
     owner: "techsyndicate",
     title: "robo26-encryptid-writeups",
-    summary: "Official writeups for the challenges we authored for Encryptid X CTF - Robotronics 26.",
-    coverage: "CRYPTIC · CTF · OFFLINE",
+    summary: "Challenges we authored for Encryptid X CTF at Robotronics 26 with official solutions.",
+    coverage: ["CRYPTIC", "CTF", "OFFLINE"],
     updated: "UPDATED AUG 2026",
   },
   {
     href: "https://github.com/AaravJuneja/inTech-Encryptid-CTF-2026-Writeups",
     owner: "AaravJuneja",
     title: "inTech-Encryptid-CTF-2026-Writeups",
-    summary: "Official source code and writeups for the challenges we authored for inTech Encryptid CTF 2026.",
-    coverage: "CRYPTO · FORENSICS · MISC · WEB",
+    summary: "Challenges we authored for inTech Encryptid CTF 2026 with source and solutions.",
+    coverage: ["CRYPTO", "FORENSICS", "MISC", "WEB"],
     updated: "UPDATED JUN 2026",
   },
   {
     href: "https://github.com/AaravJuneja/HackZero-CTF-2026-Writeups",
     owner: "AaravJuneja",
     title: "HackZero-CTF-2026-Writeups",
-    summary: "These are some of the writeups of the challenges that our team, Syndication, managed to solve during HackZero CTF 2026.",
-    coverage: "PWN · CLOUD · CRYPTO · OSINT · WEB",
+    summary: "Challenges Syndication solved at HackZero CTF 2026 written up with solutions.",
+    coverage: ["PWN", "CLOUD", "CRYPTO", "OSINT", "WEB"],
     updated: "UPDATED MAY 2026",
   },
 ]
@@ -78,7 +78,7 @@ export const achievements2025Syndication: Achievement[] = [
     dates: "Mar 7 - Mar 18, 2025",
     scope: "International",
     organizer: "Carnegie Mellon University",
-    finish: "Finished 26 among 6533 teams.",
+    finish: "Finished 26th among 6533 teams.",
   },
   {
     rating: "53.702 RP",
@@ -202,7 +202,7 @@ export const achievements2025Syndication: Achievement[] = [
     finish: "Finished 30th among 171 teams.",
   },
   {
-    rating: "0.000 RP",
+    rating: "",
     source: "CTFtime",
     title: "Pointer Overflow CTF 2025",
     href: "https://ctftime.org/event/2904",
@@ -213,7 +213,7 @@ export const achievements2025Syndication: Achievement[] = [
     finish: "Finished 10th among 637 teams.",
   },
   {
-    rating: "0.000 RP",
+    rating: "",
     source: "CTFtime",
     title: "MetaRed Argentina 2025",
     href: "https://ctftime.org/event/3003",
@@ -230,7 +230,7 @@ export const achievements2026Syndication: Achievement[] = [
     rating: "HackZero",
     source: "",
     title: "HackZero",
-    href: "https://lnkd.in/p/dSZdm5Pg",
+    href: "https://web.archive.org/web/20260913045010/https://www.linkedin.com/posts/hackzero26-ctf-cybersecurity-share-7446984103901605888-Ljc9/",
     team: "Syndication",
     dates: "28 Mar 2026 - 29 Mar 2026",
     scope: "National",
@@ -260,7 +260,7 @@ export const achievements2026Syndication: Achievement[] = [
     finish: "Finished 29th among 253 teams.",
   },
   {
-    rating: "0.000 RP",
+    rating: "",
     source: "CTFtime",
     title: "ARA 7.0 CTF",
     href: "https://ctftime.org/event/3152",
@@ -275,9 +275,9 @@ export const achievements2026Syndication: Achievement[] = [
 export const achievements2026Obscuri: Achievement[] = [
   {
     rating: "redfox",
-    source: "-",
+    source: "",
     title: "Redfox CTF 2026",
-    href: "https://linkedin.com/posts/redfoxsec_redfoxctf2026-redfoxcybersecurityacademy-activity-7442189734766067712-zuZA",
+    href: "https://web.archive.org/web/20260913044954/https://www.linkedin.com/posts/redfoxsec_redfoxctf2026-redfoxcybersecurityacademy-activity-7442189734766067712-zuZA",
     team: "0bscuri7y",
     dates: "21 Mar 2026 - 22 Mar 2026",
     scope: "National",

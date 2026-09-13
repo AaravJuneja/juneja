@@ -25,6 +25,8 @@ export default function ArcadeRunnerLane() {
   const lastTsRef = useRef(0);
   const hasDoorsGlitchedRef = useRef(false);
   const dismissTimerRef = useRef<number | null>(null);
+  const laneRectRef = useRef<DOMRect | null>(null);
+  const runnerWidthRef = useRef(28);
 
   const [doorsGlitch, setDoorsGlitch] = useState(false);
   const [hoverable, setHoverable] = useState(true);
@@ -47,12 +49,20 @@ export default function ArcadeRunnerLane() {
       runner.style.filter = filter;
     };
 
-    const readBounds = () => {
+    const readBounds = (laneOnly = false) => {
       const lane = laneRef.current;
       const runner = runnerRef.current;
       if (!lane || !runner) return;
       const laneRect = lane.getBoundingClientRect();
+      laneRectRef.current = laneRect;
+      if (laneOnly) {
+        const maxX = Math.max(0, laneRect.width - runnerWidthRef.current - 14);
+        maxXRef.current = maxX;
+        xRef.current = Math.max(0, Math.min(maxX, xRef.current));
+        return;
+      }
       const runnerRect = runner.getBoundingClientRect();
+      runnerWidthRef.current = runnerRect.width;
       const maxX = Math.max(0, laneRect.width - runnerRect.width - 14);
       maxXRef.current = maxX;
       xRef.current = Math.max(0, Math.min(maxX, xRef.current));
@@ -85,11 +95,10 @@ export default function ArcadeRunnerLane() {
       pointerActiveRef.current = pt === "mouse" || pt === "pen";
       pointerRef.current = { x: e.clientX, y: e.clientY, type: pt, t: performance.now() };
     };
-    const onMouseMove = (e: MouseEvent) => {
-      pointerActiveRef.current = true;
-      pointerRef.current = { x: e.clientX, y: e.clientY, type: "mouse", t: performance.now() };
+    const onEnter = () => {
+      isHoveringRef.current = true;
+      if (hoverStartRef.current === null) hoverStartRef.current = performance.now();
     };
-    const onEnter = () => (isHoveringRef.current = true);
     const onLeave = () => {
       isHoveringRef.current = false;
       hoverStartRef.current = null;
@@ -112,9 +121,17 @@ export default function ArcadeRunnerLane() {
       const prev = lastTsRef.current || ts;
       const dt = Math.min(0.05, Math.max(0.008, (ts - prev) / 1000));
       lastTsRef.current = ts;
-      const laneRect = lane.getBoundingClientRect();
-      const runnerRect = runner.getBoundingClientRect();
-      const maxX = Math.max(0, laneRect.width - runnerRect.width - 14);
+      if (!laneRectRef.current) readBounds();
+      const laneRect = laneRectRef.current ?? lane.getBoundingClientRect();
+      const runnerWidth = runnerWidthRef.current;
+      const runnerLeft = laneRect.left + xRef.current;
+      const runnerRect = {
+        left: runnerLeft,
+        right: runnerLeft + runnerWidth,
+        top: laneRect.top,
+        bottom: laneRect.bottom,
+      } as DOMRect;
+      const maxX = Math.max(0, laneRect.width - runnerWidth - 14);
       maxXRef.current = maxX;
       const pointer = pointerRef.current;
       const hasPointer = !!pointer && pointerActiveRef.current && pointer.type !== "touch";
@@ -127,18 +144,18 @@ export default function ArcadeRunnerLane() {
       let targetVelocity = 0;
       const hovering = isHoveringRef.current;
 
-      if (hovering && !overdrive && !hasDoorsGlitchedRef.current) {
+      if (hovering && !overdrive && !hasDoorsGlitchedRef.current && !reducedMotionRef.current) {
         if (hoverStartRef.current === null) hoverStartRef.current = ts;
-        if (hoverStartRef.current !== null && ts - hoverStartRef.current >= 350) {
+        if (ts - hoverStartRef.current >= 350) {
           triggerDoorsGlitch(ts);
         }
-      } else {
+      } else if (!hovering) {
         hoverStartRef.current = null;
       }
 
       if (overdrive) {
         if (reducedMotionRef.current) {
-          writeRunner(xRef.current, 1, "drop-shadow(0 0 10px var(--color-accent))");
+          writeRunner(xRef.current, 1, "drop-shadow(0 0 10px #fff)");
         } else {
           const dir = overdriveDirectionRef.current;
           const targetX = dir > 0 ? maxX : 0;
@@ -150,7 +167,7 @@ export default function ArcadeRunnerLane() {
           writeRunner(
             xRef.current,
             scale,
-            `drop-shadow(${8 * dir}px 0 0 var(--color-accent)) drop-shadow(${16 * dir}px 0 0 color-mix(in srgb, var(--color-accent) 65%, transparent)) drop-shadow(0 0 12px var(--color-accent))`
+            `drop-shadow(${8 * dir}px 0 0 #fff) drop-shadow(${16 * dir}px 0 0 rgba(255,255,255,0.65)) drop-shadow(0 0 12px #fff)`
           );
         }
       } else {
@@ -168,22 +185,23 @@ export default function ArcadeRunnerLane() {
         const windupScale = 1 + 0.3 * windup;
         const windupFilter =
           ant > 0.02
-            ? `drop-shadow(0 0 ${(8 + 10 * ant).toFixed(1)}px var(--color-accent))`
+            ? `drop-shadow(0 0 ${(8 + 10 * ant).toFixed(1)}px #fff)`
             : "none";
         if (hovering) {
           targetVelocity = 0;
           writeRunner(xRef.current, windupScale, windupFilter);
         } else if (laneNear && hasPointer && pointer) {
-          const centerX = runnerRect.left + runnerRect.width / 2;
+          const centerX = runnerRect.left + runnerWidth / 2;
+          const centerY = (laneRect.top + laneRect.bottom) / 2;
           const dx = centerX - pointer.x;
           const direction: 1 | -1 = dx >= 0 ? 1 : -1;
-          const distance = Math.abs(dx);
+          const distance = Math.hypot(dx, centerY - pointer.y);
           const closeness = 1 - Math.min(distance, 240) / 240;
           const speed = reducedMotionRef.current ? 90 : 70 + closeness * 680;
           targetVelocity = speed * direction;
           const pushingEdge =
             (xRef.current <= 0.5 && direction < 0) || (xRef.current >= maxX - 0.5 && direction > 0);
-          if (!reducedMotionRef.current && pushingEdge && closeness > 0.45 && ts - lastWrapRef.current > 280) {
+          if (!reducedMotionRef.current && pushingEdge && ts - lastWrapRef.current > 280) {
             xRef.current = direction > 0 ? 0 : maxX;
             lastWrapRef.current = ts;
           }
@@ -216,6 +234,11 @@ export default function ArcadeRunnerLane() {
       }
     };
 
+    const stopLoop = () => {
+      if (frameRef.current !== null) window.cancelAnimationFrame(frameRef.current);
+      frameRef.current = null;
+    };
+
     readBounds();
     roRef.current = new ResizeObserver(() => readBounds());
     if (laneRef.current) roRef.current.observe(laneRef.current);
@@ -227,24 +250,28 @@ export default function ArcadeRunnerLane() {
     ioRef.current = new IntersectionObserver(
       (entries) => {
         visibleRef.current = entries[0]?.isIntersecting ?? true;
-        if (visibleRef.current) startLoop();
+        if (visibleRef.current) {
+          readBounds();
+          startLoop();
+        } else {
+          stopLoop();
+        }
       },
       { threshold: 0 }
     );
     if (laneRef.current) ioRef.current.observe(laneRef.current);
     window.addEventListener("pointermove", onPointerMove, { passive: true });
-    window.addEventListener("mousemove", onMouseMove, { passive: true });
-    window.addEventListener("resize", readBounds);
-    window.addEventListener("scroll", readBounds, true);
+    const onScrollBounds = () => readBounds(true);
+    const onResizeBounds = () => readBounds();
+    window.addEventListener("resize", onResizeBounds);
+    window.addEventListener("scroll", onScrollBounds, true);
     const onDoors = () => triggerDoorsGlitch(performance.now());
     window.addEventListener("arcade:doors", onDoors);
-    startLoop();
     return () => {
       mql.removeEventListener?.("change", updateReduced);
       window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("resize", readBounds);
-      window.removeEventListener("scroll", readBounds, true);
+      window.removeEventListener("resize", onResizeBounds);
+      window.removeEventListener("scroll", onScrollBounds, true);
       window.removeEventListener("arcade:doors", onDoors);
       if (runnerRef.current) {
         runnerRef.current.removeEventListener("mouseenter", onEnter);
@@ -295,8 +322,7 @@ export default function ArcadeRunnerLane() {
           ref={runnerRef}
           role="button"
           tabIndex={0}
-          aria-label="arcade runner"
-          onClick={activateFromInput}
+          aria-label="doesn't like you so tries to run away"
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
@@ -325,7 +351,7 @@ export default function ArcadeRunnerLane() {
       </div>
 
       {doorsGlitch && (
-        <div className="doors-overlay">
+        <div className="doors-overlay" role="alert" aria-live="assertive">
           <div className="doors-binary doors-binary-tl" aria-hidden="true">
             01010
           </div>
@@ -337,7 +363,7 @@ export default function ArcadeRunnerLane() {
           <div className="doors-ghost" aria-hidden="true">
             5Y5T3M_BR34CH
           </div>
-          <div className="doors-word" data-text="PWNED" role="img" aria-label="PWNED">
+          <div className="doors-word" data-text="PWNED" aria-hidden="true">
             PWNED
           </div>
         </div>

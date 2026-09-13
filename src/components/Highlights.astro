@@ -2,7 +2,8 @@
 import { allAchievements } from "../data.ts";
 
 const podiumTitles = ["Redfox CTF 2026", "picoMini", "HackZero", "cruXipher 2025"];
-const podiums = podiumTitles.map((t) => allAchievements.find((a) => a.title === t)!).filter(Boolean);
+const podiumMap = new Map(allAchievements.map((a) => [a.title, a]));
+const podiums = podiumTitles.map((t) => podiumMap.get(t)).filter((a) => a !== undefined);
 const rankOf = (finish: string) => {
   const m = finish.match(/(\d+)(st|nd|rd|th)/);
   return m ? `${m[1]}${m[2]}`.toUpperCase() : "";
@@ -12,16 +13,16 @@ const rankOf = (finish: string) => {
 <section id="highlights" data-reveal class="w-full">
   <div class="w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-12 py-16 sm:py-20">
     <div class="max-w-[820px] flex flex-col gap-4 mb-11">
-      <p class="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-accent">HIGHLIGHTS</p>
+      <p class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-accent">HIGHLIGHTS</p>
       <h2 class="font-dm trim-caps font-bold text-[clamp(26px,4vw,34px)] leading-tight text-text uppercase">POW</h2>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div class="group md:col-span-2 lg:col-span-2 bg-raised-surface border border-accent p-5 sm:p-6 flex flex-col gap-4">
+      <div class="md:col-span-2 lg:col-span-2 bg-raised-surface border border-accent p-5 sm:p-6 flex flex-col gap-4">
         <h3 class="font-dm trim-caps font-bold text-[20px] sm:text-[22px] leading-tight text-text">FROM SCRAP TO SOLAR</h3>
         <p class="font-outfit text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">First every home had its own dish, then whole societies shared one, then streaming killed the need. 12.65 million subscriptions died between 2021 and 2025, and the dishes went to scrap. This was one of them.</p>
         <p class="font-outfit text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">A discarded TV dish rebuilt with mirror tiles into a solar cooker with a motion sensor that keeps birds away from the focal point.</p>
-        <ul class="flex flex-col gap-2 border-t border-accent/35 pt-4 list-none m-0 p-0 pt-4">
+        <ul class="flex flex-col gap-2 border-t border-accent/35 pt-4 list-none m-0 p-0">
           <li class="font-outfit text-[16px] leading-[1.5] tracking-[-0.003em] flex gap-2.5">
             <span class="text-accent" aria-hidden="true">+</span>
             <a href="https://www.sristi.org/storage/app/public/editor-images/Ignite-book-2022.pdf" target="_blank" rel="noopener noreferrer" class="text-text hover:text-accent transition-colors">ignited mind 2022, national winner</a>
@@ -36,16 +37,16 @@ const rankOf = (finish: string) => {
           </li>
           <li class="font-outfit text-[16px] leading-[1.5] tracking-[-0.003em] flex gap-2.5">
             <span class="text-accent" aria-hidden="true">+</span>
-            <span>youth ideathon 2022, top 1000</span>
+            <a href="https://www.linkedin.com/in/aaravjuneja" target="_blank" rel="noopener noreferrer" class="text-text hover:text-accent transition-colors">youth ideathon 2022, top 1000</a>
           </li>
           <li class="font-outfit text-[16px] leading-[1.5] tracking-[-0.003em] flex gap-2.5">
             <span class="text-accent" aria-hidden="true">+</span>
-            <span>felicitated national awardee by the chairperson, 2024</span>
+            <a href="https://www.linkedin.com/in/aaravjuneja" target="_blank" rel="noopener noreferrer" class="text-text hover:text-accent transition-colors">felicitated national awardee by the chairperson, 2024</a>
           </li>
         </ul>
       </div>
 
-      <div class="group md:col-span-2 lg:col-span-1 bg-raised-surface border border-line grid grid-cols-2">
+      <div class="md:col-span-2 lg:col-span-1 bg-raised-surface border border-line grid grid-cols-2">
         {podiums.map((p, i) => (
           <a href={p.href} target="_blank" rel="noopener noreferrer" class={`group/cell p-5 sm:p-6 flex flex-col gap-2 transition-all duration-150 hover:bg-surface ${i % 2 === 0 ? "border-r border-line" : ""} ${i < 2 ? "border-b border-line" : ""}`}>
             <span class="font-anton text-[32px] leading-none text-text group-hover/cell:text-accent transition-colors duration-150" aria-hidden="true">{rankOf(p.finish)}</span>
@@ -56,15 +57,15 @@ const rankOf = (finish: string) => {
       </div>
 
       <div class="md:col-span-2 lg:col-span-3 flex flex-col md:flex-row gap-4">
-      <div class="group bg-raised-surface border border-line p-5 sm:p-6 flex flex-col gap-3 hover:border-accent/30 hover:-translate-y-0.5 transition-all duration-150 w-full md:w-fit md:shrink-0">
+      <div class="bg-raised-surface border border-line p-5 sm:p-6 flex flex-col gap-3 hover:border-accent/30 hover:-translate-y-0.5 transition-all duration-150 flex-1">
         <h3 class="font-dm trim-caps font-bold text-[17px] sm:text-[18px] leading-tight text-text">NMTC FINALIST</h3>
-        <p class="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-muted-text">JUNIOR · BHASKARA · 2024</p>
-        <p class="font-outfit text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em] sm:whitespace-nowrap">56,595 took it. The top tenth moved on. I moved on.</p>
+        <p class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-muted-text">JUNIOR · BHASKARA · 2024</p>
+        <p class="font-outfit text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">56,595 took it. The top tenth moved on. I moved on.</p>
       </div>
 
-      <div class="group bg-raised-surface border border-line p-5 sm:p-6 flex flex-col gap-3 hover:border-accent/30 hover:-translate-y-0.5 transition-all duration-150 flex-1">
+      <div class="bg-raised-surface border border-line p-5 sm:p-6 flex flex-col gap-3 hover:border-accent/30 hover:-translate-y-0.5 transition-all duration-150 flex-1">
         <h3 class="font-dm trim-caps font-bold text-[17px] sm:text-[18px] leading-tight text-text">DELHI TECH CIRCUIT PODIUMS</h3>
-        <p class="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-muted-text">2024 TO 2026</p>
+        <p class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-muted-text">2024 TO 2026</p>
         <p class="font-outfit text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">hardware, robotics, ctf and cryptic hunt podiums across the delhi ncr circuit.</p>
       </div>
       </div>

@@ -2,18 +2,17 @@
 const contactHref = Astro.url.pathname.startsWith("/journey") ? "#contact" : "/#contact";
 ---
 
-<nav class="w-full border-b border-line bg-background sticky top-0 z-40 backdrop-blur-sm">
+<nav class="w-full border-b border-line bg-background/80 sticky top-0 z-40 backdrop-blur-sm">
   <div id="scroll-progress" class="absolute top-0 left-0 h-[3px] w-full origin-left scale-x-0 bg-accent will-change-transform" aria-hidden="true"></div>
   <div class="w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-12 flex items-center justify-center sm:justify-between py-[14px] sm:py-[16px]">
-    <a href="/#player" class="hidden sm:inline font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-text hover:text-accent transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-accent hover:after:w-full aria-current:after:w-full after:transition-all after:duration-150">juneja</a>
-    <div class="w-full sm:w-auto flex items-center justify-center gap-0 min-[400px]:gap-1 sm:gap-5">
-      <a href="/#player" data-nav="player" class="hidden sm:inline font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-text hover:text-accent transition-colors relative after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-accent hover:after:w-full aria-current:after:w-full after:transition-all after:duration-150 px-0.5 min-[400px]:px-1 sm:px-1.5 py-2">PLAYER</a>
-      <a href="/#team" data-nav="team" class="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-text hover:text-accent transition-colors relative after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-accent hover:after:w-full aria-current:after:w-full after:transition-all after:duration-150 px-0.5 min-[400px]:px-1 sm:px-1.5 py-2">TEAM</a>
-      <a href="/#skills" data-nav="skills" class="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-text hover:text-accent transition-colors relative after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-accent hover:after:w-full aria-current:after:w-full after:transition-all after:duration-150 px-0.5 min-[400px]:px-1 sm:px-1.5 py-2">SKILLS</a>
-      <a href="/#writeups" data-nav="writeups" class="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-text hover:text-accent transition-colors relative after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-accent hover:after:w-full aria-current:after:w-full after:transition-all after:duration-150 px-0.5 min-[400px]:px-1 sm:px-1.5 py-2">WRITEUPS</a>
-      <a href="/#highlights" data-nav="highlights" class="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-text hover:text-accent transition-colors relative after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-accent hover:after:w-full aria-current:after:w-full after:transition-all after:duration-150 px-0.5 min-[400px]:px-1 sm:px-1.5 py-2">POW</a>
-      <a href={contactHref} data-nav="contact" class="hidden sm:inline font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-text hover:text-accent transition-colors relative after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-accent hover:after:w-full aria-current:after:w-full after:transition-all after:duration-150 px-0.5 min-[400px]:px-1 sm:px-1.5 py-2">CONTACT</a>
-    </div>
+    <a href="/#player" class="hidden sm:inline font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-text hover:text-accent transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-accent hover:after:w-full aria-[current=true]:after:w-full after:transition-all after:duration-150">juneja</a>
+    <ul class="w-full sm:w-auto flex items-center justify-center gap-0 min-[400px]:gap-1 sm:gap-5 list-none m-0 p-0">
+      <li class="flex items-center"><a href="/#team" data-nav="team" class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-text hover:text-accent transition-colors relative after:absolute after:bottom-1 after:left-0 after:h-px after:w-0 after:bg-accent hover:after:w-full aria-[current=true]:after:w-full after:transition-all after:duration-150 px-0.5 min-[400px]:px-1 sm:px-1.5 py-2 min-h-[44px] inline-flex items-center focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2">TEAM</a></li>
+      <li class="flex items-center"><a href="/#skills" data-nav="skills" class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-text hover:text-accent transition-colors relative after:absolute after:bottom-1 after:left-0 after:h-px after:w-0 after:bg-accent hover:after:w-full aria-[current=true]:after:w-full after:transition-all after:duration-150 px-0.5 min-[400px]:px-1 sm:px-1.5 py-2 min-h-[44px] inline-flex items-center focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2">SKILLS</a></li>
+      <li class="flex items-center"><a href="/#writeups" data-nav="writeups" class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-text hover:text-accent transition-colors relative after:absolute after:bottom-1 after:left-0 after:h-px after:w-0 after:bg-accent hover:after:w-full aria-[current=true]:after:w-full after:transition-all after:duration-150 px-0.5 min-[400px]:px-1 sm:px-1.5 py-2 min-h-[44px] inline-flex items-center focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2">WRITEUPS</a></li>
+      <li class="flex items-center"><a href="/#highlights" data-nav="highlights" class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-text hover:text-accent transition-colors relative after:absolute after:bottom-1 after:left-0 after:h-px after:w-0 after:bg-accent hover:after:w-full aria-[current=true]:after:w-full after:transition-all after:duration-150 px-0.5 min-[400px]:px-1 sm:px-1.5 py-2 min-h-[44px] inline-flex items-center focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2">POW</a></li>
+      <li class="flex items-center"><a href={contactHref} data-nav="contact" class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-text hover:text-accent transition-colors relative after:absolute after:bottom-1 after:left-0 after:h-px after:w-0 after:bg-accent hover:after:w-full aria-[current=true]:after:w-full after:transition-all after:duration-150 px-0.5 min-[400px]:px-1 sm:px-1.5 py-2 min-h-[44px] inline-flex items-center focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2">CONTACT</a></li>
+    </ul>
   </div>
 </nav>
 <script>
@@ -31,10 +30,20 @@ const contactHref = Astro.url.pathname.startsWith("/journey") ? "#contact" : "/#
       else a.removeAttribute("aria-current");
     });
   };
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let ticking = false;
+  let atBottom = false;
   const onScroll = () => {
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    const p = max > 0 ? window.scrollY / max : 0;
-    if (bar) bar.style.transform = `scaleX(${p})`;
+    atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+    if (atBottom) setActive("contact");
+    if (reduce || ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(() => {
+      ticking = false;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const p = max > 0 ? window.scrollY / max : 0;
+      if (bar) bar.style.transform = `scaleX(${p})`;
+    });
   };
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
@@ -42,7 +51,7 @@ const contactHref = Astro.url.pathname.startsWith("/journey") ? "#contact" : "/#
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
-          if (e.isIntersecting) setActive(e.target.id);
+          if (e.isIntersecting) setActive(atBottom ? "contact" : e.target.id);
         });
       },
       { rootMargin: "-40% 0px -55% 0px" }

@@ -6,7 +6,7 @@ import MatchboxBrand from "./MatchboxBrand.astro";
   <div class="w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-12 py-16 sm:py-20">
     <div class="flex flex-col lg:flex-row gap-10 items-center mb-11">
     <div class="max-w-[760px] flex-1 flex flex-col gap-4">
-      <p class="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-accent">TEAM</p>
+      <p class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-accent">TEAM</p>
       <h2 class="font-dm trim-caps font-bold text-[clamp(26px,4vw,34px)] leading-tight text-text uppercase">FROM A HIGH SCHOOL TRIO TO THE GLOBAL SCOREBOARD</h2>
       <p class="font-outfit text-[clamp(18px,2.1vw,21px)] leading-[1.55] text-muted-text tracking-[-0.005em]">Syndication is the CTF alias of Tech Syndicate. Across 2025 and 2026, our trio moved from celebrating #26 in picoCTF to the top of Indian CTF leaderboard.</p>
     </div>
@@ -14,11 +14,11 @@ import MatchboxBrand from "./MatchboxBrand.astro";
     </div>
 
     <div class="flex flex-col lg:flex-row gap-10">
-      <!-- Chapters -->
-      <div class="flex-1 flex flex-col gap-3.5">
+      <div class="flex-1 flex flex-col gap-3.5 order-2 lg:order-1">
+        <p class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-muted-text">TAP A LABEL TO FLIP</p>
         <div class="mbox theme">
-          <div class="label ticket" tabindex="0" role="button" aria-pressed="false" data-flip aria-label="syndication label, press to turn over">
-            <div class="inner" style="--paper:#151020;--ink:#f7f2fa;--second:#a869db">
+          <div class="label ticket" data-flip>
+            <div class="inner" style="--paper:#1d1428;--ink:#f7f2fa;--second:#a869db">
               <div class="face front">
                 <svg class="m" style="--mw:64px" viewBox="0 0 120 90" aria-hidden="true">
                   <path d="M10 60h100l-16 20H26z" fill="currentColor" />
@@ -38,8 +38,8 @@ import MatchboxBrand from "./MatchboxBrand.astro";
         </div>
 
         <div class="mbox theme">
-          <div class="label tin" tabindex="0" role="button" aria-pressed="false" data-flip aria-label="0bscuri7y label, press to turn over">
-            <div class="inner" style="--paper:#151020;--ink:#f7f2fa;--second:#a869db">
+          <div class="label tin" data-flip>
+            <div class="inner" style="--paper:#1d1428;--ink:#f7f2fa;--second:#a869db">
               <div class="face front">
                 <i class="screw a"></i><i class="screw b"></i><i class="screw c"></i><i class="screw d"></i>
                 <svg class="m" style="--mw:64px" viewBox="0 0 100 100" aria-hidden="true">
@@ -62,22 +62,22 @@ import MatchboxBrand from "./MatchboxBrand.astro";
       </div>
 
       <!-- Rating Grid -->
-      <div class="w-full lg:w-[480px] shrink-0 grid grid-cols-2 gap-3.5">
+      <div class="w-full lg:w-[480px] shrink-0 grid grid-cols-2 gap-3.5 order-1 lg:order-2">
         <div class="group bg-raised-surface border border-line p-3 sm:p-5 flex flex-col items-center justify-center gap-2 text-center hover:border-accent/30 hover:-translate-y-0.5 transition-all duration-150">
           <p class="font-dm trim-caps font-bold text-[22px] text-text tabular-nums group-hover:text-accent transition-colors duration-150" data-count="219.89" data-decimals="3">219.890</p>
-          <p class="font-dm trim-caps text-[10px] sm:text-[11px] tracking-[0.08em] uppercase text-muted-text leading-tight whitespace-normal sm:whitespace-nowrap">2025 RATING POINTS</p>
+          <p class="font-dm trim-caps text-[10px] sm:text-[12px] tracking-[0.08em] uppercase text-muted-text leading-tight whitespace-normal sm:whitespace-nowrap">2025 RATING POINTS</p>
         </div>
         <div class="group bg-raised-surface border border-line p-3 sm:p-5 flex flex-col items-center justify-center gap-2 text-center hover:border-accent/30 hover:-translate-y-0.5 transition-all duration-150">
           <p class="font-dm trim-caps font-bold text-[22px] text-text tabular-nums group-hover:text-accent transition-colors duration-150"><span data-count="12" data-decimals="0" data-prefix="#">#12</span></p>
-          <p class="font-dm trim-caps text-[10px] sm:text-[11px] tracking-[0.08em] uppercase text-muted-text leading-tight whitespace-normal sm:whitespace-nowrap">INDIA · 2025</p>
+          <p class="font-dm trim-caps text-[10px] sm:text-[12px] tracking-[0.08em] uppercase text-muted-text leading-tight whitespace-normal sm:whitespace-nowrap">INDIA · 2025</p>
         </div>
         <div class="group bg-raised-surface border border-accent p-3 sm:p-5 flex flex-col items-center justify-center gap-2 text-center hover:shadow-[4px_4px_0px_0px_var(--color-accent)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-150">
           <p class="font-dm trim-caps font-bold text-[22px] text-text tabular-nums" data-count="455.576" data-decimals="3">455.576</p>
-          <p class="font-dm trim-caps text-[10px] sm:text-[11px] tracking-[0.08em] uppercase text-muted-text leading-tight whitespace-normal sm:whitespace-nowrap">0BSCURI7Y · 2026 RP</p>
+          <p class="font-dm trim-caps text-[10px] sm:text-[12px] tracking-[0.08em] uppercase text-muted-text leading-tight whitespace-normal sm:whitespace-nowrap">0BSCURI7Y · 2026 RP</p>
         </div>
         <div class="group bg-raised-surface border border-line p-3 sm:p-5 flex flex-col items-center justify-center gap-2 text-center hover:border-accent/30 hover:-translate-y-0.5 transition-all duration-150">
           <p class="font-dm trim-caps font-bold text-[22px] text-text group-hover:text-accent transition-colors duration-150">NOW #6</p>
-          <p class="font-dm trim-caps text-[10px] sm:text-[11px] tracking-[0.08em] uppercase text-muted-text leading-tight whitespace-normal sm:whitespace-nowrap">PEAK #1 · INDIA 2026</p>
+          <p class="font-dm trim-caps text-[10px] sm:text-[12px] tracking-[0.08em] uppercase text-muted-text leading-tight whitespace-normal sm:whitespace-nowrap">PEAK #1 · INDIA 2026</p>
         </div>
       </div>
     </div>
@@ -85,6 +85,29 @@ import MatchboxBrand from "./MatchboxBrand.astro";
 </section>
 
 <script>
+  const initTeam = () => {
+  document.querySelectorAll("[data-flip]").forEach((el) => {
+    const card = el as HTMLElement;
+    if (card.dataset.flipBound) return;
+    card.dataset.flipBound = "1";
+    const back = card.querySelector(".back") as HTMLElement | null;
+    const front = card.querySelector(".front") as HTMLElement | null;
+    const syncBack = () => {
+      const on = card.classList.contains("flip");
+      if (back) {
+        back.setAttribute("aria-hidden", String(!on));
+        if ("inert" in back) (back as HTMLElement & { inert: boolean }).inert = !on;
+      }
+      if (front && "inert" in front) (front as HTMLElement & { inert: boolean }).inert = on;
+    };
+    syncBack();
+    const toggle = (e: Event) => {
+      if ((e.target as HTMLElement).closest("a")) return;
+      card.classList.toggle("flip");
+      syncBack();
+    };
+    card.addEventListener("click", toggle);
+  });
   const nums = Array.from(document.querySelectorAll("[data-count]"));
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const expo = (p: number) => (p >= 1 ? 1 : 1 - Math.pow(2, -10 * p));
@@ -116,6 +139,14 @@ import MatchboxBrand from "./MatchboxBrand.astro";
       },
       { threshold: 0.4 }
     );
-    nums.forEach((n) => io.observe(n));
+    nums.forEach((n) => {
+      if ((n as HTMLElement).dataset.countBound) return;
+      (n as HTMLElement).dataset.countBound = "1";
+      io.observe(n);
+    });
   }
+  };
+  initTeam();
+  document.addEventListener("astro:page-load", initTeam);
+  document.addEventListener("astro:after-swap", initTeam);
 </script>
