@@ -37,11 +37,12 @@ const chapters = [
       <p class="font-outfit text-[clamp(18px,2.1vw,21px)] leading-[1.55] text-muted-text tracking-[-0.005em]">Some sleepless nights and loads of caffeine</p>
     </div>
 
-    <div class="flex flex-row flex-wrap items-center gap-3 bg-surface border border-dashed border-accent px-4 py-4 mb-8">
-      <img src="/images/medal.svg" alt="" width="20" height="20" class="w-5 h-5 theme-icon shrink-0" loading="lazy" decoding="async" />
-      <input id="journey-search" type="search" placeholder="FILTER EVENTS" autocomplete="off" spellcheck="false" class="flex-1 min-w-[160px] sm:max-w-[240px] bg-raised-surface border border-line px-3 py-2.5 font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-text placeholder:text-muted-text/60 focus:border-accent focus:outline-none" />
-      <span id="journey-count" class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-muted-text whitespace-nowrap" aria-live="polite"></span>
-      <button id="journey-clear" type="button" class="hidden font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-accent hover:text-accent-soft transition-colors border border-line px-3 py-2.5">CLEAR</button>
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3 bg-surface border border-dashed border-accent px-4 py-4 mb-8">
+      <div class="flex items-center gap-3.5 flex-1">
+        <img src="/images/medal.svg" alt="" width="20" height="20" class="w-5 h-5 theme-icon" loading="lazy" decoding="async" />
+        <span class="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-muted-text">les réalisations</span>
+      </div>
+      <input id="journey-search" type="search" placeholder="FILTER EVENTS" autocomplete="off" spellcheck="false" aria-label="Filter events" class="w-full sm:w-[240px] bg-raised-surface border border-line px-3 py-2.5 font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-text placeholder:text-muted-text/60 focus:border-accent focus:outline-none" />
     </div>
 
     <div class="sticky top-[72px] sm:top-[76px] z-30 py-3 bg-background/90 backdrop-blur-sm flex flex-nowrap overflow-x-auto sm:flex-wrap sm:overflow-visible gap-2 mb-8">
