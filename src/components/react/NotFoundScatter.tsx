@@ -17,6 +17,12 @@ function ScrambleLink({ href, children }: { href: string; children: string }) {
   const elRef = useRef<HTMLAnchorElement | null>(null);
   const intervalRef = useRef<number | null>(null);
 
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) window.clearInterval(intervalRef.current);
+    };
+  }, []);
+
   const start = () => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let iter = 0;
@@ -70,6 +76,7 @@ export default function NotFoundScatter() {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const rand = seededRandom(1337);
     const cells = cellsRef.current;
+    let assembleTimer: number | null = null;
     if (!cells.length) return;
 
     if (reduced) {
@@ -98,7 +105,7 @@ export default function NotFoundScatter() {
         el.style.transform = "translate(0,0) rotate(0deg)";
         el.style.opacity = "1";
       });
-      window.setTimeout(() => (assembledRef.current = true), 900);
+      assembleTimer = window.setTimeout(() => (assembledRef.current = true), 900);
     }, 80);
 
     const onPointerMove = (e: PointerEvent) => {
@@ -156,6 +163,7 @@ export default function NotFoundScatter() {
 
     return () => {
       window.clearTimeout(t);
+      if (assembleTimer !== null) window.clearTimeout(assembleTimer);
       window.removeEventListener("pointermove", onPointerMove);
       document.removeEventListener("visibilitychange", onVisible);
       io.disconnect();
@@ -182,7 +190,7 @@ export default function NotFoundScatter() {
         ))}
       </div>
       <div className="flex flex-col items-center gap-4 text-center">
-        <p className="font-dm trim-caps font-bold text-[22px] sm:text-[26px] leading-none tracking-tight text-text uppercase">Everything is STILL AWESOME!</p>
+        <h1 className="font-dm trim-caps font-bold text-[22px] sm:text-[26px] leading-none tracking-tight text-text uppercase">Everything is STILL AWESOME!</h1>
         <p className="font-outfit text-[14px] leading-[1.5] text-muted-text max-w-[42ch] sm:max-w-none sm:whitespace-nowrap">Maybe the real website was the friends we made along the way.</p>
         <div className="flex items-center gap-6">
           <ScrambleLink href="/">RETURN HOME</ScrambleLink>

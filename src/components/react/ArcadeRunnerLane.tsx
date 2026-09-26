@@ -322,7 +322,7 @@ export default function ArcadeRunnerLane() {
           ref={runnerRef}
           role="button"
           tabIndex={0}
-          aria-label="doesn't like you so tries to run away"
+          aria-label="Arcade runner. Activate to trigger the glitch effect"
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
@@ -330,7 +330,7 @@ export default function ArcadeRunnerLane() {
             }
           }}
           style={{ willChange: "transform, filter" }}
-          className="absolute left-0 top-0 w-[28px] h-[30px] select-none cursor-pointer outline-none"
+          className="absolute left-0 top-0 w-[28px] h-[30px] select-none cursor-pointer"
         >
           <div className="absolute left-[3px] top-[24px] w-[22px] h-[4px] rounded-full opacity-[0.22] bg-accent" />
           <div className="absolute left-0 top-0 w-[28px] h-[27px]">

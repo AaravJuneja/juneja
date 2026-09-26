@@ -96,9 +96,9 @@ const first = C[0];
             <circle cx="200" cy="200" r="4" class="sw-hub"></circle>
           </svg>
         </div>
-        <div id="sw-tabs" role="tablist">
+        <div id="sw-tabs" role="tablist" aria-label="Skills">
           {C.map((c, i) => (
-            <button class="sw-tab" style={`--i:${i}`} type="button" role="tab" id={`sw-tab-${i}`} aria-controls="sw-plate" title={c.t} aria-selected={i === 0 ? "true" : "false"} tabindex={i === 0 ? "0" : "-1"} set:html={ICONS[i]}></button>
+            <button class="sw-tab" style={`--i:${i}`} type="button" role="tab" id={`sw-tab-${i}`} aria-controls="sw-plate" title={c.t} aria-label={c.t} aria-selected={i === 0 ? "true" : "false"} tabindex={i === 0 ? "0" : "-1"} set:html={ICONS[i]}></button>
           ))}
         </div>
       </div>
@@ -141,7 +141,7 @@ const first = C[0];
   .sw-tickmask{stroke:var(--color-muted-text)}
   .sw-hub{fill:var(--color-muted-text)}
   .sw-tab{position:absolute;left:50%;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;border:1px solid var(--color-line);background:var(--color-surface);color:var(--color-muted-text);cursor:pointer;display:grid;place-items:center;padding:0;transform:rotate(calc(var(--i) * 72deg)) translateY(calc(var(--sw-size) * -.5 - 8px)) rotate(calc(var(--i) * -72deg));transition:background .2s,color .2s,transform .2s}
-  .sw-tab:hover,.sw-tab:focus-visible{background:var(--color-accent);border-color:var(--color-accent);color:var(--color-background);outline:none}
+  .sw-tab:hover,.sw-tab:focus-visible{background:var(--color-accent);border-color:var(--color-accent);color:var(--color-background)}
   .sw-tab[aria-selected="true"]{background:var(--color-accent);border-color:var(--color-accent);color:var(--color-background)}
   .sw-tab,.sw-tab *{cursor:pointer}
   .sw-tab :global(svg){width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
@@ -295,5 +295,4 @@ const first = C[0];
   };
   initWheel();
   document.addEventListener("astro:page-load", initWheel);
-  document.addEventListener("astro:after-swap", initWheel);
 </script>
