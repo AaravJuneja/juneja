@@ -75,6 +75,8 @@ export default function SpotifyPlayer({ covers }: Props) {
   const deckRef = useRef<(HTMLAudioElement | null)[]>([null, null]);
   const activeRef = useRef(0);
   const fadeTimerRef = useRef<number | null>(null);
+  const fadeRafRef = useRef<number | null>(null);
+  const volLockedRef = useRef(false);
   const crossfadeRef = useRef<{ out: number; startTime: number } | null>(null);
   const barRef = useRef<HTMLDivElement | null>(null);
   const playRef = useRef(false);
@@ -85,7 +87,13 @@ export default function SpotifyPlayer({ covers }: Props) {
   const nextIdxRef = useRef(-1);
   const initRef = useRef(false);
   const idxRef = useRef(0);
-  idxRef.current = trackIdx;
+  const toggleRef = useRef<() => void>(() => {});
+  const advanceRef = useRef<(from: number) => void>(() => {});
+  useEffect(() => {
+    idxRef.current = trackIdx;
+    toggleRef.current = toggle;
+    advanceRef.current = advanceFrom;
+  });
   const track = TRACKS[trackIdx];
 
   const activeDeck = () => deckRef.current[activeRef.current] ?? null;
@@ -113,11 +121,23 @@ export default function SpotifyPlayer({ covers }: Props) {
     return q[posRef.current];
   };
 
+  const canOpus = (deck: HTMLAudioElement) => {
+    try {
+      const r = deck.canPlayType('audio/webm; codecs="opus"');
+      return r === "probably" || r === "maybe";
+    } catch {
+      return true;
+    }
+  };
+
   const setDeckSrc = (deck: HTMLAudioElement | null, slug: string) => {
-    if (!deck || deck.dataset.slug === slug) return;
+    if (!deck) return;
+    const ext = canOpus(deck) ? "webm" : "mp3";
+    if (deck.dataset.slug === slug && deck.dataset.ext === ext) return;
     deck.dataset.slug = slug;
+    deck.dataset.ext = ext;
     deck.dataset.fallback = "";
-    deck.src = `/audio/${slug}.webm`;
+    deck.src = `/audio/${slug}.${ext}`;
     deck.load();
   };
 
@@ -125,6 +145,10 @@ export default function SpotifyPlayer({ covers }: Props) {
     if (fadeTimerRef.current !== null) {
       window.clearInterval(fadeTimerRef.current);
       fadeTimerRef.current = null;
+    }
+    if (fadeRafRef.current !== null) {
+      window.cancelAnimationFrame(fadeRafRef.current);
+      fadeRafRef.current = null;
     }
     crossfadeRef.current = null;
     const a = activeDeck();
@@ -142,7 +166,6 @@ export default function SpotifyPlayer({ covers }: Props) {
     nextIdxRef.current = nextIdx;
     s.pause();
     s.volume = 0;
-    s.currentTime = 0;
     s.preload = "auto";
     setDeckSrc(s, TRACKS[nextIdx].slug);
   };
@@ -150,13 +173,15 @@ export default function SpotifyPlayer({ covers }: Props) {
   const fadeInActive = (deck: HTMLAudioElement, secs: number) => {
     const t0 = performance.now();
     const step = () => {
+      fadeRafRef.current = null;
       if (deck !== activeDeck() || deck.paused) return;
       const p = Math.min(1, (performance.now() - t0) / (secs * 1000));
       deck.volume = Math.sin((p * Math.PI) / 2);
-      if (p < 1) window.requestAnimationFrame(step);
+      if (p < 1) fadeRafRef.current = window.requestAnimationFrame(step);
       else if (deck === activeDeck()) deck.volume = 1;
     };
-    window.requestAnimationFrame(step);
+    if (fadeRafRef.current !== null) window.cancelAnimationFrame(fadeRafRef.current);
+    fadeRafRef.current = window.requestAnimationFrame(step);
   };
 
   const finishFade = () => {
@@ -191,6 +216,13 @@ export default function SpotifyPlayer({ covers }: Props) {
     const nextIdx = nextIdxRef.current;
     if (!a || !s || nextIdx < 0 || crossfadeRef.current) return;
     if (!s.duration || TRACKS[idxRef.current]?.portrait) return;
+    if (volLockedRef.current) {
+      s.volume = 1;
+      s.currentTime = 0;
+      s.play().catch(() => {});
+      finishFade();
+      return;
+    }
     const overlap = fadeInOf(TRACKS[nextIdx]?.slug || "");
     crossfadeRef.current = { out: overlap, startTime: a.currentTime };
     s.volume = 0;
@@ -215,6 +247,7 @@ export default function SpotifyPlayer({ covers }: Props) {
 
   const advanceFrom = (fromIdx: number) => {
     cancelFade();
+    setAudioError(false);
     const nxt = takeNext(fromIdx);
     const outgoing = activeDeck();
     const incoming = standbyDeck();
@@ -243,6 +276,7 @@ export default function SpotifyPlayer({ covers }: Props) {
 
   const restoreTrack = (idx: number) => {
     cancelFade();
+    setAudioError(false);
     const a = activeDeck();
     if (!a) return;
     nextIdxRef.current = -1;
@@ -286,6 +320,8 @@ export default function SpotifyPlayer({ covers }: Props) {
       advanceFrom(idxRef.current);
     } else {
       playRef.current = true;
+      if (!crossfadeRef.current && a.volume < 1) a.volume = 1;
+      playRef.current = true;
       a.play().catch(() => {
         playRef.current = false;
         setAudioError(true);
@@ -303,26 +339,25 @@ export default function SpotifyPlayer({ covers }: Props) {
   const seekTo = (clientX: number) => {
     const a = activeDeck();
     const bar = barRef.current;
-    if (!a || !bar || !duration) return;
+    const live = a?.duration || 0;
+    if (!a || !bar || !isFinite(live) || !live) return;
     cancelFade();
     const rect = bar.getBoundingClientRect();
     const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    a.currentTime = pct * duration;
-    setCurrent(pct * duration);
-  };
-
-  const onSeek = (e: React.MouseEvent<HTMLDivElement>) => {
-    seekTo(e.clientX);
+    a.currentTime = pct * live;
+    setDuration(live);
+    setCurrent(pct * live);
   };
 
   const onSeekKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const a = activeDeck();
-    if (!a || !duration) return;
+    const live = a?.duration || duration;
+    if (!a || !isFinite(live) || !live) return;
     const step = e.key.startsWith("Page") ? 30 : 5;
     if (e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "PageUp") {
       e.preventDefault();
       cancelFade();
-      a.currentTime = Math.min(duration, a.currentTime + step);
+      a.currentTime = Math.min(live, a.currentTime + step);
     }
     if (e.key === "ArrowLeft" || e.key === "ArrowDown" || e.key === "PageDown") {
       e.preventDefault();
@@ -337,9 +372,39 @@ export default function SpotifyPlayer({ covers }: Props) {
     if (e.key === "End") {
       e.preventDefault();
       cancelFade();
-      a.currentTime = duration;
+      a.currentTime = live;
     }
   };
+
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !("mediaSession" in navigator)) return;
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: track.title,
+        artist: "The Noise",
+        album: "The Noise",
+        artwork: [{ src: covers[track.cover].expanded, sizes: "88x88", type: "image/webp" }],
+      });
+      navigator.mediaSession.setActionHandler("play", () => toggleRef.current());
+      navigator.mediaSession.setActionHandler("pause", () => toggleRef.current());
+      navigator.mediaSession.setActionHandler("previoustrack", () => {
+        playRef.current = true;
+        advanceRef.current(idxRef.current);
+      });
+      navigator.mediaSession.setActionHandler("nexttrack", () => {
+        playRef.current = true;
+        advanceRef.current(idxRef.current);
+      });
+      navigator.mediaSession.setActionHandler("seekto", (d) => {
+        const t = (d as MediaSessionActionDetails).seekTime;
+        const a = activeDeck();
+        if (typeof t === "number" && a && isFinite(a.duration) && a.duration) {
+          cancelFade();
+          a.currentTime = Math.max(0, Math.min(a.duration, t));
+        }
+      });
+    } catch {}
+  }, [trackIdx]);
 
   useEffect(() => {
     const decks = deckRef.current;
@@ -366,6 +431,7 @@ export default function SpotifyPlayer({ covers }: Props) {
       const el = e.currentTarget as HTMLAudioElement;
       if (el !== activeDeck()) return;
       setDuration(el.duration || 0);
+      setAudioError(false);
       if (pendingSeekRef.current !== null) {
         const t = Math.min(pendingSeekRef.current, (el.duration || 0) - 0.25);
         pendingSeekRef.current = null;
@@ -471,6 +537,14 @@ export default function SpotifyPlayer({ covers }: Props) {
     const begin = () => {
       const a = activeDeck();
       if (!a) return;
+      try {
+        const v = a.volume;
+        a.volume = 0.5;
+        volLockedRef.current = a.volume !== 0.5;
+        a.volume = v;
+      } catch {
+        volLockedRef.current = true;
+      }
       a.volume = 1;
       a.preload = "metadata";
       if (isClaimed() && PORTRAIT_IDX >= 0) {
@@ -496,6 +570,7 @@ export default function SpotifyPlayer({ covers }: Props) {
       window.removeEventListener("portrait:claimed", onClaimed);
       window.removeEventListener("load", begin);
       if (fadeTimerRef.current !== null) window.clearInterval(fadeTimerRef.current);
+      if (fadeRafRef.current !== null) window.cancelAnimationFrame(fadeRafRef.current);
       decks.forEach((d) => {
         d?.removeEventListener("timeupdate", onTime);
         d?.removeEventListener("loadedmetadata", onLoaded);
@@ -528,6 +603,7 @@ export default function SpotifyPlayer({ covers }: Props) {
       className="relative shrink-0"
       style={{ width: expanded ? "min(340px, calc(100vw - 48px))" : "min(180px, calc(100vw - 48px))", height: 44, transition: "opacity 200ms ease, transform 200ms ease" }}
     >
+      <span className="sr-only" aria-live="polite">{track.title}</span>
       <button
         type="button"
         onClick={() => {
@@ -547,7 +623,7 @@ export default function SpotifyPlayer({ covers }: Props) {
         }}
       >
         <div className="w-7 h-7 rounded-full overflow-hidden border border-line shrink-0">
-          <img src={covers[track.cover].collapsed} alt="Album Art" width={28} height={28} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="eager" decoding="async" fetchPriority="high" />
+          <img src={covers[track.cover].collapsed} alt="Album Art" width={28} height={28} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="lazy" decoding="async" />
         </div>
         <div className="flex flex-col min-w-0">
           <span className="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-muted-text leading-none">Now Playing</span>
@@ -598,6 +674,8 @@ export default function SpotifyPlayer({ covers }: Props) {
           </div>
           <button
             onClick={toggle}
+            aria-label={playing ? "Pause" : "Play"}
+            aria-pressed={playing}
             className="ml-auto w-9 h-9 rounded-full bg-accent text-background flex items-center justify-center hover:brightness-110 active:scale-95 transition-all shrink-0"
           >
             {playing ? (
@@ -611,14 +689,30 @@ export default function SpotifyPlayer({ covers }: Props) {
         <div className="flex flex-col gap-1.5">
           <div
             ref={barRef}
-            onClick={onSeek}
-            onPointerDown={(e) => seekTo(e.clientX)}
+            onPointerDown={(e) => {
+              e.currentTarget.setPointerCapture(e.pointerId);
+              seekTo(e.clientX);
+            }}
+            onPointerMove={(e) => {
+              if (e.buttons & 1) seekTo(e.clientX);
+            }}
             onKeyDown={onSeekKey}
-            className="relative w-full h-1.5 rounded-full overflow-hidden cursor-pointer group"
-            style={{ background: "color-mix(in srgb, var(--color-line) 60%, transparent)" }}
+            tabIndex={0}
+            role="slider"
+            aria-label="Seek"
+            aria-valuemin={0}
+            aria-valuemax={Math.round(duration)}
+            aria-valuenow={Math.round(current)}
+            aria-valuetext={`${fmt(current)} of ${fmt(duration)}`}
+            className="relative w-full h-6 flex items-center cursor-pointer group focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 rounded-full"
           >
-            <div className="absolute inset-y-0 left-0 bg-accent rounded-full transition-all duration-75" style={{ width: `${pct}%` }} />
-            <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-accent-soft rounded-full shadow border border-background transition-all opacity-0 group-hover:opacity-100" style={{ left: `calc(${pct}% - 6px)` }} />
+            <div
+              className="relative w-full h-1.5 rounded-full overflow-hidden"
+              style={{ background: "color-mix(in srgb, var(--color-line) 60%, transparent)" }}
+            >
+              <div className="absolute inset-y-0 left-0 bg-accent rounded-full transition-all duration-75" style={{ width: `${pct}%` }} />
+            </div>
+            <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-accent-soft rounded-full shadow border border-background transition-all opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100" style={{ left: `calc(${pct}% - 6px)` }} />
           </div>
           <div className="flex items-center justify-between font-outfit text-[12px] tracking-[0.02em] text-muted-text tabular-nums">
           <span>{fmt(current)}</span>
@@ -627,8 +721,8 @@ export default function SpotifyPlayer({ covers }: Props) {
         </div>
       </div>
       )}
-      <audio ref={(el) => { deckRef.current[0] = el; }} preload="none" style={{ display: "none" }} />
-      <audio ref={(el) => { deckRef.current[1] = el; }} preload="none" style={{ display: "none" }} />
+      <audio ref={(el) => { deckRef.current[0] = el; }} preload="metadata" style={{ display: "none" }} />
+      <audio ref={(el) => { deckRef.current[1] = el; }} preload="metadata" style={{ display: "none" }} />
     </div>
   );
 }
