@@ -16,12 +16,11 @@ import ArcadeRunnerLane from "../components/react/ArcadeRunnerLane.tsx";
   <Navigation />
   <div class="relative">
     <div class="marble-bg" aria-hidden="true">
-      <img src="/images/marble-bg.webp" alt="" loading="eager" decoding="async" />
+      <img src="/images/marble-bg.webp" alt="" width="735" height="496" loading="eager" fetchpriority="low" decoding="async" />
       <div class="marble-shade"></div>
       <div class="hotel-fade"></div>
     </div>
     <div class="hotel-bg" aria-hidden="true">
-      <img id="hotel-img" alt="" decoding="async" />
       <div class="hotel-shade"></div>
       <div class="hotel-fade"></div>
     </div>
@@ -36,7 +35,7 @@ import ArcadeRunnerLane from "../components/react/ArcadeRunnerLane.tsx";
       </div>
 
       <div class="w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-12 py-4 sm:py-6">
-        <ArcadeRunnerLane client:load />
+        <ArcadeRunnerLane client:media="(hover: hover) and (pointer: fine)" />
       </div>
     </div>
   </div>

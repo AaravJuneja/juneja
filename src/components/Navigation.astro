@@ -2,7 +2,7 @@
 const contactHref = Astro.url.pathname.startsWith("/journey") ? "#contact" : "/#contact";
 ---
 
-<nav class="w-full border-b border-line bg-background/80 sticky top-0 z-40 backdrop-blur-sm">
+<nav aria-label="Primary" class="w-full border-b border-line bg-background/80 sticky top-0 z-40 backdrop-blur-sm">
   <div id="scroll-progress" class="absolute top-0 left-0 h-[3px] w-full origin-left scale-x-0 bg-accent will-change-transform" aria-hidden="true"></div>
   <div class="w-full max-w-[1280px] mx-auto px-4 min-[400px]:px-6 sm:px-10 lg:px-12 flex items-center justify-center sm:justify-between py-[14px] sm:py-[16px]">
     <a href="/#player" class="hidden sm:inline font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-text hover:text-accent transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-accent hover:after:w-full aria-[current=true]:after:w-full after:transition-all after:duration-150">juneja</a>
@@ -16,6 +16,9 @@ const contactHref = Astro.url.pathname.startsWith("/journey") ? "#contact" : "/#
   </div>
 </nav>
 <script>
+  const initNav = () => {
+  if ((document.getElementById("scroll-progress") as HTMLElement | null)?.dataset.navBound) return;
+  (document.getElementById("scroll-progress") as HTMLElement | null)?.setAttribute("data-nav-bound", "1");
   const bar = document.getElementById("scroll-progress");
   const links = Array.from(document.querySelectorAll("[data-nav]"));
   const sections = links
@@ -58,4 +61,7 @@ const contactHref = Astro.url.pathname.startsWith("/journey") ? "#contact" : "/#
     );
     sections.forEach((s) => io.observe(s));
   }
+  };
+  initNav();
+  document.addEventListener("astro:page-load", initNav);
 </script>

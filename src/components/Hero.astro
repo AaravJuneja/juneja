@@ -1,13 +1,13 @@
 ---
 import { Image } from "astro:assets";
-import nightImg from "../../public/images/pixel/night.jpg";
+import nightImg from "../assets/night.jpg";
 ---
 
 <section id="player" data-reveal class="w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-12 pt-6 pb-4 sm:pt-10 sm:pb-6 lg:pt-12 lg:pb-8">
   <div class="flex flex-col lg:flex-row lg:items-center gap-8 lg:gap-12">
     <!-- Left copy -->
     <div class="flex-1 flex flex-col gap-7">
-      <h1 class="font-dm trim-caps font-bold text-[clamp(2rem,11vw,4.25rem)] leading-[0.95] text-text" style="letter-spacing:-2.04px; line-height:0.98">AARAV<br />JUNEJA</h1>
+      <h1 class="font-dm trim-caps font-bold text-[clamp(2rem,11vw,4.25rem)] tracking-[-2.04px] leading-[0.98] text-text">AARAV<br />JUNEJA</h1>
       <p class="font-outfit text-[clamp(18px,2.1vw,21px)] leading-[1.55] text-muted-text max-w-[52ch] tracking-[-0.005em]">Learning by breaking, understanding by rebuilding</p>
       <p class="font-mono text-[13px] sm:text-[14px] text-muted-text min-h-[30px] sm:min-h-[16px]" aria-hidden="true"><span class="text-accent">$</span> <span id="hero-typed">whoami</span><span class="motion-safe:animate-caret text-accent">_</span></p>
       <span class="sr-only">Aarav Juneja, cybersecurity and CTF player</span>
@@ -27,7 +27,7 @@ import nightImg from "../../public/images/pixel/night.jpg";
       </div>
 
       <div id="night-mirror" class="relative w-full overflow-hidden outline-none focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2" role="button" tabindex="0" aria-label="the portrait stares back. do not stare for too long">
-        <Image src={nightImg} alt="Night sky" width={340} height={340} sizes="340px" class="w-full h-auto object-cover" loading="eager" decoding="async" fetchpriority="high" />
+        <Image src={nightImg} alt="Night sky" width={340} height={340} densities={[1, 2]} sizes="340px" class="w-full h-auto object-cover" loading="eager" decoding="async" fetchpriority="high" />
         <div id="night-refl" aria-hidden="true" class="absolute left-0 top-0 w-[19px] h-[19px] opacity-0 pointer-events-none will-change-transform">
           <img src="/cursors/cursor-pixel.svg" alt="" width="19" height="19" class="w-full h-full" style="transform:scaleX(-1)" loading="lazy" decoding="async" />
         </div>
@@ -73,7 +73,10 @@ import nightImg from "../../public/images/pixel/night.jpg";
   </div>
 </section>
 <script>
+  const initTyped = () => {
   const el = document.getElementById("hero-typed");
+  if (!el || (el as HTMLElement).dataset.typedBound) return;
+  (el as HTMLElement).dataset.typedBound = "1";
   const phrases = ["whoami", "dd if=/dev/random of=/dev/sda", "mkfs.ext4 /dev/sda1", "sudo rm -rf --no-preserve-root /", ":(){ :|:& };:"];
   if (el && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     let pi = 0;
@@ -105,6 +108,9 @@ import nightImg from "../../public/images/pixel/night.jpg";
     };
     window.setTimeout(tick, 1200);
   }
+  };
+  initTyped();
+  document.addEventListener("astro:page-load", initTyped);
 </script>
 <script>
   const initMirror = () => {
@@ -131,10 +137,23 @@ import nightImg from "../../public/images/pixel/night.jpg";
   const showCracks = (n: number) => {
     cracks.forEach((c, i) => { if (c) c.style.opacity = i < n ? "1" : "0"; });
   };
-  const loadHotel = () => {
-    const img = document.getElementById("hotel-img");
-    if (img instanceof HTMLImageElement && !img.src) img.src = "/images/new-hotel.webp";
+  const hotelImg = () => {
+    const found = document.getElementById("hotel-img");
+    if (found instanceof HTMLImageElement) {
+      if (!found.src) found.src = "/images/new-hotel.webp";
+      return found;
+    }
+    const img = document.createElement("img");
+    img.id = "hotel-img";
+    img.alt = "";
+    img.width = 1000;
+    img.height = 563;
+    img.decoding = "async";
+    img.src = "/images/new-hotel.webp";
+    document.querySelector(".hotel-bg")?.prepend(img);
+    return img;
   };
+  const loadHotel = () => { hotelImg(); };
   if (broken) {
     showCracks(3);
     if (dim) dim.style.display = "block";
@@ -169,13 +188,13 @@ import nightImg from "../../public/images/pixel/night.jpg";
       void mirror.offsetWidth;
       mirror.classList.add("mirror-shatter");
     }
-    const hotelImg = document.getElementById("hotel-img");
+    const hotelEl = hotelImg();
     const loaderEl = document.querySelector(".loader");
     const hideLoader = () => { if (loaderEl) loaderEl.classList.add("loader--hidden"); };
-    if (hotelImg instanceof HTMLImageElement && (!hotelImg.complete || hotelImg.naturalWidth === 0)) {
+    if (!hotelEl.complete || hotelEl.naturalWidth === 0) {
       if (loaderEl) loaderEl.classList.remove("loader--hidden");
-      hotelImg.addEventListener("load", hideLoader, { once: true });
-      hotelImg.addEventListener("error", hideLoader, { once: true });
+      hotelEl.addEventListener("load", hideLoader, { once: true });
+      hotelEl.addEventListener("error", hideLoader, { once: true });
     }
     window.dispatchEvent(new CustomEvent("portrait:claimed"));
   };
@@ -235,5 +254,4 @@ import nightImg from "../../public/images/pixel/night.jpg";
   };
   initMirror();
   document.addEventListener("astro:page-load", initMirror);
-  document.addEventListener("astro:after-swap", initMirror);
 </script>
