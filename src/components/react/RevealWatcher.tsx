@@ -26,11 +26,9 @@ export default function RevealWatcher() {
     };
     observe();
     document.addEventListener("astro:page-load", observe);
-    document.addEventListener("astro:after-swap", observe);
     return () => {
       io?.disconnect();
       document.removeEventListener("astro:page-load", observe);
-      document.removeEventListener("astro:after-swap", observe);
     };
   }, []);
   return null;

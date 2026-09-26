@@ -15,6 +15,7 @@ export default function Loader() {
     const root = document.documentElement;
     const prev = root.style.overflow;
     root.style.overflow = "hidden";
+    let goneTimer: number | null = null;
     const hide = () => {
       if (hiddenRef.current) return;
       hiddenRef.current = true;
@@ -23,21 +24,27 @@ export default function Loader() {
       try {
         sessionStorage.setItem("loader-seen", "1");
       } catch {}
-      window.setTimeout(() => setGone(true), 500);
+      goneTimer = window.setTimeout(() => setGone(true), 500);
     };
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       hide();
       return () => {
+        if (goneTimer !== null) window.clearTimeout(goneTimer);
         root.style.overflow = prev;
       };
     }
     if (document.readyState === "complete") {
       hide();
+      return () => {
+        if (goneTimer !== null) window.clearTimeout(goneTimer);
+        root.style.overflow = prev;
+      };
     } else {
       const cap = window.setTimeout(hide, 1500);
       window.addEventListener("load", hide, { once: true });
       return () => {
         window.clearTimeout(cap);
+        if (goneTimer !== null) window.clearTimeout(goneTimer);
         window.removeEventListener("load", hide);
         root.style.overflow = prev;
       };
