@@ -7,8 +7,9 @@ import RevealWatcher from "../components/react/RevealWatcher.tsx";
 interface Props {
   title?: string;
   description?: string;
+  noindex?: boolean;
 }
-const { title = "home", description = "Learning by breaking, understanding by rebuilding" } = Astro.props;
+const { title = "home | juneja", description = "Learning by breaking, understanding by rebuilding", noindex = false } = Astro.props;
 const canonical = new URL(Astro.url.pathname, "https://squeakyfiddlepro.me/");
 ---
 
@@ -20,6 +21,7 @@ const canonical = new URL(Astro.url.pathname, "https://squeakyfiddlepro.me/");
     <meta name="theme-color" content="#0A0710" />
     <meta name="author" content="Aarav Juneja" />
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
     <meta property="og:title" content={title} />
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonical} />
@@ -31,12 +33,14 @@ const canonical = new URL(Astro.url.pathname, "https://squeakyfiddlepro.me/");
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="juneja - cybersecurity CTF player profile" />
-    <script type="application/ld+json" is:inline set:html={JSON.stringify({ "@context": "https://schema.org", "@graph": [{ "@type": "WebSite", "@id": "https://squeakyfiddlepro.me/#website", url: "https://squeakyfiddlepro.me/", name: "juneja" }, { "@type": "Person", "@id": "https://squeakyfiddlepro.me/#person", name: "Aarav Juneja", url: "https://squeakyfiddlepro.me/", jobTitle: "Cybersecurity CTF player", sameAs: ["https://github.com/AaravJuneja"] }] })} />
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({ "@context": "https://schema.org", "@graph": [{ "@type": "WebSite", "@id": "https://squeakyfiddlepro.me/#website", url: "https://squeakyfiddlepro.me/", name: "juneja" }, { "@type": "Person", "@id": "https://squeakyfiddlepro.me/#person", name: "Aarav Juneja", url: "https://squeakyfiddlepro.me/", description: "Learning by breaking, understanding by rebuilding", image: "https://squeakyfiddlepro.me/images/og-card.png", jobTitle: "Cybersecurity CTF player", sameAs: ["https://github.com/AaravJuneja", "https://linkedin.com/in/aaravjuneja", "https://ctftime.org/user/230373"] }] })} />
     <link rel="canonical" href={canonical} />
+    <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content="https://squeakyfiddlepro.me/images/og-card.png?v=2" />
+    <meta name="twitter:image:alt" content="juneja - cybersecurity CTF player profile" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

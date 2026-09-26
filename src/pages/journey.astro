@@ -8,7 +8,7 @@ import { allAchievements } from "../data.ts";
 const teams = [...new Set(allAchievements.map((a) => a.team))].join(" and ");
 ---
 
-<Layout title="journey" description={`Every CTF receipt. ${allAchievements.length} competitions across ${teams}.`}>
+<Layout title="journey | juneja" description={`Every CTF receipt. ${allAchievements.length} competitions across ${teams}.`}>
   <Navigation />
   <Journey />
   <Footer />
