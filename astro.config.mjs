@@ -8,7 +8,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   site: "https://squeakyfiddlepro.me",
   output: "static",
-  integrations: [react(), sitemap()],
+  integrations: [react(), sitemap({ namespaces: { news: false, video: false } })],
   vite: {
     plugins: [tailwindcss()],
   },
