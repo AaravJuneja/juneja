@@ -9,7 +9,7 @@ interface Props {
   description?: string;
   noindex?: boolean;
 }
-const { title = "home | juneja", description = "Learning by breaking, understanding by rebuilding", noindex = false } = Astro.props;
+const { title = "home", description = "Learning by breaking, understanding by rebuilding", noindex = false } = Astro.props;
 const canonical = new URL(Astro.url.pathname, "https://squeakyfiddlepro.me/");
 ---
 
