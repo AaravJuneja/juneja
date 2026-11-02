@@ -1,0 +1,116 @@
+{
+  "owner": "AaravJuneja",
+  "fetchedAt": "2026-11-02T23:35:24.581Z",
+  "repositories": [
+    {
+      "name": "juneja",
+      "href": "https://github.com/AaravJuneja/juneja",
+      "description": "Aarav juneja's portfolio and ctf record",
+      "fork": false,
+      "archived": false,
+      "lastCommitAt": "2026-11-01T16:21:59Z",
+      "usingPreviousCommit": false,
+      "commitHref": "https://github.com/AaravJuneja/juneja/commit/7a32ce70342fc04fe3c1dc8f213be3eb3d34768e",
+      "commitsHref": "https://github.com/AaravJuneja/juneja/commits/main/"
+    },
+    {
+      "name": "AaravJuneja",
+      "href": "https://github.com/AaravJuneja/AaravJuneja",
+      "description": null,
+      "fork": false,
+      "archived": false,
+      "lastCommitAt": "2026-11-01T15:53:40Z",
+      "usingPreviousCommit": false,
+      "commitHref": "https://github.com/AaravJuneja/AaravJuneja/commit/e6d5d922678c2c08ee12bb4a1b8a9a4bc1111093",
+      "commitsHref": "https://github.com/AaravJuneja/AaravJuneja/commits/main/"
+    },
+    {
+      "name": "the-last-order-options",
+      "href": "https://github.com/AaravJuneja/the-last-order-options",
+      "description": "Live choice display and presenter dashboard for The Last Order.",
+      "fork": false,
+      "archived": false,
+      "lastCommitAt": "2026-11-01T14:17:11Z",
+      "usingPreviousCommit": false,
+      "commitHref": "https://github.com/AaravJuneja/the-last-order-options/commit/1e93ca7ff6f03553716f182e57be5730ae8fe409",
+      "commitsHref": "https://github.com/AaravJuneja/the-last-order-options/commits/main/"
+    },
+    {
+      "name": "exml26",
+      "href": "https://github.com/AaravJuneja/exml26",
+      "description": "Reinforcement learning agent for the ExML Capture the Flag event at Exun 2026",
+      "fork": false,
+      "archived": false,
+      "lastCommitAt": "2026-10-27T17:58:00Z",
+      "usingPreviousCommit": false,
+      "commitHref": "https://github.com/AaravJuneja/exml26/commit/6621e17bda1d97a91764948fa7488295f6a53f0b",
+      "commitsHref": "https://github.com/AaravJuneja/exml26/commits/main/"
+    },
+    {
+      "name": "geo-osint",
+      "href": "https://github.com/AaravJuneja/geo-osint",
+      "description": "Street view geolocation challenge template",
+      "fork": false,
+      "archived": false,
+      "lastCommitAt": "2026-10-14T09:45:05Z",
+      "usingPreviousCommit": false,
+      "commitHref": "https://github.com/AaravJuneja/geo-osint/commit/62404b5ecc6de57df577e53012e061ff610a9015",
+      "commitsHref": "https://github.com/AaravJuneja/geo-osint/commits/main/"
+    },
+    {
+      "name": "github",
+      "href": "https://github.com/AaravJuneja/github",
+      "description": "Personal redesign of github landing pages and dashboard",
+      "fork": false,
+      "archived": false,
+      "lastCommitAt": "2026-10-09T04:30:50Z",
+      "usingPreviousCommit": true,
+      "commitHref": "https://github.com/AaravJuneja/github/commit/d30f99c2b9310dc894f88c68983e0b8e03d99242",
+      "commitsHref": "https://github.com/AaravJuneja/github/commits/main/"
+    },
+    {
+      "name": "oplire",
+      "href": "https://github.com/AaravJuneja/oplire",
+      "description": "OpenCode Rate Limit Reset Tool | by Berke Oruc",
+      "fork": true,
+      "archived": false,
+      "lastCommitAt": "2026-09-24T09:21:20Z",
+      "usingPreviousCommit": false,
+      "commitHref": "https://github.com/AaravJuneja/oplire/commit/9f320f797d8ba2d0c76a6287414ef92201f39f31",
+      "commitsHref": "https://github.com/AaravJuneja/oplire/commits/master/"
+    },
+    {
+      "name": "capstone-project",
+      "href": "https://github.com/AaravJuneja/capstone-project",
+      "description": "Class xii diabetes risk assessment capstone",
+      "fork": false,
+      "archived": false,
+      "lastCommitAt": "2026-09-11T05:21:50Z",
+      "usingPreviousCommit": true,
+      "commitHref": "https://github.com/AaravJuneja/capstone-project/commit/5285123a89f405d3681e99676c530f395f22616c",
+      "commitsHref": "https://github.com/AaravJuneja/capstone-project/commits/main/"
+    },
+    {
+      "name": "inTech-Encryptid-CTF-2026-Writeups",
+      "href": "https://github.com/AaravJuneja/inTech-Encryptid-CTF-2026-Writeups",
+      "description": "Intech encryptid ctf 2026 challenge source and writeups",
+      "fork": false,
+      "archived": false,
+      "lastCommitAt": "2026-06-18T12:50:05Z",
+      "usingPreviousCommit": true,
+      "commitHref": "https://github.com/AaravJuneja/inTech-Encryptid-CTF-2026-Writeups/commit/e2d117e29f8971f7b0345ab698c7026a50863cac",
+      "commitsHref": "https://github.com/AaravJuneja/inTech-Encryptid-CTF-2026-Writeups/commits/main/"
+    },
+    {
+      "name": "HackZero-CTF-2026-Writeups",
+      "href": "https://github.com/AaravJuneja/HackZero-CTF-2026-Writeups",
+      "description": "Syndication's hackzero ctf 2026 writeups",
+      "fork": false,
+      "archived": false,
+      "lastCommitAt": "2026-04-01T13:50:30Z",
+      "usingPreviousCommit": true,
+      "commitHref": "https://github.com/AaravJuneja/HackZero-CTF-2026-Writeups/commit/c18395b3499ce9c608abeb731673bce17d78afce",
+      "commitsHref": "https://github.com/AaravJuneja/HackZero-CTF-2026-Writeups/commits/main/"
+    }
+  ]
+}

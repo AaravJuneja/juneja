@@ -1,16 +1,17 @@
 ---
+import { interests } from "../data";
 const C = [
-  {k:"object i", t:"the flag", p:"breaks things carefully with friends. also builds challenges only to watch ai agents speedrun them nowadays.",
+  {k:"object i",
    pts:[[0,-22],[0,22],[0,-22],[22,-12],[0,-2]], edges:[[0,1],[0,3],[3,4]]},
-  {k:"object ii", t:"the arm", p:"builds robots that win (lose) gracefully. wires, motors, a lot of tape and a plan that lasts until the first collision.",
+  {k:"object ii",
    pts:[[-20,20],[-8,20],[-18,8],[-2,-2],[12,-12],[22,-18],[18,-6]], edges:[[0,1],[0,2],[2,3],[3,4],[4,5],[4,6]]},
-  {k:"object iii", t:"the ball", p:"football most weekends. sometimes maybe good, sometimes maybe sheet. visca el barça.",
+  {k:"object iii",
    pts:[[0,-22],[21,-7],[13,18],[-13,18],[-21,-7],[0,0]], edges:[[0,1],[1,2],[2,3],[3,4],[4,0],[5,0],[5,1],[5,2],[5,3],[5,4]]},
-  {k:"object iv", t:"the headphones", p:"xo 'til we overdose. the noise on loop, always.",
+  {k:"object iv",
    pts:[[-20,4],[-16,-14],[0,-22],[16,-14],[20,4],[-20,16],[20,16]], edges:[[0,1],[1,2],[2,3],[3,4],[0,5],[4,6]]},
-  {k:"object v", t:"the controller", p:"plays games that are not football. mostly for the story, sometimes for the grind.",
+  {k:"object v",
    pts:[[-16,-10],[16,-10],[20,2],[22,18],[0,10],[-22,18],[-20,2],[-10,0],[10,0]], edges:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,0],[7,8]]}
-];
+].map((item,i)=>({...item,t:interests[i].title,p:interests[i].description}));
 const N = C.length, STEP = 360 / N;
 const ICONS = [
   '<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 21V3M6 4h11l-3 4 3 4H6"/></svg>',
@@ -44,7 +45,7 @@ const first = C[0];
   <div class="w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-12 py-16 sm:py-20">
     <div class="max-w-[760px] flex flex-col gap-4 mb-11">
       <p class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-accent">SKILLS</p>
-      <h2 class="font-dm trim-caps font-bold text-[clamp(26px,4vw,34px)] leading-tight text-text uppercase">PRESS A TAB. SEE WHAT I DO.</h2>
+      <h1 class="font-dm trim-caps font-bold text-[clamp(26px,4vw,34px)] leading-tight text-text uppercase">PRESS A TAB. SEE WHAT I DO.</h1>
       <p class="font-outfit text-[clamp(18px,2.1vw,21px)] leading-[1.55] text-muted-text tracking-[-0.005em]">five tabs around one wheel, one for everything i rotate between</p>
     </div>
 

@@ -36,4 +36,5 @@ portfolio/
 *.zip
 opencode.json
 
-
+design/
+.playwright-mcp/

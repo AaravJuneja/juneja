@@ -90,7 +90,6 @@ export default function SpotifyPlayer({ covers }: Props) {
   const toggleRef = useRef<() => void>(() => {});
   const advanceRef = useRef<(from: number) => void>(() => {});
   useEffect(() => {
-    idxRef.current = trackIdx;
     toggleRef.current = toggle;
     advanceRef.current = advanceFrom;
   });
@@ -98,6 +97,7 @@ export default function SpotifyPlayer({ covers }: Props) {
 
   const activeDeck = () => deckRef.current[activeRef.current] ?? null;
   const standbyDeck = () => deckRef.current[1 - activeRef.current] ?? null;
+  const selectTrack = (idx:number) => {idxRef.current=idx;setTrackIdx(idx);};
 
   const takeNext = (currentIdx: number) => {
     let q = queueRef.current;
@@ -206,7 +206,7 @@ export default function SpotifyPlayer({ covers }: Props) {
     setCurrent(s.currentTime);
     setDuration(s.duration || 0);
     posRef.current += 1;
-    setTrackIdx(finishedIdx);
+    selectTrack(finishedIdx);
     primeStandby(peekNext());
   };
 
@@ -246,6 +246,7 @@ export default function SpotifyPlayer({ covers }: Props) {
   };
 
   const advanceFrom = (fromIdx: number) => {
+    if(TRACKS[fromIdx]?.portrait&&isClaimed())return;
     cancelFade();
     setAudioError(false);
     const nxt = takeNext(fromIdx);
@@ -259,12 +260,13 @@ export default function SpotifyPlayer({ covers }: Props) {
     activeRef.current = 1 - activeRef.current;
     nextIdxRef.current = -1;
     incoming.volume = 0;
-    incoming.currentTime = 0;
     incoming.preload = "auto";
+    const same=incoming.dataset.slug===TRACKS[nxt].slug&&incoming.readyState>=1;
     setDeckSrc(incoming, TRACKS[nxt].slug);
+    if(same)incoming.currentTime=0;
     setCurrent(0);
     setDuration(0);
-    setTrackIdx(nxt);
+    selectTrack(nxt);
     if (playRef.current) {
       incoming.play().then(() => fadeInActive(incoming, fadeInOf(TRACKS[nxt]?.slug || ""))).catch(() => {
         playRef.current = false;
@@ -286,7 +288,7 @@ export default function SpotifyPlayer({ covers }: Props) {
     setDeckSrc(a, TRACKS[idx].slug);
     setCurrent(0);
     setDuration(a.duration || 0);
-    setTrackIdx(idx);
+    selectTrack(idx);
     if (same) {
       if (pendingSeekRef.current !== null) {
         const t = Math.min(pendingSeekRef.current, (a.duration || 0) - 0.25);
@@ -311,7 +313,7 @@ export default function SpotifyPlayer({ covers }: Props) {
   const toggle = () => {
     const a = activeDeck();
     if (!a || audioError) return;
-    if (playing) {
+    if (!a.paused || crossfadeRef.current) {
       cancelFade();
       playRef.current = false;
       a.pause();
@@ -328,6 +330,18 @@ export default function SpotifyPlayer({ covers }: Props) {
       });
     }
   };
+
+  useEffect(() => {
+    window.addEventListener("music:toggle", toggle);
+    return () => window.removeEventListener("music:toggle", toggle);
+  }, [toggle]);
+
+  useEffect(() => {
+    const report = () => window.dispatchEvent(new CustomEvent("music:state",{detail:{playing:playing&&!audioError,error:audioError}}));
+    window.addEventListener("music:request-state",report);
+    report();
+    return () => window.removeEventListener("music:request-state",report);
+  },[playing,audioError,trackIdx]);
 
   const fmt = (s: number) => {
     if (!isFinite(s) || isNaN(s)) return "0:00";
@@ -381,17 +395,19 @@ export default function SpotifyPlayer({ covers }: Props) {
     try {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: track.title,
-        artist: "The Noise",
-        album: "The Noise",
+        artist: track.portrait ? "LSPLASH" : "The Noise",
+        album: track.portrait ? "DOORS Original Game Soundtrack" : "The Noise",
         artwork: [{ src: covers[track.cover].expanded, sizes: "88x88", type: "image/webp" }],
       });
-      navigator.mediaSession.setActionHandler("play", () => toggleRef.current());
-      navigator.mediaSession.setActionHandler("pause", () => toggleRef.current());
+      navigator.mediaSession.setActionHandler("play", () => {if(activeDeck()?.paused)toggleRef.current();});
+      navigator.mediaSession.setActionHandler("pause", () => {if(activeDeck()?.paused===false)toggleRef.current();});
       navigator.mediaSession.setActionHandler("previoustrack", () => {
+        if(TRACKS[idxRef.current]?.portrait&&isClaimed())return;
         playRef.current = true;
         advanceRef.current(idxRef.current);
       });
       navigator.mediaSession.setActionHandler("nexttrack", () => {
+        if(TRACKS[idxRef.current]?.portrait&&isClaimed())return;
         playRef.current = true;
         advanceRef.current(idxRef.current);
       });
@@ -405,6 +421,11 @@ export default function SpotifyPlayer({ covers }: Props) {
       });
     } catch {}
   }, [trackIdx]);
+
+  useEffect(()=>{
+    if(!("mediaSession" in navigator))return;
+    try {navigator.mediaSession.playbackState=playing?"playing":"paused";} catch {}
+  },[playing]);
 
   useEffect(() => {
     const decks = deckRef.current;
@@ -453,20 +474,8 @@ export default function SpotifyPlayer({ covers }: Props) {
       const el = e.currentTarget as HTMLAudioElement;
       if (el !== activeDeck()) return;
       setCurrent(0);
-      if (TRACKS[idxRef.current]?.portrait) {
+      if (el.dataset.slug===TRACKS[PORTRAIT_IDX]?.slug) {
         delCookie("portrait");
-        playRef.current = false;
-        const stash = stashRef.current;
-        stashRef.current = null;
-        nextIdxRef.current = -1;
-        setPlaying(false);
-        if (stash) {
-          pendingSeekRef.current = stash.time;
-          if (stash.playing) playRef.current = true;
-          restoreTrack(stash.idx);
-        } else {
-          advanceFrom(-1);
-        }
         window.dispatchEvent(new CustomEvent("portrait:cleared"));
       } else if (crossfadeRef.current) {
         finishFade();
@@ -530,9 +539,25 @@ export default function SpotifyPlayer({ covers }: Props) {
         a.preload = "auto";
         setDeckSrc(a, TRACKS[PORTRAIT_IDX].slug);
       }
-      setTrackIdx(PORTRAIT_IDX);
+      selectTrack(PORTRAIT_IDX);
+    };
+    const onCleared = () => {
+      const active=activeDeck();
+      if(isClaimed()||!active||active.dataset.slug!==TRACKS[PORTRAIT_IDX]?.slug)return;
+      const continuing=!active.paused||active.ended;
+      cancelFade();
+      active.pause();
+      const stash=stashRef.current;
+      stashRef.current=null;
+      nextIdxRef.current=-1;
+      playRef.current=stash?.playing??continuing;
+      setPlaying(false);
+      setCurrent(0);
+      if(stash) {pendingSeekRef.current=stash.time;restoreTrack(stash.idx);}
+      else restoreTrack(takeNext(-1));
     };
     window.addEventListener("portrait:claimed", onClaimed);
+    window.addEventListener("portrait:cleared", onCleared);
 
     const begin = () => {
       const a = activeDeck();
@@ -551,13 +576,13 @@ export default function SpotifyPlayer({ covers }: Props) {
         queueRef.current = shufflePool(-1);
         posRef.current = 0;
         setDeckSrc(a, TRACKS[PORTRAIT_IDX].slug);
-        setTrackIdx(PORTRAIT_IDX);
+        selectTrack(PORTRAIT_IDX);
       } else {
         const queue = shufflePool(-1);
         queueRef.current = queue;
         posRef.current = 1;
         setDeckSrc(a, TRACKS[queue[0]].slug);
-        setTrackIdx(queue[0]);
+        selectTrack(queue[0]);
         primeStandby(queue[1] ?? peekNext());
       }
     };
@@ -568,6 +593,7 @@ export default function SpotifyPlayer({ covers }: Props) {
     }
     return () => {
       window.removeEventListener("portrait:claimed", onClaimed);
+      window.removeEventListener("portrait:cleared", onCleared);
       window.removeEventListener("load", begin);
       if (fadeTimerRef.current !== null) window.clearInterval(fadeTimerRef.current);
       if (fadeRafRef.current !== null) window.cancelAnimationFrame(fadeRafRef.current);
@@ -616,14 +642,14 @@ export default function SpotifyPlayer({ covers }: Props) {
           maxWidth: "100%",
           height: 44,
           borderRadius: expanded ? 12 : 9999,
-          background: "#251a3a",
+          background: "var(--player-surface)",
           opacity: expanded ? 0 : 1,
           pointerEvents: expanded ? "none" : "auto",
           transition: "opacity 200ms ease",
         }}
       >
         <div className="w-7 h-7 rounded-full overflow-hidden border border-line shrink-0">
-          <img src={covers[track.cover].collapsed} alt="Album Art" width={28} height={28} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="lazy" decoding="async" />
+          <img src={covers[track.cover].collapsed} draggable={false} alt="Album Art" width={28} height={28} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="lazy" decoding="async" />
         </div>
         <div className="flex flex-col min-w-0">
           <span className="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-muted-text leading-none">Now Playing</span>
@@ -637,13 +663,13 @@ export default function SpotifyPlayer({ covers }: Props) {
         onKeyDown={(e) => {
           if (e.key === "Escape") setExpanded(false);
         }}
-        className="absolute right-0 top-0 flex flex-col gap-3 p-3 border border-line overflow-hidden"
+        className="absolute right-0 bottom-0 flex flex-col gap-3 p-3 border border-line overflow-hidden"
         style={{
           width: "min(340px, calc(100vw - 48px))",
           height: "auto",
           minHeight: 110,
           borderRadius: 12,
-          background: "#251a3a",
+          background: "var(--player-surface)",
           opacity: expanded ? 1 : 0,
           pointerEvents: expanded ? "auto" : "none",
           transform: expanded ? "translateY(0) scale(1)" : "translateY(4px) scale(0.98)",
@@ -657,6 +683,7 @@ export default function SpotifyPlayer({ covers }: Props) {
             <img
               src={covers[track.cover].expanded}
               alt="Album Art"
+              draggable={false}
               loading="lazy"
               decoding="async"
               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}

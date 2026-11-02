@@ -26,23 +26,6 @@
 }
 
 @font-face {
-  font-family: "DM Retrograde";
-  src: url("/fonts/dm-retrograde-400.woff2") format("woff2");
-  font-display: swap;
-  font-style: normal;
-  font-weight: 400;
-  unicode-range: U+0000-00FF, U+2000-206F;
-}
-@font-face {
-  font-family: "DM Retrograde";
-  src: url("/fonts/dm-retrograde-700.woff2") format("woff2");
-  font-display: swap;
-  font-style: normal;
-  font-weight: 700;
-  unicode-range: U+0000-00FF, U+2000-206F;
-}
-
-@font-face {
   font-family: Anton;
   src: url("/fonts/mbox-anton-latin-400-normal.woff2") format("woff2");
   font-display: optional;
@@ -101,7 +84,7 @@
   --color-surface: #151020;
   --color-text: #f7f2fa;
   --font-outfit: Outfit, sans-serif;
-  --font-dm: "DM Retrograde", serif;
+  --font-dm: Outfit, sans-serif;
   --font-anton: Anton, Impact, sans-serif;
   --font-archivo: Archivo, system-ui, sans-serif;
 }
@@ -115,6 +98,7 @@
   --raised-surface: rgb(33, 23, 44);
   --surface: rgb(21, 16, 32);
   --text: rgb(247, 242, 250);
+  --player-surface: #251a3a;
 }
 
 :root[data-portrait] img.theme-icon {
@@ -158,6 +142,7 @@
   --line: rgb(74, 53, 36);
   --muted-text: rgb(179, 160, 140);
   --text: rgb(250, 245, 236);
+  --player-surface: #2c1e12;
 }
 :root[data-portrait] .mbox .inner {
   --paper: #241811 !important;
@@ -171,8 +156,19 @@
   box-sizing: border-box;
 }
 
+* {
+  scrollbar-width: none;
+}
+
 html {
   scroll-padding-top: 64px;
+  scrollbar-width: none;
+  background: var(--color-background);
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
 }
 @media (prefers-reduced-motion: no-preference) {
   html {
@@ -223,6 +219,76 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.site-main {
+  padding-bottom: calc(7.25rem + max(12px, env(safe-area-inset-bottom, 0px)));
+}
+
+.site-main:focus {
+  outline: none;
+}
+
+.site-main[data-home] {
+  padding-bottom: 0;
+}
+
+.home-page {
+  min-height: 100dvh;
+}
+
+.home-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(24px, 5vh, 72px);
+  min-height: 100dvh;
+  padding-block: clamp(32px, 5vh, 72px) calc(132px + env(safe-area-inset-bottom, 0px));
+}
+
+.home-content > section {
+  max-width: 1600px;
+  padding-block: 0;
+  padding-inline: clamp(24px, 6vw, 96px);
+}
+
+@media (min-width: 1024px) {
+  .home-content h1 {
+    font-size: clamp(3rem, 4vw, 4.5rem);
+  }
+
+  .home-content #player p {
+    font-size: clamp(19px, 1.3vw, 24px);
+  }
+
+  .home-content #player-card {
+    width: clamp(340px, 25vw, 460px);
+    max-width: none;
+  }
+}
+
+.site-main[data-compact] > section {
+  display: flex;
+  align-items: center;
+  min-height: calc(100dvh - 7.25rem - max(12px, env(safe-area-inset-bottom, 0px)));
+}
+
+.site-main[data-compact] > section > div {
+  padding-block: clamp(16px, 2vh, 24px);
+}
+
+.site-main[data-compact] > section > div > div:first-child {
+  margin-bottom: 24px;
+}
+
+button,
+summary {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.font-dm.font-bold {
+  font-weight: 600;
+}
+
 h1,
 h2,
 h3 {
@@ -260,8 +326,9 @@ video {
 }
 
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  display: none;
+  width: 0;
+  height: 0;
 }
 ::-webkit-scrollbar-track {
   background: var(--background);
@@ -278,7 +345,7 @@ video {
   background: var(--background);
 }
 html {
-  scrollbar-width: thin;
+  scrollbar-width: none;
   scrollbar-color: var(--accent) var(--background);
 }
 
@@ -535,7 +602,7 @@ html.js [data-reveal][data-in] > * {
 }
 .doors-binary {
   position: absolute;
-  font-family: "DM Retrograde", serif;
+  font-family: Outfit, sans-serif;
   text-box-trim: trim-both;
   text-box-edge: cap alphabetic;
   color: #e8e8e8;
@@ -560,7 +627,7 @@ html.js [data-reveal][data-in] > * {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-family: "DM Retrograde", serif;
+  font-family: Outfit, sans-serif;
   text-box-trim: trim-both;
   text-box-edge: cap alphabetic;
   font-size: min(14vw, 180px);

@@ -3,13 +3,16 @@ import { ClientRouter } from "astro:transitions";
 import "../styles/global.css";
 import Loader from "../components/react/Loader.tsx";
 import RevealWatcher from "../components/react/RevealWatcher.tsx";
+import SpotifyNowPlaying from "../components/SpotifyNowPlaying.astro";
+import SiteDock from "../components/SiteDock.astro";
 
 interface Props {
   title?: string;
   description?: string;
   noindex?: boolean;
+  compact?: boolean;
 }
-const { title = "home", description = "Learning by breaking, understanding by rebuilding", noindex = false } = Astro.props;
+const { title = "home", description = "Hi, I'm Aarav. I like figuring things out and trying whatever catches my attention.", noindex = false, compact = false } = Astro.props;
 const canonical = new URL(Astro.url.pathname, "https://squeakyfiddlepro.me/");
 ---
 
@@ -33,7 +36,7 @@ const canonical = new URL(Astro.url.pathname, "https://squeakyfiddlepro.me/");
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="juneja - cybersecurity CTF player profile" />
-    <script type="application/ld+json" is:inline set:html={JSON.stringify({ "@context": "https://schema.org", "@graph": [{ "@type": "WebSite", "@id": "https://squeakyfiddlepro.me/#website", url: "https://squeakyfiddlepro.me/", name: "juneja" }, { "@type": "Person", "@id": "https://squeakyfiddlepro.me/#person", name: "Aarav Juneja", url: "https://squeakyfiddlepro.me/", description: "Learning by breaking, understanding by rebuilding", image: "https://squeakyfiddlepro.me/images/og-card.png", jobTitle: "Cybersecurity CTF player", sameAs: ["https://github.com/AaravJuneja", "https://linkedin.com/in/aaravjuneja", "https://ctftime.org/user/230373"] }] })} />
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({ "@context": "https://schema.org", "@graph": [{ "@type": "WebSite", "@id": "https://squeakyfiddlepro.me/#website", url: "https://squeakyfiddlepro.me/", name: "juneja" }, { "@type": "Person", "@id": "https://squeakyfiddlepro.me/#person", name: "Aarav Juneja", url: "https://squeakyfiddlepro.me/", description, image: "https://squeakyfiddlepro.me/images/og-card.png", jobTitle: "Cybersecurity CTF player", sameAs: ["https://github.com/AaravJuneja", "https://linkedin.com/in/aaravjuneja", "https://ctftime.org/user/230373"] }] })} />
     <link rel="canonical" href={canonical} />
     <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -44,9 +47,9 @@ const canonical = new URL(Astro.url.pathname, "https://squeakyfiddlepro.me/");
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="preload" as="font" type="font/woff2" href="/fonts/dm-retrograde-700.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/outfit-latin-600-normal.woff2" crossorigin />
     <meta name="generator" content={Astro.generator} />
-    <script is:inline>try{if(/(?:^|;)\s*portrait=claimed(;|$)/.test(document.cookie))document.documentElement.setAttribute("data-portrait","")}catch{}</script>
+    <script is:inline data-astro-rerun>try{const claimed=/(?:^|;)\s*portrait=claimed(?:;|$)/.test(document.cookie);document.documentElement.toggleAttribute("data-portrait",claimed);document.querySelector('meta[name="theme-color"]')?.setAttribute("content",claimed?"#0d0906":"#0A0710")}catch{}</script>
     <title>{title}</title>
     <ClientRouter />
   </head>
@@ -54,8 +57,34 @@ const canonical = new URL(Astro.url.pathname, "https://squeakyfiddlepro.me/");
     <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[9999999] focus:bg-accent focus:text-background focus:px-3 focus:py-2 font-dm trim-caps text-[12px] tracking-[0.08em] uppercase">SKIP TO CONTENT</a>
     <Loader client:load />
     <RevealWatcher client:load />
-    <main id="main-content" tabindex="-1">
+    <main id="main-content" class="site-main overflow-x-clip" data-home={Astro.url.pathname === "/" || undefined} data-compact={compact || undefined} tabindex="-1">
       <slot />
     </main>
+    <aside class="persistent-player" aria-label="Music player" transition:persist="spotify-player">
+      <SpotifyNowPlaying />
+    </aside>
+    <SiteDock />
   </body>
 </html>
+
+<script>
+  import {initPortraitTheme} from "../lib/portraitTheme";
+  initPortraitTheme();
+</script>
+
+<style>
+  .persistent-player {
+    position: fixed;
+    z-index: 50;
+    right: max(12px, env(safe-area-inset-right, 0px));
+    bottom: calc(60px + max(12px, env(safe-area-inset-bottom, 0px)));
+    display: flex;
+    width: min(340px, calc(100vw - 24px));
+    height: 44px;
+    justify-content: flex-end;
+    overflow: visible;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  :global(body:has([data-train])) .persistent-player { display: none; }
+</style>

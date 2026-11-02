@@ -1,0 +1,48 @@
+---
+const path = Astro.url.pathname.replace(/\/+$/, "") || "/";
+const links = [
+  { label: "Home", href: "/", active: path === "/" },
+  { label: "Team", href: "/team", active: path === "/team" },
+  { label: "Writeups", href: "/writeups", active: path === "/writeups" },
+  { label: "Achievements", href: "/achievements", active: path === "/achievements" || path === "/journey" },
+  { label: "About", href: "/about", active: path === "/about" },
+];
+---
+
+<nav class="site-dock" aria-label="Main navigation">
+  {links.map((link) => (
+    <a href={link.href} draggable="false" aria-label={link.label} aria-current={link.active ? "page" : undefined}>
+      {link.label === "Achievements" ? <><span class="achievements-label-long">Achievements</span><span class="achievements-label-short" aria-hidden="true">Wins</span></> : link.label}
+    </a>
+  ))}
+</nav>
+
+<script>
+  const migrateLegacyHashes = () => {
+    if (window.location.hash === "#contact" && !document.getElementById("contact")) {
+      window.location.replace(`/${window.location.search}#contact`);
+      return;
+    }
+    if (window.location.pathname !== "/") return;
+    const destinations: Record<string, string> = {
+      "#team": "/team", "#writeups": "/writeups", "#highlights": "/achievements", "#skills": "/about", "#journey": "/journey",
+    };
+    const destination = destinations[window.location.hash];
+    if (destination) window.location.replace(`${destination}${window.location.search}`);
+  };
+  migrateLegacyHashes();
+  document.addEventListener("astro:page-load", migrateLegacyHashes);
+</script>
+
+<style>
+  .site-dock { position: fixed; z-index: 100; left: 50%; bottom: max(12px, env(safe-area-inset-bottom, 0px)); display: flex; align-items: center; gap: 2px; max-width: calc(100vw - 24px); padding: 4px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; border: 1px solid var(--color-line); border-radius: 999px; background: color-mix(in srgb, var(--color-surface) 94%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); transform: translateX(-50%); }
+  .site-dock::-webkit-scrollbar { display: none; }
+  .site-dock { user-select:none;-webkit-user-select:none; }
+  .achievements-label-short { display: none; }
+  .site-dock a { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 0 9px; border-radius: 999px; color: var(--color-muted-text); font: 500 13px/1 Outfit, sans-serif; white-space: nowrap; transition: background-color 150ms ease, color 150ms ease; }
+  .site-dock a:hover, .site-dock a[aria-current="page"] { background: var(--color-raised-surface); color: var(--color-text); }
+  .site-dock a:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  @media (max-width: 420px) { .site-dock a { padding-inline: 6px; font-size: 12px; } }
+  @media (max-width: 375px) { .site-dock { gap: 0; padding: 2px; } .achievements-label-long { display: none; } .achievements-label-short { display: inline; } }
+  @media (prefers-reduced-motion: reduce) { .site-dock a { transition: none; } }
+</style>

@@ -1,20 +1,11 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import Navigation from "../components/Navigation.astro";
 import Hero from "../components/Hero.astro";
-import SocialLinks from "../components/SocialLinks.astro";
-import TeamStory from "../components/TeamStory.astro";
-import SkillsWheel from "../components/SkillsWheel.astro";
-import Writeups from "../components/Writeups.astro";
-import Highlights from "../components/Highlights.astro";
-import Footer from "../components/Footer.astro";
-import SpotifyNowPlaying from "../components/SpotifyNowPlaying.astro";
-import ArcadeRunnerLane from "../components/react/ArcadeRunnerLane.tsx";
+import InlineContact from "../components/InlineContact.astro";
 ---
 
 <Layout>
-  <Navigation />
-  <div class="relative">
+  <div class="home-page relative">
     <div class="marble-bg" aria-hidden="true">
       <img src="/images/marble-bg.webp" alt="" width="735" height="496" loading="eager" fetchpriority="low" decoding="async" />
       <div class="marble-shade"></div>
@@ -24,25 +15,11 @@ import ArcadeRunnerLane from "../components/react/ArcadeRunnerLane.tsx";
       <div class="hotel-shade"></div>
       <div class="hotel-fade"></div>
     </div>
-    <div class="relative">
+    <div class="home-content relative">
       <Hero />
 
-      <div class="w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-12 py-2 flex flex-wrap gap-3 items-center justify-between">
-        <SocialLinks />
-        <div class="ml-auto">
-          <SpotifyNowPlaying />
-        </div>
-      </div>
-
-      <div class="w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-12 py-4 sm:py-6">
-        <ArcadeRunnerLane client:media="(hover: hover) and (pointer: fine)" />
-      </div>
+      <InlineContact />
     </div>
   </div>
 
-  <TeamStory />
-  <SkillsWheel />
-  <Writeups />
-  <Highlights />
-  <Footer />
 </Layout>

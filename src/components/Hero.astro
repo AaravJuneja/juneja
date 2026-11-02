@@ -3,31 +3,16 @@ import { Image } from "astro:assets";
 import nightImg from "../assets/night.jpg";
 ---
 
-<section id="player" data-reveal class="w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-12 pt-6 pb-4 sm:pt-10 sm:pb-6 lg:pt-12 lg:pb-8">
+<section id="player" data-reveal class="w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-12 pt-10 pb-4 sm:pt-14 sm:pb-6 lg:pt-16 lg:pb-8">
   <div class="flex flex-col lg:flex-row lg:items-center gap-8 lg:gap-12">
-    <!-- Left copy -->
     <div class="flex-1 flex flex-col gap-7">
-      <h1 class="font-dm trim-caps font-bold text-[clamp(1.75rem,7vw,3.5rem)] tracking-[-2.04px] leading-[0.98] text-text">juneja</h1>
-      <p class="font-outfit text-[clamp(18px,2.1vw,21px)] leading-[1.55] text-muted-text max-w-[52ch] tracking-[-0.005em]">Learning by breaking, understanding by rebuilding</p>
-      <p class="font-mono text-[13px] sm:text-[14px] text-muted-text min-h-[30px] sm:min-h-[16px]" aria-hidden="true"><span class="text-accent">$</span> <span id="hero-typed">whoami</span><span class="motion-safe:animate-caret text-accent">_</span></p>
-      <span class="sr-only">Aarav Juneja, cybersecurity and CTF player</span>
-      <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
-        <a href="/#highlights" class="inline-flex items-center gap-3 bg-accent text-background px-4 py-3.5 font-dm trim-caps text-[12px] leading-none tracking-[0.08em] uppercase hover:brightness-110 hover:-translate-x-px hover:-translate-y-px hover:shadow-[3px_3px_0px_0px_var(--color-accent-soft)] active:translate-x-0 active:translate-y-0 active:shadow-none transition-all duration-150 ease-out w-fit min-h-[44px] min-w-[44px]">
-          VIEW POW
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" aria-hidden="true"><path d="M4.66663 4.66602L11.3333 11.3327" stroke="#0A0710" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.3333 4.66602V11.3327H4.66663" stroke="#0A0710" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </a>
-      </div>
+      <h1 class="font-outfit font-semibold text-[clamp(3rem,4vw,4.5rem)] tracking-[-0.03em] leading-[1] text-text">hi, i’m aarav</h1>
+      <p class="font-outfit text-[clamp(19px,1.3vw,24px)] leading-[1.55] text-muted-text max-w-[42ch] tracking-[-0.005em]">i like figuring things out and trying whatever catches my attention</p>
     </div>
 
-     <!-- Player HUD -->
-    <div id="player-card" class="w-full max-w-[340px] mx-auto lg:mx-0 lg:w-[340px] lg:shrink-0 min-w-0 bg-surface border border-line p-6 flex flex-col gap-5">
-      <div class="flex items-center justify-between">
-        <p class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-muted-text">PLAYER PROFILE</p>
-        <img src="/images/trophy.svg" alt="" width="20" height="20" class="w-5 h-5 theme-icon" decoding="async" />
-      </div>
-
-      <div id="night-mirror" class="relative w-full overflow-hidden outline-none focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2" role="button" tabindex="0" aria-label="the portrait stares back. do not stare for too long">
-        <Image src={nightImg} alt="Night sky" width={340} height={340} densities={[1, 2]} sizes="340px" class="w-full h-auto object-cover" loading="eager" decoding="async" fetchpriority="high" />
+    <div id="player-card" class="w-full max-w-[340px] mx-auto lg:mx-0 lg:w-[340px] lg:shrink-0 min-w-0">
+      <div id="night-mirror" class="relative w-full overflow-hidden outline-none focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2" role="button" tabindex="0" aria-label="Crescent moon portrait">
+        <Image src={nightImg} alt="Pixel art of a crescent moon over a mountain range" width={340} height={340} densities={[1, 2]} sizes="(min-width: 1024px) clamp(340px, 25vw, 460px), 340px" class="w-full h-auto object-cover" loading="eager" decoding="async" fetchpriority="high" />
         <div id="night-refl" aria-hidden="true" class="absolute left-0 top-0 w-[19px] h-[19px] opacity-0 pointer-events-none will-change-transform">
           <img src="/cursors/cursor-pixel.svg" alt="" width="19" height="19" class="w-full h-full" style="transform:scaleX(-1)" loading="lazy" decoding="async" />
         </div>
@@ -49,75 +34,18 @@ import nightImg from "../assets/night.jpg";
         </svg>
         <div id="night-dim" class="absolute inset-0 bg-background/40 pointer-events-none" style="display:none"></div>
       </div>
-
-      <div class="flex flex-col gap-3">
-        <div class="flex items-center justify-between">
-          <p class="font-outfit font-medium text-[14px] text-muted-text tracking-[0.01em]">CAPTURING SINCE</p>
-          <p class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-text">JUN 2025</p>
-        </div>
-      </div>
-
-      <div class="flex flex-wrap gap-2">
-        <div class="group inline-flex items-center gap-1.5 bg-raised-surface border border-line px-2.5 py-1.5 hover:border-accent/30 hover:-translate-y-px transition-all duration-150">
-          <img src="/images/pixel/heart-pixel.svg" alt="" width="12" height="12" class="w-3 h-3 group-hover:scale-110 transition-transform duration-150 theme-icon" loading="lazy" decoding="async" fetchpriority="low" />
-          <span class="font-dm trim-caps text-[12px] leading-none tracking-[0.08em] uppercase text-text">REV</span>
-        </div>
-        <div class="inline-flex items-center bg-raised-surface border border-line px-2.5 py-1.5 hover:border-accent/30 hover:-translate-y-px transition-all duration-150">
-          <span class="font-dm trim-caps text-[12px] leading-none tracking-[0.08em] uppercase text-text">OSINT</span>
-        </div>
-        <div class="inline-flex items-center bg-raised-surface border border-line px-2.5 py-1.5 hover:border-accent/30 hover:-translate-y-px transition-all duration-150">
-          <span class="font-dm trim-caps text-[12px] leading-none tracking-[0.08em] uppercase text-text">BRUTEFORCE</span>
-        </div>
-      </div>
     </div>
   </div>
 </section>
-<script>
-  const initTyped = () => {
-  const el = document.getElementById("hero-typed");
-  if (!el || (el as HTMLElement).dataset.typedBound) return;
-  (el as HTMLElement).dataset.typedBound = "1";
-  const phrases = ["whoami", "dd if=/dev/random of=/dev/sda", "mkfs.ext4 /dev/sda1", "sudo rm -rf --no-preserve-root /", ":(){ :|:& };:"];
-  if (el && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    let pi = 0;
-    let ci = phrases[0].length;
-    let deleting = true;
-    const tick = () => {
-      if (!el.isConnected) return;
-      const full = phrases[pi];
-      if (deleting) {
-        ci -= 1;
-        el.textContent = full.slice(0, Math.max(0, ci));
-        if (ci <= 0) {
-          deleting = false;
-          pi = (pi + 1) % phrases.length;
-          window.setTimeout(tick, 400);
-          return;
-        }
-        window.setTimeout(tick, 40);
-      } else {
-        ci += 1;
-        el.textContent = phrases[pi].slice(0, ci);
-        if (ci >= phrases[pi].length) {
-          deleting = true;
-          window.setTimeout(tick, 1400);
-          return;
-        }
-        window.setTimeout(tick, 65);
-      }
-    };
-    window.setTimeout(tick, 1200);
-  }
-  };
-  initTyped();
-  document.addEventListener("astro:page-load", initTyped);
-</script>
 <script>
   const initMirror = () => {
   const mirror = document.getElementById("night-mirror");
   if (!mirror || (mirror as HTMLElement).dataset.mirrorBound) return;
   (mirror as HTMLElement).dataset.mirrorBound = "1";
+  const events=new AbortController();
   const dim = document.getElementById("night-dim");
+  const refl = document.getElementById("night-refl");
+  let seenPointer = false;
   const cracks = [
     document.getElementById("night-crack-1"),
     document.getElementById("night-crack-2"),
@@ -128,12 +56,14 @@ import nightImg from "../assets/night.jpg";
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const getCookie = (n: string) => (document.cookie.match(new RegExp("(?:^|;)\\s*" + n + "=([^;]*)")) || [])[1] || undefined;
   const setCookie = (n: string, v: string) => { try { document.cookie = n + "=" + v + "; max-age=31536000; path=/; SameSite=Lax"; } catch {} };
-  const storedCracked = getCookie("mirror") === "cracked";
+  const storedCracked = getCookie("mirror") === "cracked" || getCookie("portrait") === "claimed";
   let broken = storedCracked;
   let hovering = false;
   let holdStart: number | null = null;
   let keyHeld = false;
   let raf: number | null = null;
+  let charge = 0;
+  let prev = 0;
   const showCracks = (n: number) => {
     cracks.forEach((c, i) => { if (c) c.style.opacity = i < n ? "1" : "0"; });
   };
@@ -158,33 +88,36 @@ import nightImg from "../assets/night.jpg";
     showCracks(3);
     if (dim) dim.style.display = "block";
   }
-  const syncTheme = () => {
-    const theme = document.querySelector('meta[name="theme-color"]');
-    if (theme) theme.setAttribute("content", getCookie("portrait") === "claimed" ? "#0d0906" : "#0A0710");
+  if (getCookie("portrait") === "claimed") loadHotel();
+  const syncMirror=()=>{
+    const cracked=getCookie("mirror")==="cracked"||getCookie("portrait")==="claimed";
+    if(cracked===broken)return;
+    broken=cracked;charge=prev=0;hovering=false;holdStart=null;keyHeld=false;
+    mirror.classList.remove("mirror-flicker","mirror-shatter");
+    showCracks(cracked?3:0);
+    if(dim)dim.style.display=cracked?"block":"none";
+    if(refl)refl.style.opacity="0";
+    seenPointer=false;
+    if(raf!==null) {cancelAnimationFrame(raf);raf=null;}
   };
-  if (getCookie("portrait") === "claimed") { loadHotel(); syncTheme(); }
-  window.addEventListener("portrait:cleared", () => {
-    document.documentElement.removeAttribute("data-portrait");
-    const theme = document.querySelector('meta[name="theme-color"]');
-    if (theme) theme.setAttribute("content", "#0A0710");
-  });
-  const setTheme = (claimed: boolean) => {
-    const theme = document.querySelector('meta[name="theme-color"]');
-    if (theme) theme.setAttribute("content", claimed ? "#0d0906" : "#0A0710");
-  };
+  window.addEventListener("portrait:claimed",syncMirror,{signal:events.signal});
+  window.addEventListener("portrait:cleared",syncMirror,{signal:events.signal});
+  window.addEventListener("focus",syncMirror,{signal:events.signal});
+  window.addEventListener("pageshow",syncMirror,{signal:events.signal});
+  document.addEventListener("visibilitychange",syncMirror,{signal:events.signal});
+  try {window.cookieStore?.addEventListener("change",syncMirror,{signal:events.signal});} catch {}
   const claim = () => {
     if (broken) return;
     broken = true;
     setCookie("mirror", "cracked");
     setCookie("portrait", "claimed");
     document.documentElement.setAttribute("data-portrait", "");
-    setTheme(true);
     loadHotel();
     showCracks(3);
     if (dim) dim.style.display = "block";
     if (refl) refl.style.opacity = "0";
     if (!reduced && mirror) {
-      mirror.classList.remove("mirror-shatter");
+      mirror.classList.remove("mirror-flicker","mirror-shatter");
       void mirror.offsetWidth;
       mirror.classList.add("mirror-shatter");
     }
@@ -198,8 +131,6 @@ import nightImg from "../assets/night.jpg";
     }
     window.dispatchEvent(new CustomEvent("portrait:claimed"));
   };
-  let charge = 0;
-  let prev = 0;
   const loop = (ts: number) => {
     raf = null;
     if (!broken) {
@@ -207,6 +138,7 @@ import nightImg from "../assets/night.jpg";
       const dt = Math.min(0.1, Math.max(0, (ts - prev) / 1000));
       prev = ts;
       const charging = hovering || holdStart !== null || keyHeld;
+      if(!charging) {charge=prev=0;showCracks(0);mirror.classList.remove("mirror-flicker");return;}
       const rate = keyHeld ? 2 : 1;
       charge = charging ? charge + dt * 1000 * rate : 0;
       const ms = charge;
@@ -220,9 +152,8 @@ import nightImg from "../assets/night.jpg";
     if (!broken) raf = window.requestAnimationFrame(loop);
   };
   const kick = () => { if (raf === null && !broken) raf = window.requestAnimationFrame(loop); };
-  const refl = document.getElementById("night-refl");
-  let seenPointer = false;
   let mirrorVisible = true;
+  let visibility:IntersectionObserver|undefined;
   const onReflMove = (e: PointerEvent) => {
     if (!mirrorVisible) return;
     if (e.pointerType === "touch" || !mirror || !refl || broken) return;
@@ -232,25 +163,29 @@ import nightImg from "../assets/night.jpg";
     if (!seenPointer) { seenPointer = true; refl.style.opacity = "0.6"; }
     refl.style.transform = `translate(${rect.width - px - 19}px, ${py}px)`;
   };
-  if (mirror && !broken) {
-    window.addEventListener("pointermove", onReflMove, { passive: true });
-    mirror.addEventListener("mouseenter", () => { hovering = true; kick(); });
-    mirror.addEventListener("mouseleave", () => { hovering = false; });
-    mirror.addEventListener("touchstart", () => { holdStart = performance.now(); kick(); }, { passive: true });
-    mirror.addEventListener("touchend", () => { holdStart = null; });
+  if (mirror) {
+    window.addEventListener("pointermove", onReflMove, { passive: true,signal:events.signal });
+    mirror.addEventListener("mouseenter", () => { hovering = true; kick(); },{signal:events.signal});
+    mirror.addEventListener("mouseleave", () => { hovering = false; },{signal:events.signal});
+    mirror.addEventListener("touchstart", () => { holdStart = performance.now(); kick(); }, { passive: true,signal:events.signal });
+    mirror.addEventListener("touchend", () => { holdStart = null; },{signal:events.signal});
+    mirror.addEventListener("touchcancel", () => { holdStart = null; },{signal:events.signal});
     mirror.addEventListener("keydown", (e) => {
       if (e.key !== "Enter" && e.key !== " ") return;
       e.preventDefault();
       if (!keyHeld) { keyHeld = true; kick(); }
-    });
-    mirror.addEventListener("keyup", () => { keyHeld = false; });
+    },{signal:events.signal});
+    mirror.addEventListener("keyup", () => { keyHeld = false; },{signal:events.signal});
+    mirror.addEventListener("blur", () => {keyHeld=false;holdStart=null;hovering=false;},{signal:events.signal});
     window.addEventListener("keydown", (e) => {
       if (e.key === "Escape") { hovering = false; holdStart = null; keyHeld = false; }
-    });
+    },{signal:events.signal});
     if ("IntersectionObserver" in window) {
-      new IntersectionObserver((es) => es.forEach((e) => { mirrorVisible = e.isIntersecting; }), { threshold: 0 }).observe(mirror);
+      visibility=new IntersectionObserver((es) => es.forEach((e) => { mirrorVisible = e.isIntersecting; }), { threshold: 0 });
+      visibility.observe(mirror);
     }
   }
+  document.addEventListener("astro:before-swap",()=>{events.abort();visibility?.disconnect();if(raf!==null)cancelAnimationFrame(raf);},{once:true,signal:events.signal});
   };
   initMirror();
   document.addEventListener("astro:page-load", initMirror);

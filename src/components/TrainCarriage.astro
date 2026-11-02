@@ -1,0 +1,588 @@
+---
+import { interests } from "../data";
+import { repositories as githubRepositories } from "../data/github-repositories.json";
+import { skins } from "../lib/trainCatalog";
+interface NotebookRepository {
+  name: string;
+  href: string;
+  description: string | null;
+  archived: boolean;
+  lastCommitAt: string | null;
+  usingPreviousCommit: boolean;
+  commitHref: string | null;
+  commitsHref: string | null;
+}
+const repositories: NotebookRepository[] = githubRepositories.filter(repo=>!repo.fork);
+const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UTC"});
+---
+
+  <section class="train-page" data-train aria-label="Night train carriage">
+    <img data-train-image src="/train/night.webp" draggable="false" alt="Timber carriage with plum benches, warm opal lamps and a night view through framed windows." width="1120" height="700" loading="eager" decoding="async" fetchpriority="high" />
+    <div data-train-canvas></div>
+    <h1 class="sr-only">Night train</h1>
+    <div class="train-reticle" aria-hidden="true">+</div>
+    <span class="sr-only" data-train-interaction role="status" aria-live="polite"></span>
+    <div class="train-sprint" data-train-stamina role="progressbar" aria-label="Sprint stamina" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" hidden><div data-train-stamina-fill></div></div>
+    <nav class="train-menu" aria-label="Train menus">
+      <button class="train-menu-button" data-train-catalog type="button" aria-haspopup="dialog" aria-controls="catalog-panel">Catalog</button>
+      <button class="train-menu-button" data-train-settings type="button" aria-haspopup="dialog" aria-controls="settings-panel" hidden>Settings</button>
+      <button class="train-menu-button" data-train-keys type="button" aria-haspopup="dialog" aria-controls="keys-panel">Keys</button>
+    </nav>
+    <dl class="train-key-hints" aria-label="Quick controls">
+      <div><dt>Crouch</dt><dd><kbd>C</kbd></dd></div>
+      <div><dt>Sprint</dt><dd><kbd>Ctrl</kbd></dd></div>
+      <div><dt>Torch</dt><dd><kbd>Q</kbd></dd></div>
+    </dl>
+    <div class="train-message" data-train-message>
+      <p data-train-status role="status">Taking your seat…</p>
+      <button data-train-retry type="button" hidden>Retry 3D</button>
+    </div>
+    <noscript><p class="train-noscript">Enable JavaScript to explore the carriage in 3D</p></noscript>
+    <dialog id="travel-case" class="train-dialog" aria-labelledby="case-title">
+      <div class="train-panel"><button class="train-close" data-close type="button" aria-label="Close travel case">×</button><h2 id="case-title" tabindex="-1">In my case</h2>
+        {interests.map((interest,i)=><details class="train-interest" name="travel-case-interests" open={i===0}><summary>{interest.title}</summary><p>{interest.description}</p></details>)}
+        <nav class="train-links" aria-label="More about Aarav"><a href="/team">My teams</a><a href="/writeups">Writeups</a><a href="/achievements">Achievements</a></nav>
+        <a href="/train/credits.txt">Asset credits</a>
+      </div>
+    </dialog>
+    <dialog id="lamp-panel" class="train-dialog" aria-labelledby="lamp-title">
+      <div class="train-panel"><button class="train-close" data-close type="button" aria-label="Close lamp controls">×</button><h2 id="lamp-title" tabindex="-1">Lamplight</h2>
+        <label>Lamp<select data-train-lamp>{["Pendant", "Sconce"].flatMap(kind=>[1,2,3].map(i=><option value={`NT_R02_Lamp_${kind}_0${i}`}>{kind} {i}</option>))}</select></label>
+        <label><input data-train-lamp-on type="checkbox" checked /> Light on</label>
+        <label>Color<select data-train-lamp-color><option value="#ffffff">Amber</option><option value="#ff89bc">Rose</option><option value="#b5b5ff">Lavender</option></select></label>
+      </div>
+    </dialog>
+    <dialog id="notebook-panel" class="train-dialog" aria-labelledby="notebook-title">
+      <div class="train-panel">
+        <button class="train-close" data-close type="button" aria-label="Close notebooks">×</button>
+        <h2 id="notebook-title" tabindex="-1">Notebooks</h2>
+        <p class="train-lede">Public repositories, sorted by commit date</p>
+        {repositories.map(repo=><article class="train-repository">
+          <h3><a href={repo.href} target="_blank" rel="noopener noreferrer">{repo.name}</a></h3>
+          <div class="train-repository-meta">{repo.lastCommitAt ? <>{repo.usingPreviousCommit ? "Previous commit" : "Last commit"} <a href={repo.commitHref ?? repo.commitsHref ?? `${repo.href}/commits/`} target="_blank" rel="noopener noreferrer"><time datetime={repo.lastCommitAt}>{commitDate.format(new Date(repo.lastCommitAt))}</time></a></> : repo.usingPreviousCommit ? "No earlier commit" : "No commits yet"}{repo.archived && <span>Archived</span>}</div>
+          {repo.description && <p>{repo.description.replace(/\.$/, "")}</p>}
+        </article>)}
+        <a href="https://github.com/AaravJuneja?tab=repositories" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+      </div>
+    </dialog>
+    <dialog id="catalog-panel" class="train-dialog train-catalog-dialog" aria-labelledby="catalog-title">
+      <div class="train-panel">
+        <button class="train-close" data-close type="button" aria-label="Close catalog">×</button>
+        <h2 id="catalog-title" tabindex="-1">Catalog</h2>
+        <p class="train-lede">Choose your torch finish.</p>
+        <div class="train-catalog-layout">
+        <section class="train-catalog-content" aria-label="Torch skins">
+          <div class="train-skin-grid" data-train-skins>
+            {skins.map(skin=><button class="train-skin-card" type="button" data-train-skin={skin.id} data-pattern={"pattern" in skin ? skin.pattern : "solid"} style={`--skin-a:${skin.colors[0]};--skin-b:${skin.colors[1]}`} aria-pressed="false">
+              <span class="train-skin-swatch" aria-hidden="true"></span><span>{skin.label}</span>
+            </button>)}
+          </div>
+        </section>
+        <aside class="train-catalog-detail" aria-label="Selected item">
+          <div class="train-skin-card train-detail-preview" data-train-detail-preview aria-hidden="true"><span class="train-skin-swatch"></span></div>
+          <h3 data-train-detail-title>Yellow</h3>
+          <p data-train-detail-description>Recreated flashlight finish.</p>
+        </aside>
+        </div>
+        <p class="train-catalog-status" data-train-catalog-status role="status" aria-live="polite" hidden></p>
+      </div>
+    </dialog>
+    <dialog id="settings-panel" class="train-dialog train-settings-dialog" aria-labelledby="settings-title">
+      <div class="train-panel">
+        <button class="train-close" data-close type="button" aria-label="Close settings">×</button>
+        <h2 id="settings-title" tabindex="-1">Settings</h2>
+        <p class="train-lede">Your character for this trip.</p>
+        <label class="train-avatar-setting">Avatar<select data-train-avatar><option value="sniqr">Sniqr</option></select></label>
+        <p class="train-avatar-status-inline" data-train-avatar-status-inline role="status" aria-live="polite" hidden></p>
+      </div>
+    </dialog>
+    <dialog id="keys-panel" class="train-dialog train-keys-dialog" aria-labelledby="keys-title">
+      <div class="train-panel">
+        <button class="train-close" data-close type="button" aria-label="Close keys">×</button>
+        <h2 id="keys-title" tabindex="-1">Keys</h2>
+        <p class="train-lede">Click the carriage to take control.</p>
+        <dl class="train-key-list">
+          <div><dt><kbd>Space</kbd></dt><dd>Jump; press again to double jump</dd></div>
+          <div><dt><kbd>Shift</kbd></dt><dd>Toggle shift lock</dd></div>
+          <div><dt><kbd>V</kbd></dt><dd>First or third person</dd></div>
+          <div><dt><kbd>O</kbd></dt><dd>Free orbit or character aim</dd></div>
+          <div><dt><kbd>E</kbd></dt><dd>Interact</dd></div>
+          <div><dt><kbd>Esc</kbd></dt><dd>Release mouse lock or close a menu</dd></div>
+        </dl>
+        <p class="train-touch-help">On touch screens, drag to look. Drag with two fingers to walk, farther to sprint. Double tap empty space to jump.</p>
+      </div>
+    </dialog>
+    <input class="train-private-input" data-train-private-input type="password" aria-label="Input" tabindex="-1" maxlength="512" autocomplete="off" autocapitalize="off" spellcheck="false" />
+  </section>
+
+<script>
+  import { skins } from "../lib/trainCatalog";
+  function initTrain() {
+    const root = document.querySelector<HTMLElement>("[data-train]");
+    if (!root || root.dataset.bound) return;
+    root.dataset.bound = "1";
+    const get = <T extends HTMLElement>(name: string) => root.querySelector<T>(`[data-train-${name}]`)!;
+    const retry = get<HTMLButtonElement>("retry");
+    const image = get<HTMLImageElement>("image");
+    const status = get<HTMLElement>("status");
+    const message = get<HTMLElement>("message");
+    const interaction=get<HTMLElement>("interaction");
+    const reticle=root.querySelector<HTMLElement>(".train-reticle")!;
+    const catalogButton = get<HTMLButtonElement>("catalog");
+    const settingsButton=get<HTMLButtonElement>("settings");
+    const keysButton=get<HTMLButtonElement>("keys");
+    const stamina = get<HTMLElement>("stamina");
+    const staminaFill = get<HTMLElement>("stamina-fill");
+    const caseDialog = root.querySelector<HTMLDialogElement>("#travel-case")!;
+    const lampDialog = root.querySelector<HTMLDialogElement>("#lamp-panel")!;
+    const notebookDialog = root.querySelector<HTMLDialogElement>("#notebook-panel")!;
+    const catalogDialog = root.querySelector<HTMLDialogElement>("#catalog-panel")!;
+    const settingsDialog=root.querySelector<HTMLDialogElement>("#settings-panel")!;
+    const keysDialog=root.querySelector<HTMLDialogElement>("#keys-panel")!;
+    const lamp = get<HTMLSelectElement>("lamp");
+    const lampOn = get<HTMLInputElement>("lamp-on");
+    const lampColor = get<HTMLSelectElement>("lamp-color");
+    const avatarSelect = get<HTMLSelectElement>("avatar");
+    const catalogStatus = get<HTMLElement>("catalog-status");
+    const avatarStatus = get<HTMLElement>("avatar-status-inline");
+    const detailTitle=get<HTMLElement>("detail-title");
+    const detailDescription=get<HTMLElement>("detail-description");
+    const detailPreview=get<HTMLElement>("detail-preview");
+    const showDetail=(label:string,description:string,skinId?:string)=>{
+      detailTitle.textContent=label;
+      detailDescription.textContent=description;
+      const skin=skins.find(item=>item.id===skinId);
+      detailPreview.hidden=!skin;
+      if(skin) {
+        detailPreview.dataset.pattern="pattern" in skin?skin.pattern:"solid";
+        detailPreview.style.setProperty("--skin-a",skin.colors[0]);
+        detailPreview.style.setProperty("--skin-b",skin.colors[1]);
+      }
+    };
+    const privateInput=get<HTMLInputElement>("private-input");
+    const dialogs = [caseDialog,lampDialog,notebookDialog,catalogDialog,settingsDialog,keysDialog];
+    const lamps = new Map<string,{enabled:boolean;color:string}>();
+    let session: Awaited<ReturnType<typeof import("../lib/trainScene").mountTrainScene>> | undefined;
+    let request: AbortController | undefined;
+    let avatarStatusMessage = "";
+    let accessCheck = 0;
+    let opener: HTMLElement | null = null;
+    let holdTimer: number | undefined;
+    let holdPointer: { id: number; x: number; y: number } | undefined;
+    let suppressCatalogClickUntil = 0;
+    let blindActive=false;
+    let blindTimer:number|undefined;
+    let blindOpener:HTMLElement|null=null;
+    let blindRequest:AbortController|undefined;
+    const setCatalogStatus = (value: string) => {
+      catalogStatus.textContent = value;
+      catalogStatus.hidden = !value;
+    };
+    const syncAvatarStatus = () => {
+      avatarStatus.textContent = avatarStatusMessage;
+      avatarStatus.hidden = !avatarStatusMessage || !settingsDialog.open;
+    };
+    const syncCatalog = () => {
+      const equipment = session?.getEquipment();
+      for (const button of root.querySelectorAll<HTMLButtonElement>("[data-train-skin]")) {
+        button.setAttribute("aria-pressed", String(equipment?.skin === button.dataset.trainSkin));
+      }
+      const skin=skins.find(item=>item.id===equipment?.skin)??skins.find(item=>item.id==="yellow")!;
+      showDetail(skin.label,"Recreated flashlight finish. Select a skin to equip it.",skin.id);
+    };
+    const syncSettings=()=>{
+      avatarSelect.value=session?.getAvatarControls().avatar??"sniqr";
+      syncAvatarStatus();
+    };
+    const applyAvatarAccess = (unlocked: boolean,label?:unknown) => {
+      settingsButton.hidden=!unlocked;
+      const option = avatarSelect.querySelector<HTMLOptionElement>('option[value="private"]');
+      const displayName=typeof label==="string"&&label.trim()?label.trim().slice(0,80):"Unlocked avatar";
+      if (unlocked && !option) avatarSelect.add(new Option(displayName,"private"));
+      else if(unlocked&&option)option.textContent=displayName;
+      if (!unlocked) {
+        option?.remove();
+        if (avatarSelect.value === "private" || session?.getAvatarControls().avatar === "private") {
+          avatarSelect.value = "sniqr";
+          if (session) void session.setAvatar("sniqr");
+        }
+        if(settingsDialog.open)closeDialog(settingsDialog);
+      }
+      syncSettings();
+    };
+    const events = new AbortController();
+    const refreshAccess = async (): Promise<boolean | undefined> => {
+      const token = ++accessCheck;
+      try {
+        const response = await fetch("/api/train/access", { credentials: "same-origin", cache: "no-store", signal: events.signal });
+        if (token !== accessCheck) return undefined;
+        if (response.status === 401 || response.status === 403) { applyAvatarAccess(false); return false; }
+        if (!response.ok) return undefined;
+        const result = await response.json() as { unlocked?: unknown;avatar?:{label?:unknown} } | null;
+        if (token === accessCheck && typeof result?.unlocked === "boolean") {
+          applyAvatarAccess(result.unlocked,result.avatar?.label);
+          return result.unlocked;
+        }
+        return undefined;
+      } catch {
+        return undefined;
+      }
+    };
+    const closeDialog = (dialog:HTMLDialogElement) => {
+      if (dialog.open) dialog.close();
+      session?.setSuspended(dialogs.some(panel=>panel.open));
+      const target = opener;
+      opener = null;
+      if(target&&target.getClientRects().length)target.focus({preventScroll:true});
+      else catalogButton.focus({preventScroll:true});
+      syncAvatarStatus();
+    };
+    const openDialog = (dialog: HTMLDialogElement) => {
+      if (blindActive||dialogs.some(panel=>panel.open)) return;
+      opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      if (document.pointerLockElement) document.exitPointerLock();
+      session?.setSuspended(true);
+      dialog.showModal();
+      dialog.querySelector<HTMLElement>("h2")?.focus();
+      if(dialog===catalogDialog)syncCatalog();
+      if(dialog===settingsDialog) {syncSettings();void refreshAccess();}
+    };
+    const endBlindInput=()=>{
+      if(blindTimer!==undefined)window.clearTimeout(blindTimer);
+      blindTimer=undefined;
+      privateInput.value="";
+      if(!blindActive)return;
+      blindActive=false;
+      privateInput.blur();
+      session?.setSuspended(dialogs.some(panel=>panel.open));
+      const target=blindOpener;
+      blindOpener=null;
+      if(target?.isConnected&&target.getClientRects().length)target.focus({preventScroll:true});
+    };
+    const resetBlindTimer=()=>{
+      if(blindTimer!==undefined)window.clearTimeout(blindTimer);
+      blindTimer=window.setTimeout(endBlindInput,20000);
+    };
+    const beginBlindInput=()=>{
+      if(blindActive||blindRequest||dialogs.some(panel=>panel.open))return;
+      blindOpener=document.activeElement instanceof HTMLElement?document.activeElement:null;
+      blindActive=true;
+      privateInput.value="";
+      session?.setSuspended(true);
+      privateInput.focus({preventScroll:true});
+      resetBlindTimer();
+    };
+    const verifyBlindInput=async()=>{
+      const code=privateInput.value;
+      endBlindInput();
+      if(!code||blindRequest)return;
+      const pending=new AbortController();
+      blindRequest=pending;
+      const abort=()=>pending.abort();
+      events.signal.addEventListener("abort",abort,{once:true});
+      try {
+        const response=await fetch("/api/train/unlock",{
+          method:"POST",credentials:"same-origin",cache:"no-store",headers:{"Content-Type":"application/json"},body:JSON.stringify({code}),signal:pending.signal,
+        });
+        if(!response.ok||pending.signal.aborted||events.signal.aborted||document.hidden||!root.isConnected)return;
+        const result=await response.json() as {unlocked?:unknown;avatar?:{label?:unknown}}|null;
+        if(result?.unlocked===true&&!pending.signal.aborted) {
+          accessCheck++;
+          applyAvatarAccess(true,result.avatar?.label);
+          openDialog(settingsDialog);
+        }
+      } catch {} finally {
+        events.signal.removeEventListener("abort",abort);
+        if(blindRequest===pending)blindRequest=undefined;
+      }
+    };
+    const refreshLamp = () => {
+      const state = lamps.get(lamp.value) ?? {enabled:true,color:"#ffffff"};
+      lampOn.checked=state.enabled; lampColor.value=state.color;
+    };
+    const changeLamp = () => { const state={enabled:lampOn.checked,color:lampColor.value}; lamps.set(lamp.value,state); session?.setLamp(lamp.value,state.enabled,state.color); };
+    const radio = () => {
+      window.dispatchEvent(new CustomEvent("music:toggle"));
+    };
+    const activate = (object: string) => {
+      if (object==="case") openDialog(caseDialog);
+      else if (object==="cord") toggleDay();
+      else if (object==="radio") radio();
+      else if (object==="notebooks") openDialog(notebookDialog);
+      else if (object==="lamps") { refreshLamp(); openDialog(lampDialog); }
+      else if (object==="avatar") openDialog(catalogDialog);
+      else if (object.startsWith("NT_R02_Lamp")) { lamp.value=object; refreshLamp(); openDialog(lampDialog); }
+    };
+    let morning = false;
+    let paused = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const syncMotion = () => {
+      session?.setPaused(paused);
+    };
+    const toggleDay = () => {
+      morning = !morning;
+      image.src = `/train/${morning ? "morning" : "night"}.webp`;
+      image.alt = `${morning ? "Morning" : "Night"} view of a timber carriage with plum benches and opal lamps.`;
+      session?.setDay(morning);
+    };
+    const stop = () => {
+      blindRequest?.abort();
+      endBlindInput();
+      request?.abort();
+      request = undefined;
+      session?.dispose();
+      session = undefined;
+      root.dataset.live = "false";
+    };
+    const fallback = () => {
+      stop();
+      status.textContent = "The carriage is shown as an image. 3D is unavailable right now";
+      retry.hidden = false;
+      retry.disabled = false;
+      message.hidden = false;
+    };
+    const start = async () => {
+      stop();
+      const pending = new AbortController();
+      request = pending;
+      retry.disabled = true;
+      status.textContent = "Taking your seat…";
+      message.hidden = false;
+      try {
+        const { mountTrainScene } = await import("../lib/trainScene");
+        if (pending.signal.aborted) return;
+        const mounted = await mountTrainScene(get("canvas"), pending.signal, {
+          failed:fallback, activate,
+           hover(object) {
+            reticle.dataset.active=String(!!object);
+            const name=object==="case"?"Travel case":object==="radio"?"Radio":object==="cord"?"Light cord":object==="notebooks"?"Notebooks":"Lamp";
+            interaction.textContent=object?`${name}. Press E to interact.`:"";
+          },
+          stamina(energy,sprinting,exhausted) {
+            stamina.hidden=energy>=1&&!sprinting;
+            stamina.setAttribute("aria-valuenow",String(Math.round(energy*100)));
+            stamina.setAttribute("aria-valuetext",exhausted?"Recovering":`${Math.round(energy*100)}%`);
+            stamina.dataset.exhausted=String(exhausted);
+            staminaFill.style.transform=`scaleX(${energy})`;
+          },
+          avatarStatus(value) {
+            avatarStatusMessage = value;
+            syncAvatarStatus();
+          },
+        });
+        if (pending.signal.aborted) { mounted.dispose(); return; }
+        session = mounted;
+        session.setDay(morning);
+        syncMotion();
+        for (const [name,state] of lamps) session.setLamp(name,state.enabled,state.color);
+        if (blindActive||dialogs.some(dialog=>dialog.open)) session.setSuspended(true);
+        syncCatalog();
+        root.dataset.live = "true";
+        message.hidden = true;
+      } catch {
+        if (!pending.signal.aborted) fallback();
+      }
+    };
+    retry.addEventListener("click", start, { signal: events.signal });
+    catalogButton.addEventListener("click",event=>{
+      if (performance.now() < suppressCatalogClickUntil) { event.preventDefault(); return; }
+      openDialog(catalogDialog);
+    },{signal:events.signal});
+    settingsButton.addEventListener("click",()=>openDialog(settingsDialog),{signal:events.signal});
+    keysButton.addEventListener("click",()=>openDialog(keysDialog),{signal:events.signal});
+    const clearHold = () => {
+      if (holdTimer !== undefined) window.clearTimeout(holdTimer);
+      holdTimer = undefined;
+      holdPointer = undefined;
+    };
+    catalogButton.addEventListener("pointerdown",event=>{
+      if (event.button !== 0 || !event.isPrimary) return;
+      clearHold();
+      holdPointer = { id: event.pointerId, x: event.clientX, y: event.clientY };
+      try { catalogButton.setPointerCapture(event.pointerId); } catch {}
+      holdTimer = window.setTimeout(()=>{
+        holdTimer = undefined;
+        suppressCatalogClickUntil = performance.now() + 700;
+        beginBlindInput();
+      },1600);
+    },{signal:events.signal});
+    catalogButton.addEventListener("pointermove",event=>{
+      if (!holdPointer || event.pointerId !== holdPointer.id) return;
+      if (Math.hypot(event.clientX-holdPointer.x,event.clientY-holdPointer.y)>14) clearHold();
+    },{signal:events.signal});
+    catalogButton.addEventListener("pointerup",event=>{if(holdPointer?.id===event.pointerId)clearHold();if(blindActive)privateInput.focus({preventScroll:true});},{signal:events.signal});
+    catalogButton.addEventListener("pointercancel",clearHold,{signal:events.signal});
+    catalogButton.addEventListener("lostpointercapture",clearHold,{signal:events.signal});
+    document.addEventListener("keydown",event=>{
+      if (event.ctrlKey && event.altKey && event.code === "KeyU" && !dialogs.some(dialog=>dialog.open)) {
+        event.preventDefault();
+        beginBlindInput();
+      }
+    },{signal:events.signal});
+    root.querySelector<HTMLElement>("[data-train-skins]")!.addEventListener("click",event=>{
+      const button = event.target instanceof Element ? event.target.closest<HTMLButtonElement>("[data-train-skin]") : null;
+      if (!button) return;
+      if (!session) { setCatalogStatus("The 3D controls are not ready yet."); return; }
+      const id = button.dataset.trainSkin!;
+      session.setSkin(id);
+      syncCatalog();
+      setCatalogStatus(`${skins.find(skin=>skin.id===id)?.label ?? "Skin"} equipped.`);
+    },{signal:events.signal});
+    avatarSelect.addEventListener("change",()=>{
+      if (!session) { syncSettings();avatarStatusMessage="The 3D controls are not ready yet.";syncAvatarStatus();return; }
+      if (avatarSelect.value === "private") {
+        avatarSelect.disabled = true;
+        void refreshAccess().then(allowed=>{
+          avatarSelect.disabled = false;
+          if (allowed !== true || !session) {
+            syncSettings();
+            avatarStatusMessage=allowed === false ? "Access expired. Unlock again to use this avatar." : "Could not verify access. Try again.";
+            syncAvatarStatus();
+            return;
+          }
+          void session.setAvatar("private").then(syncSettings);
+        });
+        return;
+      }
+      void session.setAvatar("sniqr").then(syncSettings);
+    },{signal:events.signal});
+    lamp.addEventListener("change",refreshLamp,{signal:events.signal});
+    lampOn.addEventListener("change",changeLamp,{signal:events.signal});
+    lampColor.addEventListener("change",changeLamp,{signal:events.signal});
+    privateInput.addEventListener("keydown",event=>{
+      event.stopPropagation();
+      if(event.key==="Escape") {event.preventDefault();endBlindInput();}
+      else if(event.key==="Enter") {event.preventDefault();void verifyBlindInput();}
+    },{signal:events.signal});
+    privateInput.addEventListener("input",()=>{if(blindActive)resetBlindTimer();},{signal:events.signal});
+    privateInput.addEventListener("blur",endBlindInput,{signal:events.signal});
+    window.addEventListener("blur",()=>{endBlindInput();blindRequest?.abort();},{signal:events.signal});
+    document.addEventListener("visibilitychange",()=>{if(document.hidden){endBlindInput();blindRequest?.abort();}},{signal:events.signal});
+    for (const dialog of dialogs) {
+      dialog.querySelector("[data-close]")?.addEventListener("click",()=>closeDialog(dialog),{signal:events.signal});
+      dialog.addEventListener("click",event=>{if(event.target===dialog)closeDialog(dialog);},{signal:events.signal});
+      dialog.addEventListener("cancel",event=>{event.preventDefault();closeDialog(dialog);},{signal:events.signal});
+      dialog.addEventListener("close",()=>{session?.setSuspended(blindActive||dialogs.some(panel=>panel.open));syncAvatarStatus();},{signal:events.signal});
+    }
+    void refreshAccess();
+    matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", (event) => { paused = event.matches; syncMotion(); }, { signal: events.signal });
+    document.addEventListener("astro:before-swap", () => { clearHold(); stop(); events.abort(); }, { once: true, signal: events.signal });
+    window.addEventListener("pagehide", stop, { signal: events.signal });
+    window.addEventListener("pageshow", (event) => { void refreshAccess(); if (event.persisted) void start(); }, { signal: events.signal });
+    syncMotion();
+    void start();
+  }
+  initTrain();
+  document.addEventListener("astro:page-load", initTrain);
+</script>
+
+<style>
+  .train-page { --train-background:#171322;--train-surface:#201927;--train-text:#eee1c9;--train-muted:#c3b3c4;--train-line:#594957;--train-accent:#f2c57d;--train-edge:#74604e;--train-hover:#4f2a2a;position: fixed; inset: 0; height: 100dvh; overflow: hidden; isolation: isolate; color: var(--train-text); background: var(--train-background); }
+  :global(:root[data-portrait]) .train-page { --train-background:var(--color-background);--train-surface:var(--color-raised-surface);--train-text:var(--color-text);--train-muted:var(--color-muted-text);--train-line:var(--color-line);--train-accent:var(--color-accent-soft);--train-edge:var(--color-line);--train-hover:var(--color-surface); }
+  .train-page { user-select:none;-webkit-user-select:none; }
+  .train-page > img, [data-train-canvas] { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .train-page > img { object-fit: cover; }
+  [data-train-canvas] { visibility: hidden; }
+  [data-live="true"] [data-train-canvas] { visibility: visible; }
+  [data-live="true"] > img { visibility: hidden; }
+  [data-train-canvas] :global(canvas) { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  [data-train-canvas] :global(canvas:active) { cursor: grabbing; }
+  [data-train-canvas] :global(canvas:focus-visible) { outline: 2px solid var(--train-accent); outline-offset: -4px; }
+  button, summary { display: grid; place-items: center; min-width: 44px; min-height: 44px; padding: 8px 12px; border: 0; border-radius: 3px; background: transparent; color: var(--train-text); font: 500 13px/1.3 Outfit, sans-serif; cursor: pointer; }
+  button:hover, summary:hover { background: var(--train-hover); }
+  button:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px solid var(--train-accent); outline-offset: 2px; }
+  a { color: var(--train-accent); text-decoration: underline; text-underline-offset: 4px; }
+  .train-message, .train-noscript { position: absolute; left: max(28px, env(safe-area-inset-left)); bottom: calc(140px + env(safe-area-inset-bottom)); max-width: min(42ch, calc(100% - 56px)); padding: 12px 16px; background: var(--train-background); font-size: 14px; line-height: 1.5; }
+  .train-message p { margin: 0; }
+  .train-message button { margin-top: 8px; color: var(--train-accent); }
+  .train-reticle { position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;opacity:.5;color:var(--train-text);font:18px/1 Outfit,sans-serif; }
+  .train-reticle[data-active="true"] { color:var(--train-accent);opacity:1; }
+  .train-sprint { position:absolute;left:50%;bottom:calc(88px + env(safe-area-inset-bottom));width:104px;height:4px;transform:translateX(-50%);overflow:hidden;border-radius:2px;background:rgb(238 225 201 / 18%);pointer-events:none; }
+  .train-sprint > div { height:100%;background:var(--train-text);transform-origin:left; }
+  .train-sprint[data-exhausted="true"] > div { background:#d89179; }
+  .train-dialog { margin:auto;padding:0;width:min(600px,calc(100vw - 24px));max-height:calc(100dvh - 48px);border:1px solid var(--train-edge);border-radius:6px;background:var(--train-surface);color:var(--train-text);overflow:auto; }
+  .train-dialog { user-select:text;-webkit-user-select:text; }
+  .train-dialog::backdrop { background:rgb(8 5 14 / 70%); }
+  .train-panel { position:relative;padding:clamp(20px,5vw,36px);font:400 16px/1.6 Outfit,sans-serif; }
+  .train-panel h2 { margin:0 44px 12px 0;font:600 clamp(26px,5vw,32px)/1.15 Outfit,sans-serif; }
+  .train-close { position:absolute;right:12px;top:12px;font-size:25px; }
+  .train-lede { margin:0 0 24px;color:var(--train-muted); }
+  .train-interest { border-top:1px solid var(--train-line);padding-block:4px; }
+  .train-interest summary { display:flex;justify-content:flex-start;color:var(--train-accent);font-size:17px; }
+  .train-interest p { margin:0 12px 16px;line-height:1.6; }
+  .train-repository { border-top:1px solid var(--train-line);padding-block:20px; }
+  .train-repository h3 { margin:0 0 10px;font-size:18px;font-weight:500;overflow-wrap:anywhere; }
+  .train-repository p { margin:12px 0 0;line-height:1.6; }
+  .train-repository-meta { display:flex;align-items:baseline;flex-wrap:wrap;gap:6px;color:var(--train-muted);font-size:13px; }
+  .train-repository-meta span { margin-left:8px; }
+  .train-links { display:flex;flex-wrap:wrap;gap:20px;margin-block:20px; }
+  .train-links a { display:inline-flex;min-height:44px;align-items:center; }
+  .train-panel label { display:flex;align-items:center;gap:12px;margin-block:24px; }
+  .train-panel select { min-height:44px;max-width:100%;padding:8px;background:var(--train-background);color:var(--train-text);border:1px solid var(--train-edge);font:inherit; }
+  .train-panel input { width:20px;height:20px;accent-color:var(--train-accent); }
+  .train-menu { position:absolute;z-index:2;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));display:flex;gap:6px; }
+  .train-menu-button { min-width:0;min-height:44px;padding:8px 14px;border:1px solid var(--train-edge);background:var(--train-surface);font:600 12px/1.2 Outfit,sans-serif;letter-spacing:.1em;text-transform:uppercase; }
+  .train-key-hints { position:absolute;right:max(24px,env(safe-area-inset-right));bottom:calc(26px + env(safe-area-inset-bottom));display:grid;gap:8px;margin:0;pointer-events:none;color:var(--train-text); }
+  .train-key-hints > div { display:flex;justify-content:flex-end;align-items:center;gap:12px; }
+  .train-key-hints dt { font:600 23px/1 Outfit,sans-serif; }
+  .train-key-hints dd { margin:0; }
+  .train-key-hints kbd { box-sizing:border-box;display:grid;place-items:center;width:42px;height:42px;border:2px solid var(--train-edge);border-bottom-width:5px;border-radius:4px;background:var(--train-surface);font:600 15px/1 Outfit,sans-serif; }
+  .train-catalog-dialog { width:min(760px,calc(100vw - 24px));max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px); }
+  .train-catalog-dialog .train-panel { padding:clamp(16px,4vw,30px); }
+  .train-settings-dialog { width:min(440px,calc(100vw - 24px)); }
+  .train-panel .train-avatar-setting { display:grid;grid-template-columns:90px minmax(0,1fr);padding-block:20px;border-block:1px solid var(--train-line);color:var(--train-muted); }
+  .train-avatar-setting select { width:100%; }
+  .train-keys-dialog { width:min(620px,calc(100vw - 24px)); }
+  .train-key-list { margin:0; }
+  .train-key-list > div { display:grid;grid-template-columns:150px minmax(0,1fr);gap:18px;align-items:center;min-height:48px;padding-block:8px;border-bottom:1px solid var(--train-line); }
+  .train-key-list dt { display:flex;flex-wrap:wrap;gap:4px; }
+  .train-key-list dd { margin:0;color:var(--train-muted);font-size:14px;line-height:1.5; }
+  .train-key-list kbd { box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;min-width:25px;min-height:28px;padding:4px 6px;border:1px solid var(--train-edge);border-bottom-width:3px;border-radius:4px;background:var(--train-background);color:var(--train-text);font:500 12px/1 Outfit,sans-serif; }
+  .train-touch-help { color:var(--train-muted);font-size:14px;line-height:1.7; }
+  .train-avatar-status-inline,.train-catalog-status { margin:12px 0 0;color:var(--train-muted);font-size:13px;line-height:1.5; }
+  .train-catalog-content { padding-top:16px; }
+  .train-catalog-layout { display:grid;grid-template-columns:minmax(0,1fr) 170px;gap:18px;align-items:start; }
+  .train-catalog-content { grid-column:1;grid-row:1; }
+  .train-catalog-detail { grid-column:2;grid-row:1;padding-top:16px;position:sticky;top:12px; }
+  .train-catalog-detail h3 { margin:14px 0 8px;font-size:18px;font-weight:500;line-height:1.3; }
+  .train-catalog-detail p { color:var(--train-muted);font-size:13px;line-height:1.5; }
+  .train-catalog-detail .train-detail-preview { display:block;padding:0;border:0; }
+  .train-detail-preview .train-skin-swatch { display:block;width:100%;height:130px; }
+  .train-skin-grid { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px; }
+  .train-skin-card { display:grid;grid-template-columns:32px minmax(0,1fr);align-items:center;justify-items:start;gap:8px;min-width:0;min-height:54px;padding:6px 8px;border:1px solid var(--train-line);text-align:left;font-size:13px; }
+  .train-skin-card[aria-pressed="true"] { border-color:var(--train-accent);background:var(--train-hover); }
+  .train-skin-card > span:last-child { overflow-wrap:anywhere; }
+  .train-skin-swatch { width:32px;height:32px;border:1px solid rgb(255 255 255 / 24%);border-radius:3px;background:linear-gradient(135deg,var(--skin-a),var(--skin-b)); }
+  .train-skin-card[data-pattern="checks"] .train-skin-swatch { background:repeating-conic-gradient(var(--skin-a) 0% 25%,var(--skin-b) 0% 50%) 0 0/12px 12px; }
+  .train-skin-card[data-pattern="galaxy"] .train-skin-swatch { background:radial-gradient(ellipse at 70% 25%,var(--skin-a),transparent 48%),radial-gradient(ellipse at 25% 80%,var(--skin-b),transparent 55%),#19142c; }
+  .train-skin-card[data-pattern="dots"] .train-skin-swatch { background:radial-gradient(circle,var(--skin-b) 2px,transparent 2.5px) 0 0/10px 10px,var(--skin-a); }
+  .train-skin-card[data-pattern="abstract"] .train-skin-swatch { background:repeating-linear-gradient(135deg,var(--skin-a) 0 9px,var(--skin-b) 9px 15px,var(--skin-a) 15px 20px); }
+  .train-skin-card[data-pattern="crystal"] .train-skin-swatch { background:linear-gradient(135deg,transparent 36%,var(--skin-b) 37% 43%,transparent 44%),linear-gradient(35deg,var(--skin-a),var(--skin-b)); }
+  .train-skin-card[data-pattern="static"] .train-skin-swatch { background:repeating-linear-gradient(35deg,var(--skin-a) 0 2px,var(--skin-b) 2px 4px); }
+  .train-skin-card[data-pattern="lightning"] .train-skin-swatch { background:linear-gradient(120deg,transparent 0 30%,var(--skin-b) 31% 38%,transparent 39%),linear-gradient(35deg,var(--skin-a),#37314c); }
+  .train-skin-card[data-pattern="sparkle"] .train-skin-swatch { background:radial-gradient(circle at 25% 30%,#fff 0 1px,transparent 2px),radial-gradient(circle at 75% 65%,#fff 0 1px,transparent 2px),linear-gradient(135deg,var(--skin-a),var(--skin-b)); }
+  .train-skin-card[data-pattern="matrix"] .train-skin-swatch { background:repeating-linear-gradient(90deg,var(--skin-a) 0 1px,transparent 1px 8px),linear-gradient(var(--skin-b),#071a10); }
+  .train-skin-card[data-pattern="leaves"] .train-skin-swatch { background:radial-gradient(ellipse at 20% 30%,var(--skin-a) 0 15%,transparent 16%),radial-gradient(ellipse at 70% 70%,var(--skin-a) 0 17%,transparent 18%),var(--skin-b); }
+  .train-skin-card[data-pattern="stars"] .train-skin-swatch { background:radial-gradient(circle at 25% 30%,var(--skin-b) 0 1px,transparent 2px),radial-gradient(circle at 74% 68%,var(--skin-b) 0 1px,transparent 2px),linear-gradient(135deg,#141b3b,var(--skin-a)); }
+  .train-skin-card[data-pattern="animal"] .train-skin-swatch { background:radial-gradient(ellipse,var(--skin-b) 0 20%,transparent 23%) 0 0/14px 13px,var(--skin-a); }
+  .train-skin-card[data-pattern="foil"] .train-skin-swatch { background:repeating-conic-gradient(from 20deg,var(--skin-a),var(--skin-b) 18%,#f5dcff 28%,var(--skin-a) 38%); }
+  .train-skin-card[data-pattern="gradient"] .train-skin-swatch { background:linear-gradient(120deg,var(--skin-a),var(--skin-b),var(--skin-a)); }
+  .train-private-input { position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none;padding:0;border:0; }
+  [hidden] { display: none !important; }
+  @media (max-width: 700px) {
+    .train-key-hints { right:12px;bottom:calc(94px + env(safe-area-inset-bottom));gap:5px; }
+    .train-key-hints dt { font-size:17px; }
+    .train-key-hints kbd { width:34px;height:34px;font-size:12px; }
+    button, summary { padding-inline: 8px; }
+    .train-message, .train-noscript { left: 12px; max-width: calc(100% - 24px); }
+  }
+  @media (max-width: 560px) {
+    .train-catalog-layout { display:flex;flex-direction:column; }
+    .train-catalog-content { width:100%; }
+    .train-catalog-detail { order:-1;position:static;width:100%;display:grid;grid-template-columns:70px 1fr;gap:4px 14px; }
+    .train-detail-preview { grid-row:span 2; }
+    .train-detail-preview .train-skin-swatch { height:70px; }
+    .train-catalog-detail h3,.train-catalog-detail p { margin:0; }
+    .train-key-list > div { grid-template-columns:120px minmax(0,1fr);gap:10px; }
+    .train-skin-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  }
+</style>

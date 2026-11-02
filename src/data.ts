@@ -1,3 +1,11 @@
+export const interests = [
+  { title: "the flag", description: "breaks things carefully with friends. also builds challenges only to watch ai agents speedrun them nowadays" },
+  { title: "the arm", description: "builds robots that win (lose) gracefully. wires, motors, a lot of tape and a plan that lasts until the first collision" },
+  { title: "the ball", description: "football most weekends. sometimes maybe good, sometimes maybe sheet. visca el barça" },
+  { title: "the headphones", description: "xo 'til we overdose. the noise on loop, always" },
+  { title: "the controller", description: "plays games that are not football. mostly for the story, sometimes for the grind" },
+];
+
 export type Repository = {
   href: string
   owner: string
@@ -12,7 +20,7 @@ export const repositories: Repository[] = [
     href: "https://github.com/techsyndicate/robo26-encryptid-writeups",
     owner: "techsyndicate",
     title: "robo26-encryptid-writeups",
-    summary: "Challenges we authored for Encryptid X CTF at Robotronics 26 with official solutions.",
+    summary: "Challenges we authored for Encryptid X CTF at Robotronics 26 with official solutions",
     coverage: ["CRYPTIC", "CTF", "OFFLINE"],
     updated: "UPDATED AUG 2026",
   },
@@ -20,7 +28,7 @@ export const repositories: Repository[] = [
     href: "https://github.com/AaravJuneja/inTech-Encryptid-CTF-2026-Writeups",
     owner: "AaravJuneja",
     title: "inTech-Encryptid-CTF-2026-Writeups",
-    summary: "Challenges we authored for inTech Encryptid CTF 2026 with source and solutions.",
+    summary: "Challenges we authored for inTech Encryptid CTF 2026 with source and solutions",
     coverage: ["CRYPTO", "FORENSICS", "MISC", "WEB"],
     updated: "UPDATED JUN 2026",
   },
@@ -28,7 +36,7 @@ export const repositories: Repository[] = [
     href: "https://github.com/AaravJuneja/HackZero-CTF-2026-Writeups",
     owner: "AaravJuneja",
     title: "HackZero-CTF-2026-Writeups",
-    summary: "Challenges Syndication solved at HackZero CTF 2026 written up with solutions.",
+    summary: "Challenges Syndication solved at HackZero CTF 2026 written up with solutions",
     coverage: ["PWN", "CLOUD", "CRYPTO", "OSINT", "WEB"],
     updated: "UPDATED MAY 2026",
   },

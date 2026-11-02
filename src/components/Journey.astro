@@ -7,7 +7,7 @@ const chapters = [
     badge: "2025",
     title: "THE rookie SEASON",
     team: "SYNDICATION",
-    copy: "The journey began here: 12th in India, 251st worldwide and 219.890 rating points.",
+    copy: "The journey began here: 12th in India, 251st worldwide and 219.890 rating points",
     achievements: achievements2025Syndication,
   },
   {
@@ -15,7 +15,7 @@ const chapters = [
     badge: "2026",
     title: "THE TRIO LEVELS UP",
     team: "SYNDICATION",
-    copy: "Kept competing as a trio separate from the larger and experienced squad.",
+    copy: "Kept competing as a trio separate from the larger and experienced squad",
     achievements: achievements2026Syndication,
   },
   {
@@ -23,7 +23,7 @@ const chapters = [
     badge: "2026",
     title: "LEVELING UP AGAIN",
     team: "0BSCURI7Y",
-    copy: "Joined 0bscuri7y at the start of 2026 and climbed to #1 in India.",
+    copy: "Joined 0bscuri7y at the start of 2026 and climbed to #1 in India",
     achievements: achievements2026Obscuri,
   },
 ];
@@ -32,7 +32,7 @@ const chapters = [
 <section id="journey" data-reveal class="w-full">
   <div class="w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-12 pt-20 sm:pt-24 pb-16 sm:pb-20">
     <div class="max-w-[820px] flex flex-col gap-4 mb-6">
-      <p class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-accent">RECEIPTS</p>
+      <p class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-accent">CTF receipts</p>
       <h1 class="font-dm trim-caps font-bold text-[clamp(26px,4vw,34px)] leading-tight text-text uppercase">CTF ACHIEVEMENTS</h1>
       <p class="font-outfit text-[clamp(18px,2.1vw,21px)] leading-[1.55] text-muted-text tracking-[-0.005em]">Some sleepless nights and loads of caffeine</p>
     </div>
@@ -45,7 +45,7 @@ const chapters = [
       <input id="journey-search" type="search" placeholder="FILTER EVENTS" autocomplete="off" spellcheck="false" aria-label="Filter events" class="w-full sm:w-[240px] bg-raised-surface border border-line px-3 py-2.5 font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-text placeholder:text-muted-text/60 focus:border-accent" />
     </div>
 
-    <div class="sticky top-[72px] sm:top-[76px] z-30 py-3 bg-background/90 backdrop-blur-sm flex flex-nowrap overflow-x-auto sm:flex-wrap sm:overflow-visible gap-2 mb-8">
+    <div class="sticky top-3 sm:top-4 z-30 py-3 bg-background/90 backdrop-blur-sm flex flex-nowrap overflow-x-auto sm:flex-wrap sm:overflow-visible gap-2 mb-8">
       {chapters.map((ch) => (
         <a href={`#${ch.id}`} class="inline-flex shrink-0 whitespace-nowrap items-center gap-2 bg-surface border border-line px-3 py-2 font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-muted-text hover:text-text hover:border-accent/40 transition-colors min-h-[44px]">
           {ch.badge} {ch.team} ({ch.achievements.length})
@@ -90,7 +90,7 @@ const chapters = [
                     <span class="font-outfit font-medium text-[14px] text-muted-text tracking-[-0.003em]">{a.scope}</span>
                   </div>
                   <p class="font-outfit font-medium text-[14px] text-muted-text tracking-[-0.003em]">{a.organizer}</p>
-                  <p class="font-outfit text-[16px] sm:text-[17px] leading-[1.5] text-text tracking-[-0.005em]">{a.finish}</p>
+                  <p class="font-outfit text-[16px] sm:text-[17px] leading-[1.5] text-text tracking-[-0.005em]">{a.finish.replace(/\.$/, "")}</p>
                 </div>
               </div>
             ))}

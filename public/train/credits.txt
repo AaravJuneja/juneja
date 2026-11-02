@@ -1,0 +1,22 @@
+Night Train
+
+1930s Train Cabin by thomas.rynne
+https://sketchfab.com/3d-models/2f109ba713fe455b959e4d79676b5c2d
+CC BY 4.0. Case and curtains adapted from the source cabin.
+
+1937 General Electric F-70 radio by AleixoAlonso
+https://sketchfab.com/3d-models/234e6bfc7dd346e9a0f821020a336ea1
+CC BY 4.0. Simplified and recolored for the carriage.
+
+Railway Stone Bridge by xplanepilot
+https://sketchfab.com/3d-models/00df164503d14ef6ba42b39dc827dd33
+CC BY 4.0. Adapted scale and placement.
+
+License: https://creativecommons.org/licenses/by/4.0/
+
+Dark Wood by Dario Barresi, Dimitrios Savva and Rico Cilliers, via Poly Haven
+https://polyhaven.com/a/dark_wood
+CC0. Used on the fallback render's original source geometry.
+
+Carriage architecture, benches, table, fixtures and realm arrangement are purpose-built.
+The fallback renders retain their original source materials.

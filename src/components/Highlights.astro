@@ -14,14 +14,15 @@ const rankOf = (finish: string) => {
   <div class="w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-12 py-16 sm:py-20">
     <div class="max-w-[820px] flex flex-col gap-4 mb-11">
       <p class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-accent">HIGHLIGHTS</p>
-      <h2 class="font-dm trim-caps font-bold text-[clamp(26px,4vw,34px)] leading-tight text-text uppercase">POW</h2>
+      <h1 class="font-dm trim-caps font-bold text-[clamp(26px,4vw,34px)] leading-tight text-text uppercase">POW</h1>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <div class="md:col-span-2 lg:col-span-2 bg-raised-surface border border-accent p-5 sm:p-6 flex flex-col gap-4">
+        <p class="font-outfit text-[13px] text-muted-text">Team project</p>
         <h3 class="font-dm trim-caps font-bold text-[20px] sm:text-[22px] leading-tight text-text">FROM SCRAP TO SOLAR</h3>
-        <p class="font-outfit text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">First every home had its own dish, then whole societies shared one, then streaming killed the need. 12.65 million subscriptions died between 2021 and 2025, and the dishes went to scrap. This was one of them.</p>
-        <p class="font-outfit text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">A discarded TV dish rebuilt with mirror tiles into a solar cooker with a motion sensor that keeps birds away from the focal point.</p>
+        <p class="font-outfit text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">First every home had its own dish, then whole societies shared one, then streaming killed the need. 12.65 million subscriptions died between 2021 and 2025, and the dishes went to scrap. This was one of them</p>
+        <p class="font-outfit text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">A discarded TV dish was rebuilt with mirror tiles into a solar cooker with a motion sensor to keep birds away from the focal point</p>
         <ul class="flex flex-col gap-2 border-t border-accent/35 pt-4 list-none m-0 p-0">
           <li class="font-outfit text-[16px] leading-[1.5] tracking-[-0.003em] flex gap-2.5">
             <span class="text-accent" aria-hidden="true">+</span>
@@ -51,7 +52,7 @@ const rankOf = (finish: string) => {
           <a href={p.href} target="_blank" rel="noopener noreferrer" class={`group/cell p-5 sm:p-6 flex flex-col gap-2 transition-all duration-150 hover:bg-surface ${i % 2 === 0 ? "border-r border-line" : ""} ${i < 2 ? "border-b border-line" : ""}`}>
             <span class="font-anton text-[32px] leading-none text-text group-hover/cell:text-accent transition-colors duration-150" aria-hidden="true">{rankOf(p.finish)}</span>
             <h3 class="font-dm trim-caps font-bold text-[15px] sm:text-[16px] leading-tight text-text min-w-0 break-words">{p.title}</h3>
-            <p class="font-outfit text-[14px] leading-[1.5] text-muted-text tracking-[-0.003em]">{p.finish}</p>
+            <p class="font-outfit text-[14px] leading-[1.5] text-muted-text tracking-[-0.003em]">{p.finish.replace(/\.$/, "")}</p>
           </a>
         ))}
       </div>
@@ -60,13 +61,13 @@ const rankOf = (finish: string) => {
       <div class="bg-raised-surface border border-line p-5 sm:p-6 flex flex-col gap-3 hover:border-accent/30 hover:-translate-y-0.5 transition-all duration-150 flex-1">
         <h3 class="font-dm trim-caps font-bold text-[17px] sm:text-[18px] leading-tight text-text">NMTC FINALIST</h3>
         <p class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-muted-text">JUNIOR · BHASKARA · 2024</p>
-        <p class="font-outfit text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">56,595 took it. The top tenth moved on. I moved on.</p>
+        <p class="font-outfit text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">Qualified for the final round, finishing in the top 10% of 56,595 participants</p>
       </div>
 
       <div class="bg-raised-surface border border-line p-5 sm:p-6 flex flex-col gap-3 hover:border-accent/30 hover:-translate-y-0.5 transition-all duration-150 flex-1">
         <h3 class="font-dm trim-caps font-bold text-[17px] sm:text-[18px] leading-tight text-text">DELHI TECH CIRCUIT PODIUMS</h3>
         <p class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-muted-text">2024 TO 2026</p>
-        <p class="font-outfit text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">hardware, robotics, ctf and cryptic hunt podiums across the delhi ncr circuit.</p>
+        <p class="font-outfit text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">hardware, robotics, ai/ml, ctf and cryptic hunt podiums across the delhi ncr circuit</p>
       </div>
       </div>
 
