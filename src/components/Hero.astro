@@ -123,11 +123,17 @@ import nightImg from "../assets/night.jpg";
     }
     const hotelEl = hotelImg();
     const loaderEl = document.querySelector(".loader");
-    const hideLoader = () => { if (loaderEl) loaderEl.classList.add("loader--hidden"); };
+    let loaderDeadline = 0;
+    const hideLoader = () => {
+      loaderEl?.classList.remove("loader--active");
+      window.clearTimeout(loaderDeadline);
+    };
     if (!hotelEl.complete || hotelEl.naturalWidth === 0) {
-      if (loaderEl) loaderEl.classList.remove("loader--hidden");
+      loaderEl?.classList.add("loader--active");
+      loaderDeadline = window.setTimeout(hideLoader, 1500);
       hotelEl.addEventListener("load", hideLoader, { once: true });
       hotelEl.addEventListener("error", hideLoader, { once: true });
+      document.addEventListener("astro:before-swap", hideLoader, { once: true });
     }
     window.dispatchEvent(new CustomEvent("portrait:claimed"));
   };

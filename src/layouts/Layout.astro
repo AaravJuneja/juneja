@@ -50,12 +50,34 @@ const canonical = new URL(Astro.url.pathname, "https://squeakyfiddlepro.me/");
     <link rel="preload" as="font" type="font/woff2" href="/fonts/outfit-latin-600-normal.woff2" crossorigin />
     <meta name="generator" content={Astro.generator} />
     <script is:inline data-astro-rerun>try{const claimed=/(?:^|;)\s*portrait=claimed(?:;|$)/.test(document.cookie);document.documentElement.toggleAttribute("data-portrait",claimed);document.querySelector('meta[name="theme-color"]')?.setAttribute("content",claimed?"#0d0906":"#0A0710")}catch{}</script>
+    <script is:inline data-astro-rerun>
+      (() => {
+        const root = document.documentElement;
+        try { if (sessionStorage.getItem("loader-seen") === "1") return; } catch {}
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          try { sessionStorage.setItem("loader-seen", "1"); } catch {}
+          return;
+        }
+        const hide = () => {
+          root.removeAttribute("data-loader-active");
+          window.clearTimeout(deadline);
+          window.removeEventListener("load", hide);
+          document.removeEventListener("astro:before-swap", hide);
+          try { sessionStorage.setItem("loader-seen", "1"); } catch {}
+        };
+        const deadline = window.setTimeout(hide, 1500);
+        root.setAttribute("data-loader-active", "");
+        document.addEventListener("astro:before-swap", hide, { once: true });
+        if (document.readyState === "complete") hide();
+        else window.addEventListener("load", hide, { once: true });
+      })();
+    </script>
     <title>{title}</title>
     <ClientRouter />
   </head>
   <body class="bg-background text-text antialiased overflow-x-clip">
     <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[9999999] focus:bg-accent focus:text-background focus:px-3 focus:py-2 font-dm trim-caps text-[12px] tracking-[0.08em] uppercase">SKIP TO CONTENT</a>
-    <Loader client:load />
+    <Loader />
     <RevealWatcher client:load />
     <main id="main-content" class="site-main overflow-x-clip" data-home={Astro.url.pathname === "/" || undefined} data-compact={compact || undefined} tabindex="-1">
       <slot />

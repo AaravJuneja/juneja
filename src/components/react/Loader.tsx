@@ -1,58 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-
 export default function Loader() {
-  const [hidden, setHidden] = useState(false);
-  const [gone, setGone] = useState(false);
-  const hiddenRef = useRef(false);
-  useEffect(() => {
-    try {
-      if (sessionStorage.getItem("loader-seen") === "1") {
-        setHidden(true);
-        setGone(true);
-        return;
-      }
-    } catch {}
-    const root = document.documentElement;
-    const prev = root.style.overflow;
-    root.style.overflow = "hidden";
-    let goneTimer: number | null = null;
-    const hide = () => {
-      if (hiddenRef.current) return;
-      hiddenRef.current = true;
-      setHidden(true);
-      root.style.overflow = prev;
-      try {
-        sessionStorage.setItem("loader-seen", "1");
-      } catch {}
-      goneTimer = window.setTimeout(() => setGone(true), 500);
-    };
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      hide();
-      return () => {
-        if (goneTimer !== null) window.clearTimeout(goneTimer);
-        root.style.overflow = prev;
-      };
-    }
-    if (document.readyState === "complete") {
-      hide();
-      return () => {
-        if (goneTimer !== null) window.clearTimeout(goneTimer);
-        root.style.overflow = prev;
-      };
-    } else {
-      const cap = window.setTimeout(hide, 1500);
-      window.addEventListener("load", hide, { once: true });
-      return () => {
-        window.clearTimeout(cap);
-        if (goneTimer !== null) window.clearTimeout(goneTimer);
-        window.removeEventListener("load", hide);
-        root.style.overflow = prev;
-      };
-    }
-  }, []);
-  if (gone) return null;
   return (
-    <div className={`loader ${hidden ? "loader--hidden" : ""}`}>
+    <div className="loader" aria-hidden="true">
       <div className="loader__inner">
         <svg className="loader__svg" width="100" height="100" viewBox="0 0 100 100">
           <defs>
