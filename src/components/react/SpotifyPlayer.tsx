@@ -635,26 +635,28 @@ export default function SpotifyPlayer({ covers }: Props) {
         setExpanded(true);
         setSeen(true);
       }}
-      onMouseLeave={() => setExpanded(false)}
-      onFocus={() => {
-        setExpanded(true);
-        setSeen(true);
+      onMouseLeave={(e) => {
+        if (!e.currentTarget.contains(document.activeElement)) setExpanded(false);
       }}
       onBlur={(e) => {
         if (e.relatedTarget instanceof Node && e.currentTarget.contains(e.relatedTarget)) return;
         setExpanded(false);
       }}
-      className="relative shrink-0"
-      style={{ width: expanded ? "min(340px, calc(100vw - 48px))" : "min(180px, calc(100vw - 48px))", height: 44, transition: "opacity 200ms ease, transform 200ms ease" }}
+      className="relative shrink-0 transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none"
+      style={{ width: expanded ? "min(340px, calc(100vw - 48px))" : "min(180px, calc(100vw - 48px))", height: 44 }}
     >
       <span className="sr-only" aria-live="polite">{track.title}</span>
       <button
+        ref={triggerRef}
         type="button"
+        aria-expanded={expanded}
+        aria-controls="spotify-panel"
+        inert={expanded}
         onClick={() => {
           setSeen(true);
           setExpanded((v) => !v);
         }}
-        className="absolute inset-0 flex items-center gap-3 px-3 border border-line hover:border-line transition-opacity cursor-pointer text-left"
+        className="absolute inset-0 flex items-center gap-3 px-3 border border-line hover:border-line transition-opacity duration-200 motion-reduce:transition-none cursor-pointer text-left"
         style={{
           width: "min(180px, calc(100vw - 48px))",
           maxWidth: "100%",
@@ -663,7 +665,6 @@ export default function SpotifyPlayer({ covers }: Props) {
           background: "var(--player-surface)",
           opacity: expanded ? 0 : 1,
           pointerEvents: expanded ? "none" : "auto",
-          transition: "opacity 200ms ease",
         }}
       >
         <div className="w-7 h-7 rounded-full overflow-hidden border border-line shrink-0">
@@ -675,13 +676,20 @@ export default function SpotifyPlayer({ covers }: Props) {
         </div>
       </button>
 
-      {seen && (
       <div
         id="spotify-panel"
+        hidden={!seen}
+        inert={!expanded}
+        aria-hidden={!expanded}
         onKeyDown={(e) => {
-          if (e.key === "Escape") setExpanded(false);
+          if (e.key === "Escape") {
+            e.preventDefault();
+            e.stopPropagation();
+            restoreFocusRef.current = true;
+            setExpanded(false);
+          }
         }}
-        className="absolute right-0 bottom-0 flex flex-col gap-3 p-3 border border-line overflow-hidden"
+        className="absolute right-0 bottom-0 flex flex-col gap-3 p-3 border border-line overflow-hidden transition-[opacity,transform] duration-[220ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none"
         style={{
           width: "min(340px, calc(100vw - 48px))",
           height: "auto",
@@ -691,7 +699,6 @@ export default function SpotifyPlayer({ covers }: Props) {
           opacity: expanded ? 1 : 0,
           pointerEvents: expanded ? "auto" : "none",
           transform: expanded ? "translateY(0) scale(1)" : "translateY(4px) scale(0.98)",
-          transition: "opacity 220ms cubic-bezier(0.16,1,0.3,1), transform 220ms cubic-bezier(0.16,1,0.3,1)",
           zIndex: 20,
         }}
         onClick={(e) => e.stopPropagation()}
@@ -718,6 +725,7 @@ export default function SpotifyPlayer({ covers }: Props) {
             <span className={`w-0.5 bg-accent rounded-full origin-bottom ${playing ? "animate-bar-3 h-3" : ""}`} style={!playing ? { height: 7 } : undefined} />
           </div>
           <button
+            ref={playButtonRef}
             onClick={toggle}
             aria-label={playing ? "Pause" : "Play"}
             aria-pressed={playing}
@@ -765,7 +773,6 @@ export default function SpotifyPlayer({ covers }: Props) {
         </div>
         </div>
       </div>
-      )}
       <audio ref={(el) => { deckRef.current[0] = el; }} preload="metadata" style={{ display: "none" }} />
       <audio ref={(el) => { deckRef.current[1] = el; }} preload="metadata" style={{ display: "none" }} />
     </div>
