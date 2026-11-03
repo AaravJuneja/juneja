@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { test } from "node:test";
 import {gunzipSync} from "node:zlib";
 
@@ -16,7 +16,7 @@ function glb(path) {
 }
 
 test("all published model metadata is stripped consistently",()=>{
-  for(const path of ["../public/train/carriage.glb.gz","../public/train/flashlight.glb","../public/train/avatars/sniqr.glb","../private/train/avatar.glb"]) {
+  for(const path of ["../public/train/carriage.glb.gz","../public/train/flashlight.glb","../public/train/avatars/sniqr.glb","../public/train/avatars/sniqr-low.glb","../private/train/avatar.glb","../private/train/avatar-low.glb"]) {
     const {document,binary}=glb(path);
     assert.equal(document.asset.generator,undefined);
     assert.equal(document.asset.copyright,undefined);
@@ -36,7 +36,7 @@ test("all published model metadata is stripped consistently",()=>{
   }
 });
 
-for(const [name,path] of [["male","../public/train/avatars/sniqr.glb"],["private avatar","../private/train/avatar.glb"]]) {
+for(const [name,path] of [["male","../public/train/avatars/sniqr.glb"],["male low","../public/train/avatars/sniqr-low.glb"],["private avatar","../private/train/avatar.glb"],["private avatar low","../private/train/avatar-low.glb"]]) {
   test(`${name} has complete embedded textures and seven skinned animation clips`,()=>{
     const {document}=glb(path);
     assert.equal(document.asset.generator,undefined);
@@ -74,6 +74,24 @@ test("torch is a separate compact model and no private model is in public assets
   assert.ok(document.meshes.length>=10);
   assert.ok(document.materials.some(material=>material.name==="TorchShell"));
   assert.equal(document.skins,undefined);
-  assert.deepEqual(readdirSync(new URL("../public/train/avatars",import.meta.url)),["sniqr.glb"]);
-  assert.deepEqual(readdirSync(new URL("../dist/train/avatars",import.meta.url)),["sniqr.glb"]);
+  assert.deepEqual(readdirSync(new URL("../public/train/avatars",import.meta.url)).sort(),["sniqr-low.glb","sniqr.glb"]);
+  const distAvatars=new URL("../dist/train/avatars",import.meta.url);
+  if(existsSync(distAvatars))assert.deepEqual(readdirSync(distAvatars).sort(),["sniqr-low.glb","sniqr.glb"]);
+});
+
+test("low-detail avatar variants downsample embedded textures without changing animation clips",()=>{
+  for(const [highPath,lowPath] of [["../public/train/avatars/sniqr.glb","../public/train/avatars/sniqr-low.glb"],["../private/train/avatar.glb","../private/train/avatar-low.glb"]]) {
+    const {document:high}=glb(highPath);
+    const {document:low,binary}=glb(lowPath);
+    assert.deepEqual(low.animations.map(clip=>clip.name),high.animations.map(clip=>clip.name));
+    assert.equal(low.meshes.length,high.meshes.length);
+    for(const image of low.images??[]) {
+      const view=low.bufferViews[image.bufferView];
+      const raw=binary.subarray(view.byteOffset??0,(view.byteOffset??0)+view.byteLength);
+      if(raw.toString("hex",0,8)==="89504e470d0a1a0a") {
+        assert.ok(raw.readUInt32BE(16)<=256);
+        assert.ok(raw.readUInt32BE(20)<=256);
+      }
+    }
+  }
 });

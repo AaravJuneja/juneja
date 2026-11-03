@@ -8,6 +8,7 @@ const nowMs = 1_800_000_000_000;
 const unlockCode = `test-only-${"x".repeat(32)}`;
 const sessionKey = `test-only-session-${"y".repeat(40)}`;
 const avatarBytes = new Uint8Array([0x67, 0x6c, 0x54, 0x46, 0x02, 0x00, 0x00, 0x00]);
+const lowAvatarBytes = new Uint8Array([0x6c,0x6f,0x77]);
 
 function limiter({ success = true } = {}) {
   const keys = [];
@@ -77,8 +78,10 @@ test("unauthenticated access never returns the private avatar", async () => {
   const env = environment();
   const access = await instance.fetch(request("/api/train/access"), env);
   const avatar = await instance.fetch(request("/api/train/avatar"), env);
+  const lowAvatar=await instance.fetch(request("/api/train/avatar?quality=low"),env);
   assert.deepEqual(await access.json(), { unlocked: false });
   assert.equal(avatar.status, 401);
+  assert.equal(lowAvatar.status,401);
   assert.deepEqual(await avatar.json(), { error: "unauthorized" });
   assert.equal(avatar.headers.get("cache-control"), "private, no-store, max-age=0");
 });
@@ -121,6 +124,12 @@ test("unlock issues a bounded session cookie, authorizes the avatar, and delete 
   assert.equal(avatar.headers.get("content-type"), "model/gltf-binary");
   assert.equal(avatar.headers.get("cache-control"), "private, no-store, max-age=0");
   assert.deepEqual(new Uint8Array(await avatar.arrayBuffer()), avatarBytes);
+
+  const lowInstance=worker({avatarLow:lowAvatarBytes});
+  const low=await lowInstance.fetch(request("/api/train/avatar?quality=low",{headers:{cookie}}),env);
+  assert.equal(low.status,200);
+  assert.deepEqual(new Uint8Array(await low.arrayBuffer()),lowAvatarBytes);
+  assert.equal((await lowInstance.fetch(request("/api/train/avatar?quality=medium",{headers:{cookie}}),env)).status,400);
 
   const revoked = await instance.fetch(request("/api/train/access", {
     method: "DELETE",

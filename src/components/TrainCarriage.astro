@@ -25,6 +25,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     <div class="train-sprint" data-train-stamina role="progressbar" aria-label="Sprint stamina" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" hidden><div data-train-stamina-fill></div></div>
     <nav class="train-menu" aria-label="Train menus">
       <button class="train-menu-button" data-train-catalog type="button" aria-haspopup="dialog" aria-controls="catalog-panel">Catalog</button>
+      <button class="train-menu-button" data-train-graphics type="button" aria-label="Switch to high graphics" aria-pressed="false" disabled>High graphics</button>
       <button class="train-menu-button" data-train-settings type="button" aria-haspopup="dialog" aria-controls="settings-panel" hidden>Settings</button>
       <button class="train-menu-button" data-train-keys type="button" aria-haspopup="dialog" aria-controls="keys-panel">Keys</button>
     </nav>
@@ -129,6 +130,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     const interaction=get<HTMLElement>("interaction");
     const reticle=root.querySelector<HTMLElement>(".train-reticle")!;
     const catalogButton = get<HTMLButtonElement>("catalog");
+    const graphicsButton=get<HTMLButtonElement>("graphics");
     const settingsButton=get<HTMLButtonElement>("settings");
     const keysButton=get<HTMLButtonElement>("keys");
     const stamina = get<HTMLElement>("stamina");
@@ -174,6 +176,14 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     let blindTimer:number|undefined;
     let blindOpener:HTMLElement|null=null;
     let blindRequest:AbortController|undefined;
+    let graphicsQuality:"low"|"high"="low";
+    const syncGraphicsButton=()=>{
+      const next=graphicsQuality==="low"?"high":"low";
+      graphicsButton.textContent=`${next[0].toUpperCase()}${next.slice(1)} graphics`;
+      graphicsButton.setAttribute("aria-label",`Switch to ${next} graphics`);
+      graphicsButton.setAttribute("aria-pressed",String(graphicsQuality==="high"));
+    };
+    syncGraphicsButton();
     const setCatalogStatus = (value: string) => {
       catalogStatus.textContent = value;
       catalogStatus.hidden = !value;
@@ -371,6 +381,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
         });
         if (pending.signal.aborted) { mounted.dispose(); return; }
         session = mounted;
+        graphicsButton.disabled=false;
         session.setDay(morning);
         syncMotion();
         for (const [name,state] of lamps) session.setLamp(name,state.enabled,state.color);
@@ -386,6 +397,16 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     catalogButton.addEventListener("click",event=>{
       if (performance.now() < suppressCatalogClickUntil) { event.preventDefault(); return; }
       openDialog(catalogDialog);
+    },{signal:events.signal});
+    graphicsButton.addEventListener("click",()=>{
+      if(!session||graphicsButton.disabled)return;
+      const next=graphicsQuality==="low"?"high":"low";
+      graphicsButton.disabled=true;
+      graphicsButton.textContent=`Loading ${next}…`;
+      void session.setGraphics(next).then(loaded=>{if(loaded)graphicsQuality=next;}).catch(()=>{}).finally(()=>{
+        graphicsButton.disabled=!session;
+        syncGraphicsButton();
+      });
     },{signal:events.signal});
     settingsButton.addEventListener("click",()=>openDialog(settingsDialog),{signal:events.signal});
     keysButton.addEventListener("click",()=>openDialog(keysDialog),{signal:events.signal});
@@ -519,8 +540,9 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
   .train-panel label { display:flex;align-items:center;gap:12px;margin-block:24px; }
   .train-panel select { min-height:44px;max-width:100%;padding:8px;background:var(--train-background);color:var(--train-text);border:1px solid var(--train-edge);font:inherit; }
   .train-panel input { width:20px;height:20px;accent-color:var(--train-accent); }
-  .train-menu { position:absolute;z-index:2;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));display:flex;gap:6px; }
-  .train-menu-button { min-width:0;min-height:44px;padding:8px 14px;border:1px solid var(--train-edge);background:var(--train-surface);font:600 12px/1.2 Outfit,sans-serif;letter-spacing:.1em;text-transform:uppercase; }
+  .train-menu { position:absolute;z-index:2;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px;max-width:calc(100% - 24px); }
+  .train-menu-button { min-width:0;min-height:44px;padding:8px 12px;border:1px solid var(--train-edge);background:var(--train-surface);font:600 12px/1.2 Outfit,sans-serif;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap; }
+  .train-menu-button:disabled { cursor:wait;opacity:.68; }
   .train-key-hints { position:absolute;right:max(24px,env(safe-area-inset-right));bottom:calc(26px + env(safe-area-inset-bottom));display:grid;gap:8px;margin:0;pointer-events:none;color:var(--train-text); }
   .train-key-hints > div { display:flex;justify-content:flex-end;align-items:center;gap:12px; }
   .train-key-hints dt { font:600 23px/1 Outfit,sans-serif; }
@@ -574,6 +596,8 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     .train-key-hints kbd { width:34px;height:34px;font-size:12px; }
     button, summary { padding-inline: 8px; }
     .train-message, .train-noscript { left: 12px; max-width: calc(100% - 24px); }
+    .train-menu { gap:4px; }
+    .train-menu-button { padding-inline:8px;font-size:11px;letter-spacing:.04em; }
   }
   @media (max-width: 560px) {
     .train-catalog-layout { display:flex;flex-direction:column; }

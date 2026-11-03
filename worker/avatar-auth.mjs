@@ -209,7 +209,7 @@ function authorizedAccess(env) {
   return {unlocked:true,avatar:{label}};
 }
 
-export function createAvatarWorker({ avatar, cryptoApi = globalThis.crypto, now = () => Date.now() }) {
+export function createAvatarWorker({ avatar, avatarLow = avatar, cryptoApi = globalThis.crypto, now = () => Date.now() }) {
   const routes = new Map([
     ["/api/train/unlock", ["POST"]],
     ["/api/train/access", ["GET", "DELETE"]],
@@ -278,7 +278,9 @@ export function createAvatarWorker({ avatar, cryptoApi = globalThis.crypto, now 
         return responseJson({ error: "unauthorized" }, 401);
       }
       try {
-        const bytes = avatarBytes(avatar);
+        const quality=url.searchParams.get("quality")??"high";
+        if(quality!=="low"&&quality!=="high")return responseJson({error:"invalid_quality"},400);
+        const bytes = avatarBytes(quality==="low"?avatarLow:avatar);
         return new Response(bytes, {
           headers: {
             ...protectedHeaders,

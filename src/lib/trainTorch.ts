@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { skins } from "./trainCatalog";
+import { trainGraphicsProfile,type TrainGraphicsQuality } from "./trainGraphics";
 
 export function torchAimDirection(camera:THREE.Camera,heading:number,cameraAim:boolean,target=new THREE.Vector3()) {
   return cameraAim?camera.getWorldDirection(target):target.set(Math.sin(heading),0,Math.cos(heading));
@@ -11,8 +12,9 @@ export function createTrainTorch(scene:THREE.Scene,renderer:THREE.WebGLRenderer,
   root.name="HeldFlashlight";
   scene.add(root);
   const shadowCamera=new THREE.PerspectiveCamera(32,1,.035,28);
-  const shadowTarget=new THREE.WebGLRenderTarget(384,384);
-  shadowTarget.depthTexture=new THREE.DepthTexture(384,384);
+  const initialGraphics=trainGraphicsProfile("low",1,1,1);
+  const shadowTarget=new THREE.WebGLRenderTarget(initialGraphics.torchShadowSize,initialGraphics.torchShadowSize);
+  shadowTarget.depthTexture=new THREE.DepthTexture(initialGraphics.torchShadowSize,initialGraphics.torchShadowSize);
   shadowTarget.texture.minFilter=THREE.NearestFilter;
   shadowTarget.texture.magFilter=THREE.NearestFilter;
   const depthMaterial=new THREE.MeshDepthMaterial();
@@ -25,6 +27,8 @@ export function createTrainTorch(scene:THREE.Scene,renderer:THREE.WebGLRenderer,
     trainTorchRange:{value:18},
     trainTorchShadow:{value:shadowTarget.depthTexture},
     trainTorchMatrix:{value:shadowMatrix},
+    trainTorchTexelSize:{value:new THREE.Vector2(1/initialGraphics.torchShadowSize,1/initialGraphics.torchShadowSize)},
+    trainTorchShadows:{value:0},
   };
   const resources={geometries:new Set<THREE.BufferGeometry>(),materials:new Set<THREE.Material>(),textures:new Set<THREE.Texture>()};
   let disposed=false;
@@ -32,8 +36,10 @@ export function createTrainTorch(scene:THREE.Scene,renderer:THREE.WebGLRenderer,
   let lens:THREE.MeshStandardMaterial[]=[];
   let skinTexture:THREE.CanvasTexture|undefined;
   let selectedSkin="yellow";
+  let quality:TrainGraphicsQuality="low";
   let enabled=true;
   let lastShadow=-Infinity;
+  const shadowUpdateInterval=1000/30;
   let shadowReady=false;
   const aim=new THREE.Vector3();
   const tip=new THREE.Vector3();
@@ -63,8 +69,12 @@ export function createTrainTorch(scene:THREE.Scene,renderer:THREE.WebGLRenderer,
     const skin=skins.find(item=>item.id===id);
     if(!skin)return;
     selectedSkin=id;
-    const canvas=document.createElement("canvas");canvas.width=canvas.height=128;
+    const resolution=trainGraphicsProfile(quality,1,1,1).torchSkinSize;
+    const scale=resolution/128;
+    const cell=8/scale;
+    const canvas=document.createElement("canvas");canvas.width=canvas.height=resolution;
     const context=canvas.getContext("2d")!;
+    context.scale(scale,scale);
     let seed=173;
     for(const char of id)seed=(seed*31+char.charCodeAt(0))>>>0;
     const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
@@ -78,13 +88,13 @@ export function createTrainTorch(scene:THREE.Scene,renderer:THREE.WebGLRenderer,
         else {gradient.addColorStop(0,skin.colors[0]);gradient.addColorStop(1,skin.colors[1]);}
         context.fillStyle=gradient;context.fillRect(0,0,128,128);
       }
-      for(let y=0;y<128;y+=8)for(let x=0;x<128;x+=8) {
+      for(let y=0;y<128;y+=cell)for(let x=0;x<128;x+=cell) {
         const chance=random();
-        if(id.includes("checkers")) {context.fillStyle=(x/8+y/8)%2?"#315dc4":"#a6cefa";context.fillRect(x,y,8,8);}
-        else if(id.includes("static")||id.includes("error")||id.includes("matrix")) {context.fillStyle=id.includes("matrix")?`rgb(0 ${Math.round(30+chance*210)} 35)`:`hsl(${hue} ${id==="static"?0:75}% ${chance*95}%)`;context.fillRect(x,y,8,8);}
-        else if(chance>.70) {context.fillStyle=skin.colors[1];context.fillRect(x,y,id.includes("sparkle")?2:6,id.includes("lightning")?18:6);}
+        if(id.includes("checkers")) {context.fillStyle=(Math.floor(x/cell)+Math.floor(y/cell))%2?"#315dc4":"#a6cefa";context.fillRect(x,y,cell,cell);}
+        else if(id.includes("static")||id.includes("error")||id.includes("matrix")) {context.fillStyle=id.includes("matrix")?`rgb(0 ${Math.round(30+chance*210)} 35)`:`hsl(${hue} ${id==="static"?0:75}% ${chance*95}%)`;context.fillRect(x,y,cell,cell);}
+        else if(chance>.70) {context.fillStyle=skin.colors[1];context.fillRect(x,y,id.includes("sparkle")?cell*.25:cell*.75,id.includes("lightning")?cell*2.25:cell*.75);}
       }
-      if(id.includes("stars")||id.includes("galaxy")||id.includes("space"))for(let i=0;i<70;i++) {context.fillStyle="#f6efff";context.fillRect(random()*128,random()*128,1.5,1.5);}
+      if(id.includes("stars")||id.includes("galaxy")||id.includes("space"))for(let i=0;i<Math.round(70*scale*scale);i++) {context.fillStyle="#f6efff";context.fillRect(random()*128,random()*128,1.5/scale,1.5/scale);}
     }
     const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;texture.wrapS=texture.wrapT=THREE.RepeatWrapping;
     skinTexture?.dispose();skinTexture=texture;
@@ -136,16 +146,28 @@ export function createTrainTorch(scene:THREE.Scene,renderer:THREE.WebGLRenderer,
           uniform float trainTorchRange;
           uniform sampler2D trainTorchShadow;
           uniform mat4 trainTorchMatrix;
+          uniform vec2 trainTorchTexelSize;
+          uniform float trainTorchShadows;
         `+shader.fragmentShader;
         shader.fragmentShader=shader.fragmentShader.replace("#include <opaque_fragment>",`
           vec3 trainOffset=vTrainWorld-trainTorchPosition;
           float trainDistance=length(trainOffset);
           float trainCone=smoothstep(0.957,0.985,dot(normalize(trainOffset),trainTorchDirection));
           vec4 trainProjected=trainTorchMatrix*vec4(vTrainWorld,1.0);
-          vec3 trainShadow=trainProjected.xyz/trainProjected.w;
-          float trainVisible=0.0;
-          if(trainProjected.w>0.0&&trainShadow.x>0.0&&trainShadow.x<1.0&&trainShadow.y>0.0&&trainShadow.y<1.0&&trainShadow.z<1.0) {
-            trainVisible=step(trainShadow.z-0.0025,texture2D(trainTorchShadow,trainShadow.xy).r);
+          float trainVisible=1.0;
+          if(trainTorchShadows>0.5) {
+            trainVisible=0.0;
+            if(trainProjected.w>0.0) {
+              vec3 trainShadow=trainProjected.xyz/trainProjected.w;
+              if(trainShadow.x>0.0&&trainShadow.x<1.0&&trainShadow.y>0.0&&trainShadow.y<1.0&&trainShadow.z<1.0) {
+                vec2 offset=trainTorchTexelSize*0.5;
+                float sample00=step(trainShadow.z-0.0025,texture2D(trainTorchShadow,trainShadow.xy+vec2(-offset.x,-offset.y)).r);
+                float sample10=step(trainShadow.z-0.0025,texture2D(trainTorchShadow,trainShadow.xy+vec2(offset.x,-offset.y)).r);
+                float sample01=step(trainShadow.z-0.0025,texture2D(trainTorchShadow,trainShadow.xy+vec2(-offset.x,offset.y)).r);
+                float sample11=step(trainShadow.z-0.0025,texture2D(trainTorchShadow,trainShadow.xy+offset).r);
+                trainVisible=(sample00+sample10+sample01+sample11)*0.25;
+              }
+            }
           }
           float trainFalloff=pow(max(0.0,1.0-trainDistance/trainTorchRange),2.0);
           outgoingLight+=diffuseColor.rgb*vec3(1.0,0.91,0.69)*trainCone*trainFalloff*trainVisible*trainTorchStrength;
@@ -155,6 +177,21 @@ export function createTrainTorch(scene:THREE.Scene,renderer:THREE.WebGLRenderer,
       material.needsUpdate=true;
     },
     setSkin,
+    setQuality(value:TrainGraphicsQuality){
+      if(value===quality)return;
+      quality=value;
+      const profile=trainGraphicsProfile(value,1,1,1);
+      shadowTarget.setSize(profile.torchShadowSize,profile.torchShadowSize);
+      if(shadowTarget.depthTexture) {
+        shadowTarget.depthTexture.image.width=profile.torchShadowSize;
+        shadowTarget.depthTexture.image.height=profile.torchShadowSize;
+        shadowTarget.depthTexture.needsUpdate=true;
+      }
+      uniforms.trainTorchTexelSize.value.set(1/profile.torchShadowSize,1/profile.torchShadowSize);
+      shadowReady=false;
+      lastShadow=-Infinity;
+      setSkin(selectedSkin);
+    },
     setTorch(value:boolean){enabled=value;},
     getState(){return {skin:selectedSkin,torch:enabled};},
     update(camera:THREE.Camera,socket:THREE.Object3D|undefined,firstPerson:boolean,playerVisible:boolean,occluders:THREE.Object3D[],hidden:THREE.Object3D[],now:number,heading:number,cameraAim:boolean) {
@@ -165,20 +202,26 @@ export function createTrainTorch(scene:THREE.Scene,renderer:THREE.WebGLRenderer,
       if(cameraAim)ray.setFromCamera(cameraCenter,camera);
       else ray.set(root.position,beamDirection);
       ray.far=18;
-      const hit=ray.intersectObjects(occluders,false)[0];
-      ray.ray.at(Math.max(.65,hit?.distance??ray.far),aim);
+      if(quality==="high") {
+        const hit=ray.intersectObjects(occluders,false)[0];
+        ray.ray.at(Math.max(.65,hit?.distance??ray.far),aim);
+      } else ray.ray.at(ray.far,aim);
       root.quaternion.setFromRotationMatrix(rotationMatrix.lookAt(root.position,aim,up));
       beamDirection.copy(aim).sub(root.position).normalize();
       root.visible=true;
       tip.set(0,0,-.22).applyQuaternion(root.quaternion).add(root.position);
       ray.set(root.position,beamDirection);ray.far=.25;
-      const barrelHit=ray.intersectObjects(occluders,false)[0];
-      if(barrelHit)tip.copy(root.position).addScaledVector(beamDirection,Math.max(0,barrelHit.distance-.025));
+      if(quality==="high") {
+        const barrelHit=ray.intersectObjects(occluders,false)[0];
+        if(barrelHit)tip.copy(root.position).addScaledVector(beamDirection,Math.max(0,barrelHit.distance-.025));
+      }
       uniforms.trainTorchPosition.value.copy(tip);
       uniforms.trainTorchDirection.value.copy(aim).sub(tip).normalize();
-      uniforms.trainTorchStrength.value=enabled&&shadowReady?2.8:0;
+      const shadows=quality==="high";
+      uniforms.trainTorchShadows.value=shadows?1:0;
+      uniforms.trainTorchStrength.value=enabled&&(!shadows||shadowReady)?2.8:0;
       for(const material of lens)material.emissiveIntensity=enabled?1.2:0;
-      if(!enabled||now-lastShadow<1000/15)return;
+      if(!enabled||!shadows||now-lastShadow<shadowUpdateInterval)return;
       lastShadow=now;
       shadowCamera.position.copy(tip);shadowCamera.far=uniforms.trainTorchRange.value;
       shadowCamera.lookAt(aim);shadowCamera.updateProjectionMatrix();shadowCamera.updateMatrixWorld(true);

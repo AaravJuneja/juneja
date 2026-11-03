@@ -53,6 +53,14 @@ test("private entry has no visible unlock dialog or public instructions",()=>{
   expect(template).toContain('event.key==="Escape"');
 });
 
+test("graphics start low and can be switched without adding gameplay controls",()=>{
+  expect(template).toContain('data-train-graphics type="button"');
+  expect(template).toContain('aria-label="Switch to high graphics"');
+  expect(template).toContain('aria-pressed="false" disabled');
+  expect(scene).toContain('graphicsQuality:TrainGraphicsQuality="low"');
+  expect(scene).toContain('setGraphics(value:TrainGraphicsQuality)');
+});
+
 test("world objects have no overlay buttons or shortcut bypasses",()=>{
   expect(template).not.toContain("data-train-action");
   expect(scene).not.toMatch(/"Key[IRLPTF]"/);

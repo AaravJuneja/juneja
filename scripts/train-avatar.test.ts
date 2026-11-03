@@ -69,6 +69,17 @@ describe("avatar loading lifecycle",()=>{
     expect(scene.children).not.toContain(avatar.group);
   });
 
+  test("loads the low-resolution public or authorized private asset on request",async()=>{
+    const urls:string[]=[];
+    globalThis.fetch=async(input)=>{urls.push(String(input));return gltf();};
+    const scene=new THREE.Scene(),controller=new AbortController();
+    const avatar=createTrainAvatar(scene,controller.signal,()=>{});
+    await avatar.select("sniqr","low");
+    await avatar.select("private","low");
+    expect(urls).toEqual(["/train/avatars/sniqr-low.glb","/api/train/avatar?quality=low"]);
+    avatar.dispose();
+  });
+
   test("keeps the male asset path and allows retry after a failed request",async()=>{
     const urls:string[]=[];let attempts=0;
     globalThis.fetch=async(input)=>{

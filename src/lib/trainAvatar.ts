@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { BODY_HEIGHT, type PlayerState } from "./trainPhysics";
+import type { TrainGraphicsQuality } from "./trainGraphics";
 
 export type AvatarId="sniqr"|"private";
 export type AvatarClip="Idle"|"Walk"|"Run"|"Jump"|"Fall"|"Prone"|"Crawl";
@@ -102,7 +103,7 @@ export function createTrainAvatar(scene:THREE.Scene,signal:AbortSignal,status:(m
     getHandSocket():THREE.Object3D|undefined {
       return model?.getObjectByName("Hand.R")??model?.getObjectByName("HandR");
     },
-    async select(id:AvatarId) {
+    async select(id:AvatarId,quality:TrainGraphicsQuality="high") {
       if(disposed||signal.aborted)return false;
       const token=++request;
       pending?.abort();
@@ -110,7 +111,9 @@ export function createTrainAvatar(scene:THREE.Scene,signal:AbortSignal,status:(m
       pending=controller;
       try {
         status("Loading avatar…");
-        const source=id==="private"?"/api/train/avatar":"/train/avatars/sniqr.glb";
+        const source=id==="private"
+          ?quality==="low"?"/api/train/avatar?quality=low":"/api/train/avatar"
+          :quality==="low"?"/train/avatars/sniqr-low.glb":"/train/avatars/sniqr.glb";
         const basePath=id==="private"?"/api/train/":"/train/avatars/";
         const response=await fetch(source,{signal:controller.signal});
         if(!response.ok)throw new Error("Avatar download failed");

@@ -7,6 +7,7 @@ import { createIslandSign,islandGroundLift,islandSignPosition,islandSurfaceHeigh
 import { createTrainAvatar, type AvatarId } from "./trainAvatar";
 import { cameraBoomDistance } from "./trainCamera";
 import { createTrainTorch } from "./trainTorch";
+import { stepAdaptiveGraphics,trainGraphicsProfile,type AdaptiveGraphicsState,type TrainGraphicsQuality } from "./trainGraphics";
 
 type Point = [number, number];
 interface Manifest {
@@ -45,6 +46,8 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
   let islandSign:ReturnType<typeof createIslandSign> | undefined;
   const avatar=createTrainAvatar(scene,signal,message=>actions.avatarStatus?.(message));
   const torch=createTrainTorch(scene,renderer,signal);
+  let graphicsQuality:TrainGraphicsQuality="low";
+  let adaptiveGraphics:AdaptiveGraphicsState={scale:1,slowFrames:0,fastFrames:0};
   const reducedMotion=matchMedia("(prefers-reduced-motion: reduce)");
   let disposed = false;
   let frame = 0;
@@ -256,13 +259,16 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
       camera.aspect = width / height;
       camera.fov = camera.aspect < 1 ? 68 : 55;
       camera.updateProjectionMatrix();
-      renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5, Math.sqrt(1_600_000/(width*height))));
+      const profile=trainGraphicsProfile(graphicsQuality,width,height,devicePixelRatio);
+      renderer.setPixelRatio(profile.pixelRatio*(graphicsQuality==="low"?adaptiveGraphics.scale:1));
       renderer.setSize(width, height, false);
     };
     const render = (now: number) => {
       frame=0;
       if (disposed || !inView || document.hidden || suspended) return;
-      const delta = last ? Math.min((now-last)/1000, .1) : 0;
+      const frameDuration=last?now-last:0;
+      if(graphicsQuality==="low"&&last&&frameDuration<1000/30) {frame=requestAnimationFrame(render);return;}
+      const delta = last ? Math.min(frameDuration/1000, .1) : 0;
       last = now;
       let strafe = Number(keys.has("KeyD"))-Number(keys.has("KeyA"))+touchX;
       let forward = Number(keys.has("KeyW"))-Number(keys.has("KeyS"))+touchZ;
@@ -350,7 +356,12 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
       }
        camera.updateMatrixWorld(true);
        torch.update(camera,avatar.getHandSocket(),perspective==="first",avatarVisible,torchOccluders,[avatar.group],now,heading,perspective==="first"||shiftLock||cameraMode==="aim");
-       renderer.render(scene,camera);
+      renderer.render(scene,camera);
+      if(graphicsQuality==="low") {
+        const next=stepAdaptiveGraphics(adaptiveGraphics,frameDuration);
+        if(next.scale!==adaptiveGraphics.scale) {adaptiveGraphics=next;resize();}
+        else adaptiveGraphics=next;
+      }
       updateHover();
       moving = length > 0 || keys.size > 0 || !player.grounded || sprint.energy<1;
        if (!paused || moving || animating) frame = requestAnimationFrame(render);
@@ -491,7 +502,7 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
     for(const material of materials)if(material instanceof THREE.MeshBasicMaterial)torch.patch(material);
     resize();
     restart();
-     void avatar.select(avatarId).then(loaded=>{if(loaded)restart();});
+    void avatar.select(avatarId,graphicsQuality).then(loaded=>{if(loaded)restart();});
     void torch.load().then(restart);
     return {
       dispose, jump, use, reset, look,
@@ -499,11 +510,21 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
       getAvatarControls(){return {avatar:avatarId,perspective,cameraMode,shiftLock,prone:!!player.prone};},
       setShiftLock,
        async setAvatar(value:AvatarId){
-         const loaded=await avatar.select(value);
+         const loaded=await avatar.select(value,graphicsQuality);
          if(loaded)avatarId=value;
          restart();
          return loaded;
        },
+      async setGraphics(value:TrainGraphicsQuality){
+        if(value===graphicsQuality)return true;
+        const loaded=await avatar.select(avatarId,value);
+        if(!loaded)return false;
+        graphicsQuality=value;
+        torch.setQuality(value);
+        resize();
+        restart();
+        return true;
+      },
       setPerspective(value:"first"|"third"){perspective=value;restart();},
       setCameraMode(value:"orbit"|"aim"){cameraMode=value;restart();},
       toggleProne,
