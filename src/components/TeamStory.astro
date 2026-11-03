@@ -17,7 +17,7 @@ import MatchboxBrand from "./MatchboxBrand.astro";
       <div class="flex-1 flex flex-col gap-3.5 order-2 lg:order-1">
         <p class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-muted-text">TAP A LABEL TO FLIP</p>
         <div class="mbox theme">
-          <div class="label ticket" data-flip tabindex="0" aria-label="Syndication team label, activate to flip">
+          <div class="label ticket" data-flip tabindex="0" role="button" aria-expanded="false" aria-label="Syndication team label, activate to flip">
             <div class="inner" style="--paper:#1d1428;--ink:#f7f2fa;--second:#a869db">
               <div class="face front">
                 <svg class="m" style="--mw:64px" viewBox="0 0 120 90" aria-hidden="true">
@@ -38,7 +38,7 @@ import MatchboxBrand from "./MatchboxBrand.astro";
         </div>
 
         <div class="mbox theme">
-          <div class="label tin" data-flip tabindex="0" aria-label="0bscuri7y team label, activate to flip">
+          <div class="label tin" data-flip tabindex="0" role="button" aria-expanded="false" aria-label="0bscuri7y team label, activate to flip">
             <div class="inner" style="--paper:#1d1428;--ink:#f7f2fa;--second:#a869db">
               <div class="face front">
                 <i class="screw a"></i><i class="screw b"></i><i class="screw c"></i><i class="screw d"></i>
@@ -94,6 +94,7 @@ import MatchboxBrand from "./MatchboxBrand.astro";
     const front = card.querySelector(".front") as HTMLElement | null;
     const syncBack = () => {
       const on = card.classList.contains("flip");
+      card.setAttribute("aria-expanded", String(on));
       if (back) {
         back.setAttribute("aria-hidden", String(!on));
         if ("inert" in back) (back as HTMLElement & { inert: boolean }).inert = !on;
@@ -109,6 +110,7 @@ import MatchboxBrand from "./MatchboxBrand.astro";
     card.addEventListener("click", toggle);
     card.addEventListener("keydown", (e) => {
       const ke = e as KeyboardEvent;
+      if (ke.target instanceof Element && ke.target.closest("a")) return;
       if (ke.key !== "Enter" && ke.key !== " ") return;
       ke.preventDefault();
       card.classList.toggle("flip");
