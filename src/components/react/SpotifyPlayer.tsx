@@ -71,6 +71,18 @@ export default function SpotifyPlayer({ covers }: Props) {
   const [audioError, setAudioError] = useState(false);
   const [trackIdx, setTrackIdx] = useState(0);
   const [seen, setSeen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const playButtonRef = useRef<HTMLButtonElement | null>(null);
+  const restoreFocusRef = useRef(false);
+  const hasPlayedRef = useRef(false);
+
+  useEffect(() => {
+    if (expanded && document.activeElement === triggerRef.current) playButtonRef.current?.focus();
+    else if (!expanded && restoreFocusRef.current) {
+      restoreFocusRef.current = false;
+      triggerRef.current?.focus();
+    }
+  }, [expanded]);
 
   const deckRef = useRef<(HTMLAudioElement | null)[]>([null, null]);
   const activeRef = useRef(0);
@@ -162,7 +174,7 @@ export default function SpotifyPlayer({ covers }: Props) {
 
   const primeStandby = (nextIdx: number) => {
     const s = standbyDeck();
-    if (!s || nextIdx < 0 || TRACKS[nextIdx]?.portrait) return;
+    if (!s || !hasPlayedRef.current || nextIdx < 0 || TRACKS[nextIdx]?.portrait) return;
     nextIdxRef.current = nextIdx;
     s.pause();
     s.volume = 0;
@@ -436,7 +448,7 @@ export default function SpotifyPlayer({ covers }: Props) {
       const el = e.currentTarget as HTMLAudioElement;
       if (el !== activeDeck()) return;
       setCurrent(el.currentTime);
-      if (crossfadeRef.current || TRACKS[idxRef.current]?.portrait) return;
+      if (el.paused || crossfadeRef.current || TRACKS[idxRef.current]?.portrait) return;
       const nxt = peekNext();
       if (nextIdxRef.current !== nxt) {
         primeStandby(nxt);
@@ -488,6 +500,11 @@ export default function SpotifyPlayer({ covers }: Props) {
       if (el !== activeDeck()) return;
       setPlaying(!el.paused);
     };
+    const onPlaying = (e: Event) => {
+      if (e.currentTarget !== activeDeck()) return;
+      hasPlayedRef.current = true;
+      if (!TRACKS[idxRef.current]?.portrait && nextIdxRef.current < 0) primeStandby(peekNext());
+    };
     const onDeckError = (e: Event) => {
       const el = e.currentTarget as HTMLAudioElement;
       const slug = el.dataset.slug || "";
@@ -512,6 +529,7 @@ export default function SpotifyPlayer({ covers }: Props) {
       d?.addEventListener("durationchange", onLoaded);
       d?.addEventListener("ended", onEnded);
       d?.addEventListener("play", onPlayState);
+      d?.addEventListener("playing", onPlaying);
       d?.addEventListener("pause", onPlayState);
       d?.addEventListener("error", onDeckError);
     });
@@ -583,7 +601,6 @@ export default function SpotifyPlayer({ covers }: Props) {
         posRef.current = 1;
         setDeckSrc(a, TRACKS[queue[0]].slug);
         selectTrack(queue[0]);
-        primeStandby(queue[1] ?? peekNext());
       }
     };
     if (document.readyState === "complete") {
@@ -603,6 +620,7 @@ export default function SpotifyPlayer({ covers }: Props) {
         d?.removeEventListener("durationchange", onLoaded);
         d?.removeEventListener("ended", onEnded);
         d?.removeEventListener("play", onPlayState);
+        d?.removeEventListener("playing", onPlaying);
         d?.removeEventListener("pause", onPlayState);
         d?.removeEventListener("error", onDeckError);
       });
