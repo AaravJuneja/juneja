@@ -800,14 +800,14 @@ html.js [data-reveal][data-in] > * {
   height: 140px;
   background: linear-gradient(to bottom, transparent, var(--color-background));
 }
-.mirror-glass.mirror-flicker {
+#night-mirror.mirror-flicker {
   animation: mirror-flicker 0.5s steps(2, end) infinite;
 }
 @keyframes mirror-flicker {
   0%, 100% { filter: brightness(1); }
   50% { filter: brightness(1.6); }
 }
-.mirror-glass.mirror-shatter {
+#night-mirror.mirror-shatter {
   animation: mirror-shatter 0.5s steps(3, end);
 }
 @keyframes mirror-shatter {
@@ -818,8 +818,8 @@ html.js [data-reveal][data-in] > * {
   100% { transform: translate(0, 0); filter: brightness(1); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .mirror-glass.mirror-flicker,
-  .mirror-glass.mirror-shatter {
+  #night-mirror.mirror-flicker,
+  #night-mirror.mirror-shatter {
     animation: none;
   }
 }
