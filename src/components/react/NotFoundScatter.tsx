@@ -195,7 +195,7 @@ export default function NotFoundScatter() {
         <div className="flex items-center gap-6">
           <ScrambleLink href="/">RETURN HOME</ScrambleLink>
           <span className="text-line">/</span>
-          <ScrambleLink href="/#writeups">VIEW WRITEUPS</ScrambleLink>
+          <ScrambleLink href="/writeups">VIEW WRITEUPS</ScrambleLink>
           <span className="text-line">/</span>
           <ScrambleLink href="/journey">VIEW JOURNEY</ScrambleLink>
         </div>
