@@ -16,8 +16,9 @@ import { createTrainEquipment, type EquipmentEvent } from "./trainEquipment";
 import { STEP_SOUNDS, stepStride, type StrideState, type TrainSound } from "./trainAudio";
 import { createRadioNotes } from "./trainRadioNotes";
 import type { RadioSpatialFrame } from "./radioSpatialAudio";
-import { advanceTrainTiming,dampTrainHeading,resetTrainTiming,TRAIN_SIMULATION_STEP,type TrainTimingState } from "./trainTiming";
+import { advanceTrainTiming,dampTrainHeading,resetTrainTiming,trainWorldSpeed,TRAIN_SIMULATION_STEP,type TrainTimingState } from "./trainTiming";
 import {createTrainInteractionRegions,pickTrainInteraction} from "./trainInteraction";
+import {createTrainHitboxes} from "./trainHitboxes";
 
 type Point = [number, number];
 export interface TrainActions {
@@ -110,12 +111,14 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
   let moving = false;
   let equipment:Awaited<ReturnType<typeof createTrainEquipment>>|undefined;
   let radioNotes:ReturnType<typeof createRadioNotes>|undefined;
+  let hitboxes:ReturnType<typeof createTrainHitboxes>|undefined;
   const stride:StrideState={travelled:0,last:-1};
   const dispose = () => {
     if (disposed) return;
     disposed = true;
     equipment?.dispose();
     radioNotes?.dispose();
+    hitboxes?.dispose();
     actions.radioSpatial?.(null);
     cancelAnimationFrame(frame);
     cancelAnimationFrame(hoverFrame);
@@ -225,6 +228,9 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
     let suspended = false;
     let inView = true;
     const timing:TrainTimingState={lastAt:NaN,remainder:0};
+    let worldSpeed=1;
+    let simulationTime=0;
+    let showHitboxes=false;
     let animationElapsed=0;
     let animationTravel=0;
     let distance = 0;
@@ -458,7 +464,7 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
       if (disposed || switching || !inView || document.hidden || suspended) return;
       const started=performance.now();
       const fresh=!Number.isFinite(timing.lastAt);
-      const steps=advanceTrainTiming(timing,now);
+      const steps=advanceTrainTiming(timing,now,worldSpeed);
       let strafe = Number(keys.has("KeyD"))-Number(keys.has("KeyA"))+touchX;
       let forward = Number(keys.has("KeyW"))-Number(keys.has("KeyS"))+touchZ;
       const turn = Number(keys.has("ArrowRight"))-Number(keys.has("ArrowLeft"));
@@ -468,6 +474,7 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
       let sprinting=!player.prone&&canSprint(sprint,keys.has("ControlLeft")||keys.has("ControlRight")||touchSprint,length>0);
       for(let i=0;i<steps;i++) {
         const delta=TRAIN_SIMULATION_STEP;
+        simulationTime+=delta*1000;
         yaw -= turn*delta*1.5;
         pitch = THREE.MathUtils.clamp(pitch+(Number(keys.has("ArrowUp"))-Number(keys.has("ArrowDown")))*delta, -1.15, 1.15);
         sprinting=!player.prone&&canSprint(sprint,keys.has("ControlLeft")||keys.has("ControlRight")||touchSprint,length>0);
@@ -536,8 +543,12 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
       camera.updateMatrixWorld();
       updateRadioSpatial(now);
       const shadowPending=torch.update(camera,avatar.getHandSocket(),perspective==="first",avatarVisible,torchOccluders,now,heading,locked);
-      const equipmentAnimating=equipment?.update(now,torch.getBeam(),torchOccluders,reducedMotion.matches)??false;
+      const equipmentAnimating=equipment?.update(simulationTime,torch.getBeam(),torchOccluders,reducedMotion.matches)??false;
       if(equipmentAnimating)hoverDirty=true;
+      if(showHitboxes) {
+        charmRegion.enabled=equipment?.getCharmBounds(charmRegion.bounds)??false;
+        hitboxes?.update(player,charmRegion);
+      }
       const radioAnimating=radioNotes?.update(now,reducedMotion.matches)??false;
       renderer.render(scene,camera);
       if(graphicsQuality==="low") {
@@ -563,7 +574,7 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
     const jump = () => { if (!suspended) { jumpPlayer(player); restart(); } };
     const activateEquipment = (name:string) => {
       if(!equipment)return false;
-      const event=equipment.activate(name);
+      const event=equipment.activate(name,simulationTime);
       if(event==="none")return false;
       hoverDirty=true;
       actions.equipment?.(event);
@@ -840,6 +851,16 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
         restart();
       },
       setPaused(value: boolean) { paused=value; restart(); },
+      setWorldSpeed(value:number) {
+        const next=trainWorldSpeed(value);
+        if(next===worldSpeed)return;
+        worldSpeed=next;resetTrainTiming(timing);animationElapsed=animationTravel=0;restart();
+      },
+      setHitboxes(value:boolean) {
+        showHitboxes=value;
+        if(value&&!hitboxes)hitboxes=createTrainHitboxes(scene,colliders,regions,interactive);
+        hitboxes?.setVisible(value);restart();
+      },
       setSuspended(value: boolean) { suspended=value; clearInput(); if(value) {shiftLock=false;releasePointer();} else if(shiftLock&&matchMedia("(pointer: fine)").matches)lockPointer(); requestHover(); restart(); },
       move(x: number,z: number) { touchX=x; touchZ=z; restart(); },
       lockPointer,

@@ -25,7 +25,7 @@ export const PRONE_HEIGHT=.66;
 export const PRONE_EYE_HEIGHT=.3;
 export const CRAWL_SPEED=.85;
 export const MAX_EXTERIOR_TRAVEL=48;
-const RADIUS=.16;
+export const RADIUS=.16;
 
 export function trainDrift(paused:boolean,outside:boolean,exteriorTravel:number) {
   return paused||outside&&exteriorTravel>=MAX_EXTERIOR_TRAVEL?0:1.6;
@@ -64,8 +64,8 @@ export function carriageStructure():CarriagePart[] {
   ];
 }
 
-const PRONE_RADIUS=.2;
-const PRONE_OFFSETS=[-.4,0,.4];
+export const PRONE_RADIUS=.2;
+export const PRONE_OFFSETS=[-.4,0,.4];
 const PRONE_SHIFTS=[0,-.1,.1,-.2,.2,-.3,.3,-.4,.4];
 type Bounds={min:[number,number];max:[number,number]};
 

@@ -45,6 +45,18 @@ test("quick controls are non-interactive main-screen hints",()=>{
   expect(template).toContain("settingsButton.hidden=!unlocked");
 });
 
+test("public simulation controls expose world speed and hitboxes without unlocking avatar settings",()=>{
+  const panel=dialog("simulation-panel");
+  expect(template).toContain('data-train-simulation type="button"');
+  expect(panel).toContain("World speed");expect(panel).toContain("Show hitboxes");
+  expect(panel).toContain('value="1" selected');
+  expect(panel).toContain('value="0.25"');expect(panel).toContain('value="3"');
+  expect(panel).toContain("Music stays at normal speed");
+  expect(template).toContain('worldSpeed.addEventListener("change",()=>session?.setWorldSpeed(Number(worldSpeed.value))');
+  expect(template).toContain('hitboxes.addEventListener("change",()=>session?.setHitboxes(hitboxes.checked)');
+  expect(scene).toContain("if(value&&!hitboxes)hitboxes=createTrainHitboxes");
+});
+
 test("private entry has no visible unlock dialog or public instructions",()=>{
   expect(template).not.toContain('id="unlock-panel"');
   expect(template).not.toContain("Unlock avatar");

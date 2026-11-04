@@ -31,6 +31,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       <button class="train-menu-button" data-train-catalog type="button" aria-haspopup="dialog" aria-controls="catalog-panel">Catalog</button>
       <button class="train-menu-button" data-train-graphics type="button" aria-label="Switch to high graphics" aria-pressed="false" disabled>High graphics</button>
       <button class="train-menu-button" data-train-sound type="button" aria-pressed="true">Sound on</button>
+      <button class="train-menu-button" data-train-simulation type="button" aria-haspopup="dialog" aria-controls="simulation-panel" disabled>Simulation</button>
       <button class="train-menu-button" data-train-settings type="button" aria-haspopup="dialog" aria-controls="settings-panel" hidden>Settings</button>
       <button class="train-menu-button" data-train-keys type="button" aria-haspopup="dialog" aria-controls="keys-panel">Keys</button>
     </nav>
@@ -102,6 +103,16 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
         <p class="train-avatar-status-inline" data-train-avatar-status-inline role="status" aria-live="polite" hidden></p>
       </div>
     </dialog>
+    <dialog id="simulation-panel" class="train-dialog" aria-labelledby="simulation-title">
+      <div class="train-panel">
+        <button class="train-close" data-close type="button" aria-label="Close simulation controls">×</button>
+        <h2 id="simulation-title" tabindex="-1">Simulation</h2>
+        <p class="train-lede">Speed up or slow down the train, movement, jumps and stamina. Music stays at normal speed.</p>
+        <label>World speed<select data-train-world-speed><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1× (normal)</option><option value="1.5">1.5×</option><option value="2">2×</option><option value="3">3×</option></select></label>
+        <label><input data-train-hitboxes type="checkbox" /> Show hitboxes</label>
+        <p class="train-lede">Amber: solid collisions. Cyan: clickable areas. Pink: your body.</p>
+      </div>
+    </dialog>
     <dialog id="keys-panel" class="train-dialog train-keys-dialog" aria-labelledby="keys-title">
       <div class="train-panel">
         <button class="train-close" data-close type="button" aria-label="Close keys">×</button>
@@ -171,6 +182,9 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     const graphicsButton=get<HTMLButtonElement>("graphics");
     const settingsButton=get<HTMLButtonElement>("settings");
     const keysButton=get<HTMLButtonElement>("keys");
+    const simulationButton=get<HTMLButtonElement>("simulation");
+    const worldSpeed=get<HTMLSelectElement>("world-speed");
+    const hitboxes=get<HTMLInputElement>("hitboxes");
     const stamina = get<HTMLElement>("stamina");
     const staminaFill = get<HTMLElement>("stamina-fill");
     const caseDialog = root.querySelector<HTMLDialogElement>("#travel-case")!;
@@ -179,6 +193,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     const catalogDialog = root.querySelector<HTMLDialogElement>("#catalog-panel")!;
     const settingsDialog=root.querySelector<HTMLDialogElement>("#settings-panel")!;
     const keysDialog=root.querySelector<HTMLDialogElement>("#keys-panel")!;
+    const simulationDialog=root.querySelector<HTMLDialogElement>("#simulation-panel")!;
     const radioDialog=root.querySelector<HTMLDialogElement>("#radio-panel")!;
     const lamp = get<HTMLSelectElement>("lamp");
     const lampOn = get<HTMLInputElement>("lamp-on");
@@ -201,7 +216,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       }
     };
     const privateInput=get<HTMLInputElement>("private-input");
-    const dialogs = [caseDialog,lampDialog,notebookDialog,catalogDialog,settingsDialog,keysDialog,radioDialog];
+    const dialogs = [caseDialog,lampDialog,notebookDialog,catalogDialog,settingsDialog,keysDialog,simulationDialog,radioDialog];
     const lamps = new Map<string,{enabled:boolean;color:string}>();
     let session: Awaited<ReturnType<typeof import("../lib/trainScene").mountTrainScene>> | undefined;
     let request: AbortController | undefined;
@@ -456,6 +471,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       root.dataset.live = "false";
       syncAmbience();
       graphicsButton.disabled=true;
+      simulationButton.disabled=true;
       syncGraphicsButton();
     };
     const fallback = () => {
@@ -503,6 +519,9 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
         graphicsQuality=session.getGraphics();
         syncGraphicsButton();
         graphicsButton.disabled=false;
+        simulationButton.disabled=false;
+        session.setWorldSpeed(Number(worldSpeed.value));
+        session.setHitboxes(hitboxes.checked);
         session.setDay(morning);
         syncMotion();
         for (const [name,state] of lamps) session.setLamp(name,state.enabled,state.color);
@@ -550,6 +569,9 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       if(button?.dataset.trainObject)activate(button.dataset.trainObject);
     },{signal:events.signal});
     keysButton.addEventListener("click",()=>openDialog(keysDialog),{signal:events.signal});
+    simulationButton.addEventListener("click",()=>openDialog(simulationDialog),{signal:events.signal});
+    worldSpeed.addEventListener("change",()=>session?.setWorldSpeed(Number(worldSpeed.value)),{signal:events.signal});
+    hitboxes.addEventListener("change",()=>session?.setHitboxes(hitboxes.checked),{signal:events.signal});
     const clearHold = () => {
       if (holdTimer !== undefined) window.clearTimeout(holdTimer);
       holdTimer = undefined;

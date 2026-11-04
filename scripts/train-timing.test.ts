@@ -1,7 +1,7 @@
 import {describe,expect,test} from "bun:test";
-import {advanceTrainTiming,dampTrainHeading,resetTrainTiming,TRAIN_MAX_CATCHUP,TRAIN_SIMULATION_STEP,type TrainTimingState} from "../src/lib/trainTiming";
+import {advanceTrainTiming,dampTrainHeading,resetTrainTiming,trainWorldSpeed,TRAIN_MAX_CATCHUP,TRAIN_SIMULATION_STEP,type TrainTimingState} from "../src/lib/trainTiming";
 import {trainFrameDue,type TrainGraphicsQuality} from "../src/lib/trainGraphics";
-import {CRAWL_SPEED,SPRINT_SPEED,WALK_SPEED,stepPlayer,type PlayerState} from "../src/lib/trainPhysics";
+import {CRAWL_SPEED,SPRINT_SPEED,WALK_SPEED,jumpPlayer,stepPlayer,type PlayerState} from "../src/lib/trainPhysics";
 import {stepSprint,type SprintState} from "../src/lib/trainSprint";
 
 const clock=():TrainTimingState=>({lastAt:NaN,remainder:0});
@@ -44,7 +44,7 @@ describe("active train simulation timing",()=>{
     expect(advanceTrainTiming(state,60_009)).toBe(1);
   });
 
-  const simulate=(fps:number,quality:TrainGraphicsQuality,speed:number,stall=false)=>{
+  const simulate=(fps:number,quality:TrainGraphicsQuality,speed:number,stall=false,worldSpeed=1)=>{
     const timing=clock(),pacer={nextAt:NaN};
     const player:PlayerState={x:0,z:0,feet:0,velocityY:0,grounded:true};
     const sprint:SprintState={energy:1,cooldown:0,exhausted:false};
@@ -55,7 +55,7 @@ describe("active train simulation timing",()=>{
       const now=i*1000/fps;
       if(stall&&now>100&&now<300)continue;
       const fresh=!Number.isFinite(timing.lastAt);
-      const count=advanceTrainTiming(timing,now);
+      const count=advanceTrainTiming(timing,now,worldSpeed);
       for(let step=0;step<count;step++) {
         const moved=stepPlayer(player,speed*TRAIN_SIMULATION_STEP,0,TRAIN_SIMULATION_STEP,[],bounds,world);
         stepSprint(sprint,speed===SPRINT_SPEED&&moved>0,TRAIN_SIMULATION_STEP);
@@ -93,6 +93,47 @@ describe("active train simulation timing",()=>{
     expect(stalled.position).toBeCloseTo(regular.position,10);
     expect(stalled.energy).toBeCloseTo(regular.energy,10);
     expect(stalled.animationElapsed).toBeCloseTo(regular.animationElapsed,10);
+  });
+
+  test("world speed scales all movement and stamina without changing physics steps or graphics pacing",()=>{
+    for(const worldSpeed of [.25,.5,1,1.5,2,3])for(const fps of [5,30,60,144])for(const quality of ["low","high"] as const) {
+      for(const speed of [WALK_SPEED,SPRINT_SPEED,CRAWL_SPEED]) {
+        const result=simulate(fps,quality,speed,false,worldSpeed);
+        expect(result.steps).toBe(120*worldSpeed);
+        expect(result.position).toBeCloseTo(speed*worldSpeed,9);
+        expect(result.animationElapsed).toBeCloseTo(worldSpeed,9);
+        expect(result.energy).toBeCloseTo(speed===SPRINT_SPEED?1-worldSpeed/4.5:1,9);
+      }
+    }
+  });
+
+  test("world speed is bounded and long frames remain bounded at maximum speed",()=>{
+    expect(trainWorldSpeed(NaN)).toBe(1);expect(trainWorldSpeed(Infinity)).toBe(1);
+    expect(trainWorldSpeed(-1)).toBe(.25);expect(trainWorldSpeed(100)).toBe(3);
+    const state=clock();advanceTrainTiming(state,0,3);
+    expect(advanceTrainTiming(state,60_000,3)).toBe(90);
+    expect(advanceTrainTiming(state,60_000,3)).toBe(0);
+  });
+
+  test("faster worlds preserve jump height and collision accuracy while scaling train travel",()=>{
+    let referencePeak=0;
+    for(const worldSpeed of [.25,.5,1,1.5,2,3]) {
+      const timing=clock(),player:PlayerState={x:0,z:0,feet:0,velocityY:0,grounded:true};
+      const bounds={min:[-10,-10] as [number,number],max:[10,10] as [number,number]};
+      const world={groundHeight:()=>0,ceilingHeight:()=>Infinity,driftZ:0};
+      let peak=0,travel=0;
+      jumpPlayer(player);
+      for(let i=0;i<=120;i++) {
+        const steps=advanceTrainTiming(timing,i*1000/60,worldSpeed);
+        for(let step=0;step<steps;step++) {
+          stepPlayer(player,0,0,TRAIN_SIMULATION_STEP,[],bounds,world);
+          peak=Math.max(peak,player.feet);travel+=1.6*TRAIN_SIMULATION_STEP;
+        }
+      }
+      if(!referencePeak)referencePeak=peak;
+      expect(peak).toBeCloseTo(referencePeak,10);
+      expect(travel).toBeCloseTo(3.2*worldSpeed,10);
+    }
   });
 });
 
