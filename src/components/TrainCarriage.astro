@@ -103,6 +103,10 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
         <p class="train-avatar-status-inline" data-train-avatar-status-inline role="status" aria-live="polite" hidden></p>
       </div>
     </dialog>
+    <dialog id="charm-scare" class="train-scare-dialog" aria-label="Charm surprise">
+      <video data-train-scare-video muted playsinline preload="none" aria-hidden="true"></video>
+      <button class="train-menu-button train-scare-close" data-close type="button" aria-label="Close surprise">Close</button>
+    </dialog>
     <dialog id="simulation-panel" class="train-dialog" aria-labelledby="simulation-title">
       <div class="train-panel">
         <button class="train-close" data-close type="button" aria-label="Close simulation controls">×</button>
@@ -194,6 +198,8 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     const settingsDialog=root.querySelector<HTMLDialogElement>("#settings-panel")!;
     const keysDialog=root.querySelector<HTMLDialogElement>("#keys-panel")!;
     const simulationDialog=root.querySelector<HTMLDialogElement>("#simulation-panel")!;
+    const scareDialog=root.querySelector<HTMLDialogElement>("#charm-scare")!;
+    const scareVideo=get<HTMLVideoElement>("scare-video");
     const radioDialog=root.querySelector<HTMLDialogElement>("#radio-panel")!;
     const lamp = get<HTMLSelectElement>("lamp");
     const lampOn = get<HTMLInputElement>("lamp-on");
@@ -216,7 +222,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       }
     };
     const privateInput=get<HTMLInputElement>("private-input");
-    const dialogs = [caseDialog,lampDialog,notebookDialog,catalogDialog,settingsDialog,keysDialog,simulationDialog,radioDialog];
+    const dialogs = [caseDialog,lampDialog,notebookDialog,catalogDialog,settingsDialog,keysDialog,simulationDialog,scareDialog,radioDialog];
     const lamps = new Map<string,{enabled:boolean;color:string}>();
     let session: Awaited<ReturnType<typeof import("../lib/trainScene").mountTrainScene>> | undefined;
     let request: AbortController | undefined;
@@ -333,6 +339,8 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     const equipmentEvent=(event:EquipmentEvent)=>{
       announce(EQUIPMENT_MESSAGES[event]);
       if(event!=="none")audio.play(EQUIPMENT_SOUNDS[event]);
+      if(event==="open")prepareScare();
+      if(event==="charm")showScare();
     };
     root.addEventListener("pointerdown",()=>audio.unlock(),{capture:true,signal:events.signal});
     root.addEventListener("keydown",()=>audio.unlock(),{capture:true,signal:events.signal});
@@ -381,6 +389,21 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       if(dialog===catalogDialog)syncCatalog();
       if(dialog===settingsDialog) {syncSettings();void refreshAccess();}
     };
+    const prepareScare=()=>{
+      if(scareVideo.getAttribute("src"))return;
+      scareVideo.poster="/train/charm-scare.webp";
+      scareVideo.src="/train/charm-scare.mp4";
+      scareVideo.preload="auto";scareVideo.load();
+    };
+    const showScare=()=>{
+      if(blindActive||scareDialog.open||dialogs.some(panel=>panel.open))return;
+      prepareScare();scareVideo.currentTime=0;scareVideo.muted=true;scareVideo.controls=false;
+      openDialog(scareDialog);
+      void scareVideo.play().catch(()=>{if(scareDialog.open)scareVideo.controls=true;});
+    };
+    scareVideo.addEventListener("ended",()=>closeDialog(scareDialog),{signal:events.signal});
+    scareDialog.addEventListener("close",()=>{scareVideo.pause();scareVideo.currentTime=0;},{signal:events.signal});
+    scareDialog.addEventListener("click",event=>{if(event.target===scareVideo)closeDialog(scareDialog);},{signal:events.signal});
     const endBlindInput=()=>{
       if(blindTimer!==undefined)window.clearTimeout(blindTimer);
       blindTimer=undefined;
@@ -462,6 +485,9 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       session?.setDay(morning);
     };
     const stop = () => {
+      scareVideo.pause();
+      if(scareDialog.open)scareDialog.close();
+      scareVideo.removeAttribute("src");scareVideo.removeAttribute("poster");scareVideo.load();
       blindRequest?.abort();
       endBlindInput();
       request?.abort();
@@ -640,7 +666,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     privateInput.addEventListener("input",()=>{if(blindActive)resetBlindTimer();},{signal:events.signal});
     privateInput.addEventListener("blur",endBlindInput,{signal:events.signal});
     window.addEventListener("blur",()=>{endBlindInput();blindRequest?.abort();},{signal:events.signal});
-    document.addEventListener("visibilitychange",()=>{if(document.hidden){endBlindInput();blindRequest?.abort();}},{signal:events.signal});
+    document.addEventListener("visibilitychange",()=>{if(document.hidden){endBlindInput();blindRequest?.abort();if(scareDialog.open)closeDialog(scareDialog);}},{signal:events.signal});
     for (const dialog of dialogs) {
       dialog.querySelector("[data-close]")?.addEventListener("click",()=>closeDialog(dialog),{signal:events.signal});
       dialog.addEventListener("click",event=>{if(event.target===dialog)closeDialog(dialog);},{signal:events.signal});
@@ -690,6 +716,16 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
   .train-interest p,.train-repository p,.train-repository a,.radio-track,[data-train-radio-info] { user-select:text;-webkit-user-select:text; }
   .train-panel select:focus-visible,.train-panel input:focus-visible { outline:2px solid var(--train-accent);outline-offset:2px; }
   .train-dialog::backdrop { background:rgb(8 5 14 / 70%); }
+  .train-scare-dialog { position:fixed;inset:0;margin:0;padding:0;width:100vw;height:100dvh;max-width:none;max-height:none;border:0;background:#000;overflow:hidden; }
+  .train-scare-dialog::backdrop { background:#000; }
+  .train-scare-dialog video { position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transform-origin:50% 50%; }
+  .train-scare-dialog[open] video { animation:charm-scare-in 180ms cubic-bezier(.12,.8,.2,1) both; }
+  .train-scare-close { position:absolute;z-index:1;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right)); }
+  @keyframes charm-scare-in { from { opacity:0;transform:scale(0); } to { opacity:1;transform:scale(1); } }
+  @media (prefers-reduced-motion:reduce) {
+    .train-scare-dialog[open] video { animation:charm-scare-fade 120ms linear both; }
+    @keyframes charm-scare-fade { from { opacity:0; } to { opacity:1; } }
+  }
   .train-panel { position:relative;padding:clamp(20px,5vw,36px);font:400 16px/1.6 Outfit,sans-serif; }
   .train-panel h2 { margin:0 44px 12px 0;font:600 clamp(26px,5vw,32px)/1.15 Outfit,sans-serif; }
   .train-close { position:absolute;right:12px;top:12px;font-size:25px; }

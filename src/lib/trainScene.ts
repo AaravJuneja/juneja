@@ -19,6 +19,7 @@ import type { RadioSpatialFrame } from "./radioSpatialAudio";
 import { advanceTrainTiming,dampTrainHeading,resetTrainTiming,trainWorldSpeed,TRAIN_SIMULATION_STEP,type TrainTimingState } from "./trainTiming";
 import {createTrainInteractionRegions,pickTrainInteraction} from "./trainInteraction";
 import {createTrainHitboxes} from "./trainHitboxes";
+import {createTrainMedia} from "./trainMedia";
 
 type Point = [number, number];
 export interface TrainActions {
@@ -112,6 +113,7 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
   let equipment:Awaited<ReturnType<typeof createTrainEquipment>>|undefined;
   let radioNotes:ReturnType<typeof createRadioNotes>|undefined;
   let hitboxes:ReturnType<typeof createTrainHitboxes>|undefined;
+  let media:ReturnType<typeof createTrainMedia>|undefined;
   const stride:StrideState={travelled:0,last:-1};
   const dispose = () => {
     if (disposed) return;
@@ -119,6 +121,7 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
     equipment?.dispose();
     radioNotes?.dispose();
     hitboxes?.dispose();
+    media?.dispose();
     actions.radioSpatial?.(null);
     cancelAnimationFrame(frame);
     cancelAnimationFrame(hoverFrame);
@@ -166,6 +169,9 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
     scene.add(gltf.scene);
     gltf.scene.updateMatrixWorld(true);
     gltf.scene.traverse(object=>{object.matrixAutoUpdate=false;});
+    media=createTrainMedia(scene,signal,()=>requestRender());
+    const originalSky=meshes.find(mesh=>mesh.name==="sky");
+    if(originalSky)originalSky.visible=false;
     const tint=new THREE.Color();
     const part=(geometry:THREE.BufferGeometry,position:[number,number,number],color:string,tilt=0)=>{
       geometry.deleteAttribute("normal");geometry.deleteAttribute("uv");
@@ -550,6 +556,7 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
         hitboxes?.update(player,charmRegion);
       }
       const radioAnimating=radioNotes?.update(now,reducedMotion.matches)??false;
+      const mediaAnimating=media?.update(simulationTime,reducedMotion.matches)??false;
       renderer.render(scene,camera);
       if(graphicsQuality==="low") {
         const scale=adaptiveGraphics.scale;
@@ -559,7 +566,7 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
       cancelAnimationFrame(hoverFrame);hoverFrame=0;
       updateHover();
       moving = length > 0 || keys.size > 0 || !player.grounded || sprint.energy<1;
-      if (drift || moving || animating || shadowPending || equipmentAnimating || radioAnimating) frame = requestAnimationFrame(render);
+      if (drift || moving || animating || shadowPending || equipmentAnimating || radioAnimating || mediaAnimating) frame = requestAnimationFrame(render);
       else updateRadioSpatial(now,true);
     };
     const restart = () => {
@@ -830,6 +837,7 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
         updateSky();
         environment?.setDay(morning);
         islandSign?.setDay(morning);
+        media?.setDay(morning);
         equipment?.setDay(morning);
         avatarAmbient.intensity=morning?2.8:2;
         avatarKey.intensity=morning?2.5:2.2;
@@ -838,7 +846,7 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
           if (mesh.name.startsWith("NT_R02_Lamp")) continue;
           const material=mesh.material as THREE.MeshBasicMaterial;
           material.color.copy(baseColors.get(material)!).multiply(tint);
-          if (mesh.name === "sky") mesh.visible=!morning;
+          if (mesh.name === "sky") mesh.visible=false;
         }
         for(const group of forest)(group.mesh.material as THREE.MeshBasicMaterial).color.copy(group.color).multiplyScalar(morning?1.6:1);
         restart();
