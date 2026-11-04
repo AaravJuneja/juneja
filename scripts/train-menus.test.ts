@@ -64,9 +64,9 @@ test("avatar selection has its own settings menu",()=>{
   expect(template).toContain("data-train-settings");
 });
 
-test("the keyboard guide documents movement and gameplay controls without manual action toggles",()=>{
+test("the keyboard guide keeps less obvious controls without repeating the on-screen hints",()=>{
   const keys=dialog("keys-panel");
-  for(const [key,description] of [["W A S D","Walk"],["Control","Sprint"],["C","Crawl or stand"],["Shift","Toggle shift lock"],["V","First or third person"],["O","Free orbit or character aim"],["Space","Jump; press again to double jump"],["E","Interact"],["Q","Toggle torch"],["M","Open catalog"],["Home","Return to your seat"],["Esc","Release mouse lock or close a menu"]]) {
+  for(const [key,description] of [["Shift","Toggle shift lock"],["V","First or third person"],["O","Free orbit or character aim"],["Space","Jump; press again to double jump"],["E","Interact"],["Home","Return to your seat"],["Esc","Release mouse lock or close a menu"]]) {
     expect(keys).toContain(`<kbd>${key}</kbd></dt><dd>${description}</dd>`);
   }
   expect(keys).not.toMatch(/<(?:input|select)\b/);
@@ -75,7 +75,8 @@ test("the keyboard guide documents movement and gameplay controls without manual
   expect(keys).not.toContain("<h3");
   expect(keys).not.toMatch(/<kbd>[WASD↑↓←→]<\/kbd>/);
   expect(keys).toContain("<kbd>E</kbd></dt><dd>Interact</dd>");
-  expect(keys.match(/<kbd>/g)).toHaveLength(12);
+  for(const key of ["W A S D","Control","C","Q","M"])expect(keys).not.toContain(`<kbd>${key}</kbd>`);
+  expect(keys.match(/<kbd>/g)).toHaveLength(7);
   expect(template).toContain("data-train-keys");
 });
 
