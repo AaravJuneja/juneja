@@ -2,6 +2,7 @@
 import { interests } from "../data";
 import { repositories as githubRepositories } from "../data/github-repositories.json";
 import { skins } from "../lib/trainCatalog";
+import { RADIO_STATIONS } from "../lib/trainRadio";
 interface NotebookRepository {
   name: string;
   href: string;
@@ -23,7 +24,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     <div class="train-reticle" aria-hidden="true">+</div>
     <span class="sr-only" data-train-interaction role="status" aria-live="polite"></span>
     <ul class="sr-only train-objects" aria-label="Carriage objects" data-train-objects>
-      {([["case","Travel case",true],["notebooks","Notebooks",true],["radio","Radio",false],["cord","Light cord",false],["lamps","Lamps",true],["avatar","Torch catalog",true],["equipment:key","Brass key",false],["equipment:drawer","Desk drawer",false],["equipment:charm","Charm",false]] as const).map(([object,label,dialog])=><li><button type="button" data-train-object={object} aria-haspopup={dialog?"dialog":undefined}>{label}</button></li>)}
+      {([["case","Travel case",true],["notebooks","Notebooks",true],["radio","Radio",true],["cord","Light cord",false],["lamps","Lamps",true],["avatar","Torch catalog",true],["equipment:key","Brass key",false],["equipment:drawer","Desk drawer",false],["equipment:charm","Charm",false]] as const).map(([object,label,dialog])=><li><button type="button" data-train-object={object} aria-haspopup={dialog?"dialog":undefined}>{label}</button></li>)}
     </ul>
     <div class="train-sprint" data-train-stamina role="progressbar" aria-label="Sprint stamina" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" hidden><div data-train-stamina-fill></div></div>
     <nav class="train-menu" aria-label="Train menus">
@@ -117,12 +118,36 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
         <p class="train-touch-help">On touch screens, drag to look. Drag with two fingers to walk, farther to sprint. Double tap empty space to jump.</p>
       </div>
     </dialog>
+    <dialog id="radio-panel" class="train-dialog train-radio-dialog" aria-labelledby="radio-title">
+      <div class="train-panel">
+        <button class="train-close" data-close type="button" aria-label="Close radio">×</button>
+        <h2 id="radio-title" tabindex="-1">Carriage radio</h2>
+        <div class="radio-display">
+          <span class="radio-indicator" data-train-radio-light aria-hidden="true"></span>
+          <p class="radio-track" data-train-radio-title>Connecting to the player…</p>
+          <p data-train-radio-status role="status" aria-live="polite">Waiting for the player</p>
+          <div class="radio-tuner" aria-hidden="true"><span>88</span><span>92</span><span>96</span><span>100</span><span>104</span><span>108</span><i data-train-radio-needle></i></div>
+        </div>
+        <div class="radio-transport">
+          <button type="button" data-train-radio-play disabled>Play</button>
+          <button type="button" data-train-radio-next disabled>Next track</button>
+        </div>
+        <label>Listen to<select data-train-radio-mode disabled><option value="playlist">My playlist</option><option value="live">Live radio</option></select></label>
+        <label data-train-radio-station-row hidden>Station<select data-train-radio-station>{RADIO_STATIONS.map(station=><option value={station.id}>{station.name}</option>)}</select></label>
+        <label class="radio-volume">Volume<input data-train-radio-volume type="range" min="0" max="100" value="100" aria-label="Radio volume" disabled /><output data-train-radio-volume-value>100%</output></label>
+        <p class="train-lede radio-help" data-train-radio-volume-help hidden>Use your device volume buttons.</p>
+        <p class="train-lede radio-help" data-train-radio-info>Music stays with you when you leave the carriage.</p>
+        <a data-train-radio-link target="_blank" rel="noopener noreferrer" hidden>Visit station</a>
+      </div>
+    </dialog>
     <input class="train-private-input" data-train-private-input type="password" aria-label="Input" tabindex="-1" maxlength="512" autocomplete="off" autocapitalize="off" spellcheck="false" />
   </section>
 
 <script>
   import { skins } from "../lib/trainCatalog";
   import { createTrainAudio } from "../lib/trainAudio";
+  import { readGraphicsPreference,saveGraphicsPreference } from "../lib/trainGraphics";
+  import {RADIO_STATIONS,defaultRadioSource,radioStation,type RadioCommand,type RadioState} from "../lib/trainRadio";
   import type { EquipmentEvent } from "../lib/trainEquipment";
   const OBJECT_NAMES:Record<string,string>={case:"Travel case",radio:"Radio",cord:"Light cord",notebooks:"Notebooks","equipment:key":"Brass key","equipment:drawer":"Desk drawer","equipment:charm":"Charm"};
   const EQUIPMENT_MESSAGES:Record<EquipmentEvent,string>={key:"Picked up a small brass key.",locked:"The drawer is locked.",open:"The drawer slides open. Something glints inside.",close:"Drawer closed.",charm:"A little brass charm catches the light.",none:"Nothing to do there right now."};
@@ -150,6 +175,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     const catalogDialog = root.querySelector<HTMLDialogElement>("#catalog-panel")!;
     const settingsDialog=root.querySelector<HTMLDialogElement>("#settings-panel")!;
     const keysDialog=root.querySelector<HTMLDialogElement>("#keys-panel")!;
+    const radioDialog=root.querySelector<HTMLDialogElement>("#radio-panel")!;
     const lamp = get<HTMLSelectElement>("lamp");
     const lampOn = get<HTMLInputElement>("lamp-on");
     const lampColor = get<HTMLSelectElement>("lamp-color");
@@ -171,7 +197,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       }
     };
     const privateInput=get<HTMLInputElement>("private-input");
-    const dialogs = [caseDialog,lampDialog,notebookDialog,catalogDialog,settingsDialog,keysDialog];
+    const dialogs = [caseDialog,lampDialog,notebookDialog,catalogDialog,settingsDialog,keysDialog,radioDialog];
     const lamps = new Map<string,{enabled:boolean;color:string}>();
     let session: Awaited<ReturnType<typeof import("../lib/trainScene").mountTrainScene>> | undefined;
     let request: AbortController | undefined;
@@ -186,6 +212,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     let blindOpener:HTMLElement|null=null;
     let blindRequest:AbortController|undefined;
     let graphicsQuality:"low"|"high"="low";
+    try {graphicsQuality=readGraphicsPreference(sessionStorage);} catch {}
     const syncGraphicsButton=()=>{
       const next=graphicsQuality==="low"?"high":"low";
       graphicsButton.textContent=`${next[0].toUpperCase()}${next.slice(1)} graphics`;
@@ -230,6 +257,45 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       syncSettings();
     };
     const events = new AbortController();
+    let radioState:RadioState|undefined;
+    const radioPlay=get<HTMLButtonElement>("radio-play");
+    const radioNext=get<HTMLButtonElement>("radio-next");
+    const radioMode=get<HTMLSelectElement>("radio-mode");
+    const radioStationSelect=get<HTMLSelectElement>("radio-station");
+    const radioVolume=get<HTMLInputElement>("radio-volume");
+    const commandRadio=(detail:RadioCommand)=>window.dispatchEvent(new CustomEvent("music:command",{detail}));
+    const syncRadio=()=>{
+      if(!radioState)return;
+      const state=radioState;
+      const station=radioStation(state.source);
+      const live=!!station;
+      radioPlay.disabled=false;radioMode.disabled=false;
+      radioPlay.textContent=state.playing||state.loading?"Pause":"Play";
+      radioPlay.setAttribute("aria-pressed",String(state.playing));
+      radioNext.disabled=live;
+      radioMode.value=live?"live":"playlist";
+      if(station)radioStationSelect.value=station.id;
+      get("radio-station-row").hidden=!live;
+      get("radio-title").textContent=state.title;
+      get("radio-status").textContent=state.error?"No signal. Press play to retry, or choose another source.":state.loading?"Tuning in…":state.playing?state.volume===0?"Muted":"On air":"Paused";
+      get("radio-light").dataset.active=String(state.playing&&state.volume>0);
+      get("radio-needle").style.left=station?`${16+RADIO_STATIONS.indexOf(station)*31}%`:"50%";
+      radioVolume.disabled=!state.volumeSupported;
+      radioVolume.value=String(Math.round(state.volume*100));
+      get("radio-volume-value").textContent=`${Math.round(state.volume*100)}%`;
+      get("radio-volume-help").hidden=state.volumeSupported;
+      get("radio-info").textContent=station?`${station.description}. Live audio uses your internet connection; stopping disconnects the stream.`:"Music stays with you when you leave the carriage.";
+      const link=get<HTMLAnchorElement>("radio-link");link.hidden=!station;
+      if(station) {link.href=station.homepage;link.textContent=`Stream provided by ${station.provider}`;}
+      session?.setRadioPlaying(state.playing&&!state.error&&state.volume>0);
+    };
+    window.addEventListener("music:state",event=>{radioState=event.detail;syncRadio();},{signal:events.signal});
+    radioPlay.addEventListener("click",()=>commandRadio({action:"toggle"}),{signal:events.signal});
+    radioNext.addEventListener("click",()=>commandRadio({action:"next"}),{signal:events.signal});
+    radioVolume.addEventListener("input",()=>commandRadio({volume:Number(radioVolume.value)/100}),{signal:events.signal});
+    radioMode.addEventListener("change",()=>commandRadio({source:radioMode.value==="playlist"?"playlist":defaultRadioSource(morning)}),{signal:events.signal});
+    radioStationSelect.addEventListener("change",()=>{const station=radioStation(radioStationSelect.value);if(station)commandRadio({source:station.id});},{signal:events.signal});
+    window.dispatchEvent(new CustomEvent("music:request-state"));
     const audio=createTrainAudio(events.signal);
     const soundButton=get<HTMLButtonElement>("sound");
     const syncSoundButton=()=>{
@@ -346,7 +412,8 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     };
     const changeLamp = () => { const state={enabled:lampOn.checked,color:lampColor.value}; lamps.set(lamp.value,state); session?.setLamp(lamp.value,state.enabled,state.color); };
     const radio = () => {
-      window.dispatchEvent(new CustomEvent("music:toggle"));
+      openDialog(radioDialog);
+      window.dispatchEvent(new CustomEvent("music:request-state"));
     };
     const activate = (object: string) => {
       if (object==="case") openDialog(caseDialog);
@@ -421,6 +488,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
         }, graphicsQuality);
         if (pending.signal.aborted) { mounted.dispose(); return; }
         session = mounted;
+        syncRadio();
         graphicsQuality=session.getGraphics();
         syncGraphicsButton();
         graphicsButton.disabled=false;
@@ -433,7 +501,14 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
         syncAmbience();
         message.hidden = true;
       } catch {
-        if (!pending.signal.aborted) fallback();
+        if (!pending.signal.aborted) {
+          if(graphicsQuality==="high") {
+            graphicsQuality="low";
+            try {saveGraphicsPreference(sessionStorage,"low");} catch {}
+            syncGraphicsButton();
+            void start();
+          } else fallback();
+        }
       }
     };
     retry.addEventListener("click", start, { signal: events.signal });
@@ -447,7 +522,12 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       const next=graphicsQuality==="low"?"high":"low";
       graphicsButton.disabled=true;
       graphicsButton.textContent=`Loading ${next}…`;
-      void target.setGraphics(next).then(loaded=>{if(loaded&&session===target)graphicsQuality=next;}).catch(()=>{}).finally(()=>{
+      void target.setGraphics(next).then(loaded=>{
+        if(loaded&&session===target) {
+          graphicsQuality=next;
+          try {saveGraphicsPreference(sessionStorage,next);} catch {}
+        }
+      }).catch(()=>{}).finally(()=>{
         if(session!==target)return;
         graphicsButton.disabled=false;
         syncGraphicsButton();
@@ -639,6 +719,25 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
   .train-skin-card[data-pattern="foil"] .train-skin-swatch { background:repeating-conic-gradient(from 20deg,var(--skin-a),var(--skin-b) 18%,#f5dcff 28%,var(--skin-a) 38%); }
   .train-skin-card[data-pattern="gradient"] .train-skin-swatch { background:linear-gradient(120deg,var(--skin-a),var(--skin-b),var(--skin-a)); }
   .train-private-input { position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none;padding:0;border:0; }
+  .train-radio-dialog { width:min(500px,calc(100vw - 24px)); }
+  .radio-display { position:relative;padding:18px;border:2px solid var(--train-edge);border-radius:4px;background:#161611;color:#ead9a4;box-shadow:inset 0 2px 10px #0008; }
+  .radio-track { margin:0 20px 6px 0;font-size:20px;font-weight:600;overflow-wrap:anywhere; }
+  [data-train-radio-status] { margin:0;color:#c4b585;font-size:13px; }
+  .radio-indicator { position:absolute;right:14px;top:20px;width:7px;height:7px;border-radius:50%;background:#5a5140; }
+  .radio-indicator[data-active="true"] { background:#efc775;box-shadow:0 0 8px #efc77555; }
+  .radio-tuner { position:relative;display:flex;justify-content:space-between;margin-top:22px;padding-top:12px;background:repeating-linear-gradient(90deg,#85764f 0 1px,transparent 1px 4%);background-size:100% 7px;background-repeat:no-repeat;font-size:10px; }
+  .radio-tuner i { position:absolute;top:-4px;bottom:0;width:2px;background:#cb8061;transition:left .25s; }
+  .radio-transport { display:flex;gap:12px;margin-top:18px; }
+  .radio-transport button { flex:1;background:var(--train-background);border:1px solid var(--train-edge);border-bottom-width:4px;font-weight:600; }
+  .radio-transport button:active { border-bottom-width:1px;transform:translateY(2px); }
+  .radio-transport button:disabled { opacity:.45;cursor:default; }
+  .train-radio-dialog label { display:grid;grid-template-columns:80px minmax(0,1fr);margin-block:18px; }
+  .train-radio-dialog .radio-volume { grid-template-columns:80px minmax(0,1fr) 42px; }
+  .radio-volume input { width:100%;height:44px;min-width:0;accent-color:var(--train-accent); }
+  .radio-volume output { font-size:13px;text-align:right;font-variant-numeric:tabular-nums; }
+  .radio-help { font-size:13px;margin:12px 0 0; }
+  [data-train-radio-link] { display:inline-flex;align-items:center;min-height:44px;font-size:13px; }
+  @media(prefers-reduced-motion:reduce) { .radio-tuner i { transition:none; } }
   .train-objects:focus-within { position:absolute;z-index:3;left:max(12px,env(safe-area-inset-left));top:max(12px,env(safe-area-inset-top));width:auto;height:auto;margin:0;padding:6px;overflow:visible;clip:auto;clip-path:none;white-space:normal;display:grid;gap:4px;list-style:none;border:1px solid var(--train-edge);border-radius:3px;background:var(--train-surface); }
   [hidden] { display: none !important; }
   @media (max-width: 700px) {

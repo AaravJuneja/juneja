@@ -1,5 +1,21 @@
 import {expect,test} from "bun:test";
 import {stepAdaptiveGraphics,trainFrameBudget,trainFrameDue,trainGraphicsProfile,trainPowerPreference} from "../src/lib/trainGraphics";
+import {GRAPHICS_STORAGE_KEY,readGraphicsPreference,saveGraphicsPreference} from "../src/lib/trainGraphics";
+
+test("graphics preference survives tab-session reloads and ignores invalid or blocked storage",()=>{
+  const values=new Map<string,string>();
+  const storage={getItem:(key:string)=>values.get(key)??null,setItem:(key:string,value:string)=>{values.set(key,value);}};
+  expect(readGraphicsPreference(storage)).toBe("low");
+  saveGraphicsPreference(storage,"high");
+  expect(readGraphicsPreference(storage)).toBe("high");
+  expect(values.get(GRAPHICS_STORAGE_KEY)).toBe("high");
+  saveGraphicsPreference(storage,"low");
+  expect(readGraphicsPreference(storage)).toBe("low");
+  storage.setItem(GRAPHICS_STORAGE_KEY,"ultra");
+  expect(readGraphicsPreference(storage)).toBe("low");
+  expect(readGraphicsPreference({getItem:()=>{throw new Error("blocked");}})).toBe("low");
+  expect(()=>saveGraphicsPreference({setItem:()=>{throw new Error("blocked");}},"high")).not.toThrow();
+});
 
 test("low graphics caps render and texture resolution and skips torch shadows",()=>{
   expect(trainGraphicsProfile("low",1920,1080,2)).toEqual({

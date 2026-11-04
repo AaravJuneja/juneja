@@ -1,4 +1,11 @@
 export type TrainGraphicsQuality="low"|"high";
+export const GRAPHICS_STORAGE_KEY="train-graphics";
+export function readGraphicsPreference(storage:Pick<Storage,"getItem">):TrainGraphicsQuality {
+  try {return storage.getItem(GRAPHICS_STORAGE_KEY)==="high"?"high":"low";} catch {return "low";}
+}
+export function saveGraphicsPreference(storage:Pick<Storage,"setItem">,quality:TrainGraphicsQuality) {
+  try {storage.setItem(GRAPHICS_STORAGE_KEY,quality);} catch {}
+}
 export interface AdaptiveGraphicsState {scale:number;slowFrames:number;fastFrames:number;}
 
 const FRAME_SLACK_MS=2;

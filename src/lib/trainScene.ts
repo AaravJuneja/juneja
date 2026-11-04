@@ -14,6 +14,7 @@ import { fetchTrainModel } from "./trainAsset";
 import { parseTrainManifest } from "./trainManifest";
 import { createTrainEquipment, type EquipmentEvent } from "./trainEquipment";
 import { STEP_SOUNDS, stepStride, type StrideState, type TrainSound } from "./trainAudio";
+import { createRadioNotes } from "./trainRadioNotes";
 
 type Point = [number, number];
 export interface TrainActions {
@@ -104,11 +105,13 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
   const keys = new Set<string>();
   let moving = false;
   let equipment:Awaited<ReturnType<typeof createTrainEquipment>>|undefined;
+  let radioNotes:ReturnType<typeof createRadioNotes>|undefined;
   const stride:StrideState={travelled:0,last:-1};
   const dispose = () => {
     if (disposed) return;
     disposed = true;
     equipment?.dispose();
+    radioNotes?.dispose();
     cancelAnimationFrame(frame);
     cancelAnimationFrame(hoverFrame);
     observer?.disconnect();
@@ -369,6 +372,8 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
       environment?.patchMaterials(material=>torch.patch(material));
     };
     patchMaterials();
+    const radioMesh=meshes.find(mesh=>mesh.name==="radio");
+    if(radioMesh)radioNotes=createRadioNotes(scene,radioMesh);
     void createTrainEquipment(scene,signal).then(loaded=>{
       if(disposed) {loaded.dispose();return;}
       equipment=loaded;
@@ -494,6 +499,7 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
       camera.updateMatrixWorld();
       const shadowPending=torch.update(camera,avatar.getHandSocket(),perspective==="first",avatarVisible,torchOccluders,now,heading,locked);
       const equipmentAnimating=equipment?.update(now,torch.getBeam(),torchOccluders,reducedMotion.matches)??false;
+      const radioAnimating=radioNotes?.update(now,reducedMotion.matches)??false;
       renderer.render(scene,camera);
       if(graphicsQuality==="low") {
         const scale=adaptiveGraphics.scale;
@@ -503,7 +509,7 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
       cancelAnimationFrame(hoverFrame);hoverFrame=0;
       updateHover();
       moving = length > 0 || keys.size > 0 || !player.grounded || sprint.energy<1;
-      if (drift || moving || animating || shadowPending || equipmentAnimating) frame = requestAnimationFrame(render);
+      if (drift || moving || animating || shadowPending || equipmentAnimating || radioAnimating) frame = requestAnimationFrame(render);
     };
     const restart = () => {
       if(disposed||switching||!inView||document.hidden||suspended) {cancelAnimationFrame(frame);frame=0;last=0;return;}
@@ -728,6 +734,7 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
       getPosition(){return {x:player.x,y:player.feet+(player.prone?PRONE_EYE_HEIGHT:EYE_HEIGHT),z:player.z,grounded:player.grounded};},
       getAvatarControls(){return {avatar:avatarId,perspective,cameraMode,shiftLock,prone:!!player.prone};},
       getGraphics(){return graphicsQuality;},
+      setRadioPlaying(value:boolean){radioNotes?.setPlaying(value);restart();},
       activateEquipment,
       getEquipmentState(){return equipment?.getState();},
       setShiftLock,

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import {RADIO_STATIONS,radioStation,radioVolume,type RadioSource} from "../../lib/trainRadio";
 
 type Props = {
   covers: {
@@ -71,6 +72,21 @@ export default function SpotifyPlayer({ covers }: Props) {
   const [audioError, setAudioError] = useState(false);
   const [trackIdx, setTrackIdx] = useState(0);
   const [seen, setSeen] = useState(false);
+  const [source,setSource]=useState<RadioSource>("playlist");
+  const [volume,setVolume]=useState(1);
+  const [livePlaying,setLivePlaying]=useState(false);
+  const [liveLoading,setLiveLoading]=useState(false);
+  const [liveError,setLiveError]=useState(false);
+  const [volumeSupported,setVolumeSupported]=useState(true);
+  const sourceRef=useRef<RadioSource>("playlist");
+  const volumeRef=useRef(1);
+  const liveRef=useRef<HTMLAudioElement|null>(null);
+  const liveWanted=useRef(false);
+  const portraitRadioStash=useRef<{source:RadioSource;playing:boolean}|null>(null);
+  const sourceGeneration=useRef(0);
+  const liveTimeout=useRef<number|undefined>(undefined);
+  const playlistGeneration=useRef(0);
+  const gains=useRef(new WeakMap<HTMLAudioElement,number>());
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const playButtonRef = useRef<HTMLButtonElement | null>(null);
   const restoreFocusRef = useRef(false);
@@ -88,6 +104,8 @@ export default function SpotifyPlayer({ covers }: Props) {
   const activeRef = useRef(0);
   const fadeTimerRef = useRef<number | null>(null);
   const fadeRafRef = useRef<number | null>(null);
+  const fadeGeneration=useRef(0);
+  const fadePending=useRef(false);
   const volLockedRef = useRef(false);
   const crossfadeRef = useRef<{ out: number; startTime: number } | null>(null);
   const barRef = useRef<HTMLDivElement | null>(null);
@@ -110,6 +128,66 @@ export default function SpotifyPlayer({ covers }: Props) {
   const activeDeck = () => deckRef.current[activeRef.current] ?? null;
   const standbyDeck = () => deckRef.current[1 - activeRef.current] ?? null;
   const selectTrack = (idx:number) => {idxRef.current=idx;setTrackIdx(idx);};
+  const deckVolume=(deck:HTMLAudioElement,gain:number)=>{
+    gains.current.set(deck,gain);
+    deck.volume=gain*volumeRef.current;
+    deck.muted=volumeRef.current===0;
+  };
+  const changeVolume=(value:number)=>{
+    const next=radioVolume(value);
+    volumeRef.current=next;setVolume(next);
+    for(const deck of deckRef.current)if(deck)deckVolume(deck,gains.current.get(deck)??(deck===activeDeck()?1:0));
+    if(liveRef.current) {liveRef.current.volume=next;liveRef.current.muted=next===0;}
+    try {sessionStorage.setItem("radio-volume",String(next));} catch {}
+  };
+  const playLive=()=>{
+    const live=liveRef.current;
+    const station=radioStation(sourceRef.current);
+    if(!live||!station)return;
+    const generation=++sourceGeneration.current;
+    liveWanted.current=true;
+    setLiveError(false);setLiveLoading(true);
+    window.clearTimeout(liveTimeout.current);
+    liveTimeout.current=window.setTimeout(()=>{
+      if(generation!==sourceGeneration.current||!liveWanted.current)return;
+      stopLive();setLiveError(true);
+    },15000);
+    if(live.getAttribute("src")!==station.url||live.error) {live.src=station.url;live.load();}
+    live.volume=volumeRef.current;live.muted=volumeRef.current===0;
+    void live.play().catch((error:unknown)=>{
+      if(generation!==sourceGeneration.current||!liveWanted.current)return;
+      window.clearTimeout(liveTimeout.current);
+      liveWanted.current=false;setLiveLoading(false);setLivePlaying(false);
+      if(!(error instanceof DOMException&&error.name==="AbortError"))setLiveError(true);
+    });
+  };
+  const stopLive=()=>{
+    window.clearTimeout(liveTimeout.current);
+    sourceGeneration.current++;liveWanted.current=false;
+    const live=liveRef.current;
+    if(live) {live.pause();live.removeAttribute("src");live.load();}
+    setLivePlaying(false);setLiveLoading(false);
+  };
+  const changeSource=(next:RadioSource)=>{
+    if(next===sourceRef.current||next!=="playlist"&&!radioStation(next))return;
+    if(isClaimed()&&next!=="playlist")portraitRadioStash.current=null;
+    const resume=sourceRef.current==="playlist"?playRef.current:liveWanted.current;
+    cancelFade();playRef.current=false;activeDeck()?.pause();
+    stopLive();sourceRef.current=next;setSource(next);setLiveError(false);
+    if(resume) {
+      if(next==="playlist")toggleRef.current();
+      else playLive();
+    }
+  };
+  const playPlaylist=(deck:HTMLAudioElement,started?:()=>void)=>{
+    const generation=++playlistGeneration.current;
+    void deck.play().then(()=>{
+      if(generation===playlistGeneration.current&&playRef.current&&deck===activeDeck()&&sourceRef.current==="playlist")started?.();
+    }).catch((error:unknown)=>{
+      if(generation!==playlistGeneration.current||!playRef.current||deck!==activeDeck()||sourceRef.current!=="playlist"||error instanceof DOMException&&error.name==="AbortError")return;
+      playRef.current=false;setPlaying(false);setAudioError(true);
+    });
+  };
 
   const takeNext = (currentIdx: number) => {
     let q = queueRef.current;
@@ -145,7 +223,7 @@ export default function SpotifyPlayer({ covers }: Props) {
   const setDeckSrc = (deck: HTMLAudioElement | null, slug: string) => {
     if (!deck) return;
     const ext = canOpus(deck) ? "webm" : "mp3";
-    if (deck.dataset.slug === slug && deck.dataset.ext === ext) return;
+    if (deck.dataset.slug === slug && deck.dataset.ext === ext && deck.getAttribute("src")) return;
     deck.dataset.slug = slug;
     deck.dataset.ext = ext;
     deck.dataset.fallback = "";
@@ -154,6 +232,8 @@ export default function SpotifyPlayer({ covers }: Props) {
   };
 
   const cancelFade = () => {
+    playlistGeneration.current++;
+    fadeGeneration.current++;fadePending.current=false;
     if (fadeTimerRef.current !== null) {
       window.clearInterval(fadeTimerRef.current);
       fadeTimerRef.current = null;
@@ -165,19 +245,19 @@ export default function SpotifyPlayer({ covers }: Props) {
     crossfadeRef.current = null;
     const a = activeDeck();
     const s = standbyDeck();
-    if (a) a.volume = 1;
+    if (a) deckVolume(a,1);
     if (s) {
       if (!s.paused) s.pause();
-      s.volume = 0;
+      deckVolume(s,0);
     }
   };
 
   const primeStandby = (nextIdx: number) => {
     const s = standbyDeck();
-    if (!s || !hasPlayedRef.current || nextIdx < 0 || TRACKS[nextIdx]?.portrait) return;
+    if (!s || sourceRef.current!=="playlist" || !hasPlayedRef.current || nextIdx < 0 || TRACKS[nextIdx]?.portrait) return;
     nextIdxRef.current = nextIdx;
     s.pause();
-    s.volume = 0;
+    deckVolume(s,0);
     s.preload = "auto";
     setDeckSrc(s, TRACKS[nextIdx].slug);
   };
@@ -188,9 +268,9 @@ export default function SpotifyPlayer({ covers }: Props) {
       fadeRafRef.current = null;
       if (deck !== activeDeck() || deck.paused) return;
       const p = Math.min(1, (performance.now() - t0) / (secs * 1000));
-      deck.volume = Math.sin((p * Math.PI) / 2);
+      deckVolume(deck,Math.sin((p * Math.PI) / 2));
       if (p < 1) fadeRafRef.current = window.requestAnimationFrame(step);
-      else if (deck === activeDeck()) deck.volume = 1;
+      else if (deck === activeDeck()) deckVolume(deck,1);
     };
     if (fadeRafRef.current !== null) window.cancelAnimationFrame(fadeRafRef.current);
     fadeRafRef.current = window.requestAnimationFrame(step);
@@ -206,12 +286,12 @@ export default function SpotifyPlayer({ covers }: Props) {
     const finishedIdx = nextIdxRef.current;
     crossfadeRef.current = null;
     nextIdxRef.current = -1;
-    if (finishedIdx < 0 || !s) return;
+    if (finishedIdx < 0 || !s || s.paused) return;
     if (a) {
       a.pause();
-      a.volume = 1;
+      deckVolume(a,1);
     }
-    s.volume = 1;
+    deckVolume(s,1);
     activeRef.current = 1 - activeRef.current;
     playRef.current = true;
     setPlaying(true);
@@ -226,20 +306,19 @@ export default function SpotifyPlayer({ covers }: Props) {
     const a = activeDeck();
     const s = standbyDeck();
     const nextIdx = nextIdxRef.current;
-    if (!a || !s || nextIdx < 0 || crossfadeRef.current) return;
+    if (!a || !s || nextIdx < 0 || crossfadeRef.current || fadePending.current || sourceRef.current!=="playlist") return;
     if (!s.duration || TRACKS[idxRef.current]?.portrait) return;
-    if (volLockedRef.current) {
-      s.volume = 1;
-      s.currentTime = 0;
-      s.play().catch(() => {});
-      finishFade();
-      return;
-    }
     const overlap = fadeInOf(TRACKS[nextIdx]?.slug || "");
-    crossfadeRef.current = { out: overlap, startTime: a.currentTime };
-    s.volume = 0;
+    const generation=++fadeGeneration.current;
+    fadePending.current=true;
+    if(volLockedRef.current)a.pause();
+    deckVolume(s,volLockedRef.current?1:0);
     s.currentTime = 0;
-    s.play().catch(() => {});
+    void s.play().then(()=>{
+      if(generation!==fadeGeneration.current||sourceRef.current!=="playlist"||s!==standbyDeck())return;
+      fadePending.current=false;
+      if(volLockedRef.current) {finishFade();return;}
+      crossfadeRef.current = { out: overlap, startTime: a.currentTime };
     fadeTimerRef.current = window.setInterval(() => {
       const cur = activeDeck();
       const nxt = standbyDeck();
@@ -251,13 +330,20 @@ export default function SpotifyPlayer({ covers }: Props) {
       }
       const elapsed = cur.currentTime - fade.startTime;
       const progress = Math.min(1, Math.max(0, elapsed / fade.out));
-      cur.volume = Math.cos((progress * Math.PI) / 2);
-      nxt.volume = Math.sin((progress * Math.PI) / 2);
+      deckVolume(cur,Math.cos((progress * Math.PI) / 2));
+      deckVolume(nxt,Math.sin((progress * Math.PI) / 2));
       if (progress >= 1) finishFade();
     }, 50);
+    }).catch(()=>{
+      if(generation!==fadeGeneration.current)return;
+      fadePending.current=false;crossfadeRef.current=null;
+      s.pause();deckVolume(s,0);
+      if(volLockedRef.current&&playRef.current)playPlaylist(a);
+    });
   };
 
   const advanceFrom = (fromIdx: number) => {
+    if(sourceRef.current!=="playlist")return;
     if(TRACKS[fromIdx]?.portrait&&isClaimed())return;
     cancelFade();
     setAudioError(false);
@@ -267,11 +353,11 @@ export default function SpotifyPlayer({ covers }: Props) {
     if (!incoming) return;
     if (outgoing) {
       outgoing.pause();
-      outgoing.volume = 1;
+      deckVolume(outgoing,1);
     }
     activeRef.current = 1 - activeRef.current;
     nextIdxRef.current = -1;
-    incoming.volume = 0;
+    deckVolume(incoming,0);
     incoming.preload = "auto";
     const same=incoming.dataset.slug===TRACKS[nxt].slug&&incoming.readyState>=1;
     setDeckSrc(incoming, TRACKS[nxt].slug);
@@ -280,10 +366,7 @@ export default function SpotifyPlayer({ covers }: Props) {
     setDuration(0);
     selectTrack(nxt);
     if (playRef.current) {
-      incoming.play().then(() => fadeInActive(incoming, fadeInOf(TRACKS[nxt]?.slug || ""))).catch(() => {
-        playRef.current = false;
-        setPlaying(false);
-      });
+      playPlaylist(incoming,()=>fadeInActive(incoming, fadeInOf(TRACKS[nxt]?.slug || "")));
     }
     primeStandby(peekNext());
   };
@@ -294,7 +377,7 @@ export default function SpotifyPlayer({ covers }: Props) {
     const a = activeDeck();
     if (!a) return;
     nextIdxRef.current = -1;
-    a.volume = 1;
+    deckVolume(a,1);
     a.preload = "auto";
     const same = a.dataset.slug === TRACKS[idx]?.slug && a.readyState >= 1;
     setDeckSrc(a, TRACKS[idx].slug);
@@ -313,19 +396,20 @@ export default function SpotifyPlayer({ covers }: Props) {
         }
       }
       if (playRef.current) {
-        a.play().catch(() => {
-          playRef.current = false;
-          setPlaying(false);
-        });
+        playPlaylist(a);
       }
     }
     primeStandby(peekNext());
   };
 
   const toggle = () => {
+    if(sourceRef.current!=="playlist") {
+      if(liveWanted.current)stopLive();else playLive();
+      return;
+    }
     const a = activeDeck();
-    if (!a || audioError) return;
-    if (!a.paused || crossfadeRef.current) {
+    if (!a) return;
+    if (!a.paused || crossfadeRef.current || fadePending.current || playRef.current) {
       cancelFade();
       playRef.current = false;
       a.pause();
@@ -334,26 +418,34 @@ export default function SpotifyPlayer({ covers }: Props) {
       advanceFrom(idxRef.current);
     } else {
       playRef.current = true;
-      if (!crossfadeRef.current && a.volume < 1) a.volume = 1;
+      if (!crossfadeRef.current) deckVolume(a,1);
+      setAudioError(false);
+      if(a.error) {a.dataset.fallback="";a.load();}
       playRef.current = true;
-      a.play().catch(() => {
-        playRef.current = false;
-        setAudioError(true);
-      });
+      playPlaylist(a);
     }
   };
 
   useEffect(() => {
     window.addEventListener("music:toggle", toggle);
-    return () => window.removeEventListener("music:toggle", toggle);
+    const command=(event:WindowEventMap["music:command"])=>{
+      const {source,volume,action}=event.detail;
+      if(source)changeSource(source);
+      if(typeof volume==="number")changeVolume(volume);
+      if(action==="toggle")toggle();
+      if(action==="next"&&sourceRef.current==="playlist")advanceFrom(idxRef.current);
+    };
+    window.addEventListener("music:command",command);
+    return () => {window.removeEventListener("music:toggle", toggle);window.removeEventListener("music:command",command);};
   }, [toggle]);
 
   useEffect(() => {
-    const report = () => window.dispatchEvent(new CustomEvent("music:state",{detail:{playing:playing&&!audioError,error:audioError}}));
+    const live=source!=="playlist";
+    const report = () => window.dispatchEvent(new CustomEvent("music:state",{detail:{playing:live?livePlaying:playing&&!audioError,error:live?liveError:audioError,loading:live&&liveLoading,volume,volumeSupported,source,title:live?radioStation(source)?.name??"Live radio":track.title}}));
     window.addEventListener("music:request-state",report);
     report();
     return () => window.removeEventListener("music:request-state",report);
-  },[playing,audioError,trackIdx]);
+  },[playing,audioError,trackIdx,source,livePlaying,liveLoading,liveError,volume,volumeSupported]);
 
   const fmt = (s: number) => {
     if (!isFinite(s) || isNaN(s)) return "0:00";
@@ -404,15 +496,16 @@ export default function SpotifyPlayer({ covers }: Props) {
 
   useEffect(() => {
     if (typeof navigator === "undefined" || !("mediaSession" in navigator)) return;
+    const station=radioStation(source);
     try {
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: track.title,
-        artist: track.portrait ? "LSPLASH" : "The Noise",
-        album: track.portrait ? "DOORS Original Game Soundtrack" : "The Noise",
-        artwork: [{ src: covers[track.cover].expanded, sizes: "88x88", type: "image/webp" }],
+        title: station?.name??track.title,
+        artist: station?station.provider:track.portrait ? "LSPLASH" : "The Noise",
+        album: station?"Live radio":track.portrait ? "DOORS Original Game Soundtrack" : "The Noise",
+        artwork: station?[]:[{ src: covers[track.cover].expanded, sizes: "88x88", type: "image/webp" }],
       });
-      navigator.mediaSession.setActionHandler("play", () => {if(activeDeck()?.paused)toggleRef.current();});
-      navigator.mediaSession.setActionHandler("pause", () => {if(activeDeck()?.paused===false)toggleRef.current();});
+      navigator.mediaSession.setActionHandler("play", () => {if(sourceRef.current!=="playlist"?!liveWanted.current:!playRef.current)toggleRef.current();});
+      navigator.mediaSession.setActionHandler("pause", () => {if(sourceRef.current!=="playlist"?liveWanted.current:playRef.current)toggleRef.current();});
       navigator.mediaSession.setActionHandler("previoustrack", () => {
         if(TRACKS[idxRef.current]?.portrait&&isClaimed())return;
         playRef.current = true;
@@ -424,6 +517,7 @@ export default function SpotifyPlayer({ covers }: Props) {
         advanceRef.current(idxRef.current);
       });
       navigator.mediaSession.setActionHandler("seekto", (d) => {
+        if(sourceRef.current!=="playlist")return;
         const t = (d as MediaSessionActionDetails).seekTime;
         const a = activeDeck();
         if (typeof t === "number" && a && isFinite(a.duration) && a.duration) {
@@ -432,12 +526,35 @@ export default function SpotifyPlayer({ covers }: Props) {
         }
       });
     } catch {}
-  }, [trackIdx]);
+  }, [trackIdx,source]);
 
   useEffect(()=>{
     if(!("mediaSession" in navigator))return;
-    try {navigator.mediaSession.playbackState=playing?"playing":"paused";} catch {}
-  },[playing]);
+    try {navigator.mediaSession.playbackState=(source==="playlist"?playing:livePlaying)?"playing":"paused";} catch {}
+  },[playing,livePlaying,source]);
+
+  useEffect(()=>{
+    const live=liveRef.current;
+    if(!live)return;
+    const playing=()=>{if(liveWanted.current) {window.clearTimeout(liveTimeout.current);setLivePlaying(true);setLiveLoading(false);setLiveError(false);}};
+    const waiting=()=>{if(liveWanted.current) {setLiveLoading(true);setLivePlaying(false);}};
+    const stopped=()=>{
+      if(!live.paused)return;
+      if(liveWanted.current) {
+        window.clearTimeout(liveTimeout.current);
+        sourceGeneration.current++;liveWanted.current=false;
+        live.removeAttribute("src");live.load();
+      }
+      setLivePlaying(false);setLiveLoading(false);
+    };
+    const failed=()=>{if(liveWanted.current&&(live.error||live.ended)) {stopLive();setLiveError(true);}};
+    live.addEventListener("playing",playing);live.addEventListener("waiting",waiting);live.addEventListener("pause",stopped);live.addEventListener("error",failed);live.addEventListener("ended",failed);
+    try {const saved=sessionStorage.getItem("radio-volume");if(saved!==null)changeVolume(Number(saved));} catch {}
+    return ()=>{
+      live.removeEventListener("playing",playing);live.removeEventListener("waiting",waiting);live.removeEventListener("pause",stopped);live.removeEventListener("error",failed);live.removeEventListener("ended",failed);
+      window.clearTimeout(liveTimeout.current);liveWanted.current=false;sourceGeneration.current++;live.pause();live.removeAttribute("src");live.load();
+    };
+  },[]);
 
   useEffect(() => {
     const decks = deckRef.current;
@@ -448,7 +565,7 @@ export default function SpotifyPlayer({ covers }: Props) {
       const el = e.currentTarget as HTMLAudioElement;
       if (el !== activeDeck()) return;
       setCurrent(el.currentTime);
-      if (el.paused || crossfadeRef.current || TRACKS[idxRef.current]?.portrait) return;
+      if (sourceRef.current!=="playlist" || el.paused || crossfadeRef.current || fadePending.current || TRACKS[idxRef.current]?.portrait) return;
       const nxt = peekNext();
       if (nextIdxRef.current !== nxt) {
         primeStandby(nxt);
@@ -475,11 +592,8 @@ export default function SpotifyPlayer({ covers }: Props) {
           setCurrent(t);
         }
       }
-      if (playRef.current && el.paused) {
-        el.play().catch(() => {
-          playRef.current = false;
-          setPlaying(false);
-        });
+      if (sourceRef.current==="playlist" && playRef.current && el.paused) {
+        playPlaylist(el);
       }
     };
     const onEnded = (e: Event) => {
@@ -497,11 +611,24 @@ export default function SpotifyPlayer({ covers }: Props) {
     };
     const onPlayState = (e: Event) => {
       const el = e.currentTarget as HTMLAudioElement;
-      if (el !== activeDeck()) return;
-      setPlaying(!el.paused);
+      if (el !== activeDeck()) {
+        if(e.type==="pause"&&el===standbyDeck()&&el.paused&&!el.ended&&crossfadeRef.current) {
+          playRef.current=false;cancelFade();activeDeck()?.pause();setPlaying(false);
+        }
+        return;
+      }
+      if(el.paused) {
+        if(e.type==="pause"&&el.readyState>=1&&!el.ended&&!fadePending.current) {
+          playRef.current=false;
+          cancelFade();
+        }
+        setPlaying(false);
+      }
     };
     const onPlaying = (e: Event) => {
       if (e.currentTarget !== activeDeck()) return;
+      if(sourceRef.current!=="playlist") {activeDeck()?.pause();return;}
+      setPlaying(true);
       hasPlayedRef.current = true;
       if (!TRACKS[idxRef.current]?.portrait && nextIdxRef.current < 0) primeStandby(peekNext());
     };
@@ -516,10 +643,7 @@ export default function SpotifyPlayer({ covers }: Props) {
       el.src = `/audio/${slug}.mp3`;
       el.load();
       if (el === activeDeck() && playRef.current) {
-        el.play().catch(() => {
-          playRef.current = false;
-          setPlaying(false);
-        });
+        playPlaylist(el);
       }
     };
 
@@ -536,6 +660,10 @@ export default function SpotifyPlayer({ covers }: Props) {
 
     const onClaimed = () => {
       if (PORTRAIT_IDX < 0) return;
+      if(sourceRef.current!=="playlist") {
+        portraitRadioStash.current={source:sourceRef.current,playing:liveWanted.current};
+        changeSource("playlist");
+      }
       const cur = idxRef.current;
       if (!TRACKS[cur]?.portrait && !stashRef.current) {
         stashRef.current = {
@@ -553,7 +681,7 @@ export default function SpotifyPlayer({ covers }: Props) {
       setCurrent(0);
       const a = activeDeck();
       if (a) {
-        a.volume = 1;
+        deckVolume(a,1);
         a.preload = "auto";
         setDeckSrc(a, TRACKS[PORTRAIT_IDX].slug);
       }
@@ -573,6 +701,9 @@ export default function SpotifyPlayer({ covers }: Props) {
       setCurrent(0);
       if(stash) {pendingSeekRef.current=stash.time;restoreTrack(stash.idx);}
       else restoreTrack(takeNext(-1));
+      const radioStash=portraitRadioStash.current;
+      portraitRadioStash.current=null;
+      if(radioStash) {playRef.current=radioStash.playing;changeSource(radioStash.source);}
     };
     window.addEventListener("portrait:claimed", onClaimed);
     window.addEventListener("portrait:cleared", onCleared);
@@ -588,7 +719,8 @@ export default function SpotifyPlayer({ covers }: Props) {
       } catch {
         volLockedRef.current = true;
       }
-      a.volume = 1;
+      deckVolume(a,1);
+      setVolumeSupported(!volLockedRef.current);
       a.preload = "metadata";
       if (isClaimed() && PORTRAIT_IDX >= 0) {
         queueRef.current = shufflePool(-1);
@@ -627,6 +759,11 @@ export default function SpotifyPlayer({ covers }: Props) {
     };
   }, []);
 
+  const station=radioStation(source);
+  const displayTitle=station?.name??track.title;
+  const displayPlaying=station?livePlaying:playing;
+  const displayError=station?liveError:audioError;
+  const radioArtwork=<svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="m6 9 15-5M5 10h18v14H5z" stroke="currentColor" strokeWidth="1.5"/><circle cx="11" cy="17" r="3" stroke="currentColor"/><path d="M17 15h3m-3 3h3m-3 3h3" stroke="currentColor"/></svg>;
   const pct = duration ? (current / duration) * 100 : 0;
 
   return (
@@ -645,7 +782,7 @@ export default function SpotifyPlayer({ covers }: Props) {
       className="relative shrink-0 transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none"
       style={{ width: expanded ? "min(340px, calc(100vw - 48px))" : "min(180px, calc(100vw - 48px))", height: 44 }}
     >
-      <span className="sr-only" aria-live="polite">{track.title}</span>
+      <span className="sr-only" aria-live="polite">{displayTitle}{displayError?". Playback unavailable. Try again.":""}</span>
       <button
         ref={triggerRef}
         type="button"
@@ -668,11 +805,11 @@ export default function SpotifyPlayer({ covers }: Props) {
         }}
       >
         <div className="w-7 h-7 rounded-full overflow-hidden border border-line shrink-0">
-          <img src={covers[track.cover].collapsed} draggable={false} alt="Album Art" width={28} height={28} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="lazy" decoding="async" />
+          {station?radioArtwork:<img src={covers[track.cover].collapsed} draggable={false} alt="Album Art" width={28} height={28} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="lazy" decoding="async" />}
         </div>
         <div className="flex flex-col min-w-0">
-          <span className="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-muted-text leading-none">Now Playing</span>
-          <span className="font-outfit font-medium text-[14px] text-text leading-none truncate tracking-[-0.003em]">{track.title}</span>
+          <span className="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-muted-text leading-none">{station?"Live radio":displayPlaying?"Now playing":"Paused"}</span>
+          <span className="font-outfit font-medium text-[14px] text-text leading-none truncate tracking-[-0.003em]">{displayTitle}</span>
         </div>
       </button>
 
@@ -705,33 +842,34 @@ export default function SpotifyPlayer({ covers }: Props) {
       >
         <div className="flex items-center gap-2.5">
           <div className="w-11 h-11 rounded-md overflow-hidden border border-line shrink-0 relative">
-            <img
+            {station?<span className="flex h-full items-center justify-center text-accent-soft">{radioArtwork}</span>:<img
               src={covers[track.cover].expanded}
               alt="Album Art"
               draggable={false}
               loading="lazy"
               decoding="async"
               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-            />
+            />}
             <div className="absolute inset-0 bg-accent/10 mix-blend-overlay" />
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-accent-soft">Now Playing</span>
-            <span className="font-outfit font-medium text-[14px] text-text truncate tracking-[-0.003em]">{track.title}</span>
+            <span className="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-accent-soft">{liveLoading?"Tuning in…":station?"Live radio":displayPlaying?"Now playing":"Paused"}</span>
+            <span className="font-outfit font-medium text-[14px] text-text truncate tracking-[-0.003em]">{displayTitle}</span>
           </div>
           <div className="flex items-end gap-0.5 h-3 ml-1 shrink-0" aria-hidden="true">
-            <span className={`w-0.5 bg-accent rounded-full origin-bottom ${playing ? "animate-bar-1 h-3" : ""}`} style={!playing ? { height: 6 } : undefined} />
-            <span className={`w-0.5 bg-accent rounded-full origin-bottom ${playing ? "animate-bar-2 h-3" : ""}`} style={!playing ? { height: 10 } : undefined} />
-            <span className={`w-0.5 bg-accent rounded-full origin-bottom ${playing ? "animate-bar-3 h-3" : ""}`} style={!playing ? { height: 7 } : undefined} />
+            <span className={`w-0.5 bg-accent rounded-full origin-bottom ${displayPlaying ? "animate-bar-1 h-3" : ""}`} style={!displayPlaying ? { height: 6 } : undefined} />
+            <span className={`w-0.5 bg-accent rounded-full origin-bottom ${displayPlaying ? "animate-bar-2 h-3" : ""}`} style={!displayPlaying ? { height: 10 } : undefined} />
+            <span className={`w-0.5 bg-accent rounded-full origin-bottom ${displayPlaying ? "animate-bar-3 h-3" : ""}`} style={!displayPlaying ? { height: 7 } : undefined} />
           </div>
+          {!station&&!track.portrait&&<button type="button" onClick={()=>advanceFrom(idxRef.current)} aria-label="Next track" className="ml-auto min-h-11 min-w-8 text-accent-soft">▸▏</button>}
           <button
             ref={playButtonRef}
             onClick={toggle}
-            aria-label={playing ? "Pause" : "Play"}
-            aria-pressed={playing}
+            aria-label={station&&liveWanted.current||displayPlaying ? "Pause" : "Play"}
+            aria-pressed={displayPlaying}
             className="ml-auto w-9 h-9 rounded-full bg-accent text-background flex items-center justify-center hover:brightness-110 active:scale-95 transition-all shrink-0"
           >
-            {playing ? (
+            {displayPlaying||liveLoading ? (
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="3" y="3" width="3" height="8" rx="1" fill="currentColor"/><rect x="8" y="3" width="3" height="8" rx="1" fill="currentColor"/></svg>
             ) : (
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="ml-0.5"><path d="M4 3L10 7L4 11V3Z" fill="currentColor"/></svg>
@@ -739,7 +877,7 @@ export default function SpotifyPlayer({ covers }: Props) {
           </button>
         </div>
 
-        <div className="flex flex-col gap-1.5">
+        {!station&&<div className="flex flex-col gap-1.5">
           <div
             ref={barRef}
             onPointerDown={(e) => {
@@ -771,10 +909,24 @@ export default function SpotifyPlayer({ covers }: Props) {
           <span>{fmt(current)}</span>
           <span>{fmt(duration)}</span>
         </div>
-        </div>
+        </div>}
+        <label className="flex items-center gap-3 text-sm text-muted-text">Source
+          <select aria-label="Music source" value={source} onChange={event=>changeSource(event.target.value as RadioSource)} className="min-h-11 min-w-0 flex-1 rounded border border-line bg-background px-2 text-text">
+            <option value="playlist">My playlist</option>
+            {RADIO_STATIONS.map(station=><option key={station.id} value={station.id}>{station.name} · live</option>)}
+          </select>
+        </label>
+        <label className="flex items-center gap-3 text-sm text-muted-text">Volume
+          <input aria-label="Music volume" type="range" min="0" max="100" value={Math.round(volume*100)} disabled={!volumeSupported} onChange={event=>changeVolume(Number(event.target.value)/100)} className="h-11 min-w-0 flex-1 accent-accent" />
+          <span className="w-9 text-right tabular-nums">{Math.round(volume*100)}%</span>
+        </label>
+        {!volumeSupported&&<p className="text-xs text-muted-text">Use your device volume buttons.</p>}
+        {station&&<a href={station.homepage} target="_blank" rel="noopener noreferrer" className="text-xs text-accent-soft underline">Stream provided by {station.provider}</a>}
+        {displayError&&<p role="status" className="text-xs text-muted-text">Could not play. Press play to retry, or choose another source.</p>}
       </div>
       <audio ref={(el) => { deckRef.current[0] = el; }} preload="metadata" style={{ display: "none" }} />
       <audio ref={(el) => { deckRef.current[1] = el; }} preload="metadata" style={{ display: "none" }} />
+      <audio ref={liveRef} preload="none" style={{display:"none"}} />
     </div>
   );
 }
