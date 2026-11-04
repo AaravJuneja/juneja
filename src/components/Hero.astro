@@ -5,12 +5,15 @@ import nightImg from "../assets/night.jpg";
 
 <section id="player" data-reveal class="w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-12 pt-10 pb-4 sm:pt-14 sm:pb-6 lg:pt-16 lg:pb-8">
   <div class="flex flex-col lg:flex-row lg:items-center gap-8 lg:gap-12">
-    <div class="flex-1 flex flex-col gap-7">
-      <h1 class="font-outfit font-semibold text-[clamp(3rem,4vw,4.5rem)] tracking-[-0.03em] leading-[1] text-text">hi, i’m aarav</h1>
-      <p class="font-outfit text-[clamp(19px,1.3vw,24px)] leading-[1.55] text-muted-text max-w-[42ch] tracking-[-0.005em]">i like figuring things out and trying whatever catches my attention</p>
+    <div class="contents lg:flex lg:flex-1 lg:flex-col lg:gap-12">
+      <div class="flex flex-col gap-7">
+        <h1 class="font-outfit font-semibold text-[clamp(3rem,4vw,4.5rem)] tracking-[-0.03em] leading-[1] text-text">hi, i’m aarav</h1>
+        <p class="font-outfit text-[clamp(19px,1.3vw,24px)] leading-[1.55] text-muted-text max-w-[42ch] tracking-[-0.005em]">i like figuring things out and trying whatever catches my attention</p>
+      </div>
+      <slot name="contact" />
     </div>
 
-    <div id="player-card" class="w-full max-w-[340px] mx-auto lg:mx-0 lg:w-[340px] lg:shrink-0 min-w-0">
+    <div id="player-card" class="order-2 w-full max-w-[340px] mx-auto lg:mx-0 lg:w-[340px] lg:shrink-0 min-w-0">
       <div id="night-mirror" class="relative w-full overflow-hidden outline-none focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2" role="button" tabindex="0" aria-label="Crescent moon portrait">
         <Image src={nightImg} alt="Pixel art of a crescent moon over a mountain range" width={340} height={340} densities={[1, 2]} sizes="(min-width: 1024px) clamp(340px, 25vw, 460px), 340px" class="w-full h-auto object-cover" loading="eager" decoding="async" fetchpriority="high" />
         <div id="night-refl" aria-hidden="true" class="absolute left-0 top-0 w-[19px] h-[19px] opacity-0 pointer-events-none will-change-transform">

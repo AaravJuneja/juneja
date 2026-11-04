@@ -16,9 +16,9 @@ import InlineContact from "../components/InlineContact.astro";
       <div class="hotel-fade"></div>
     </div>
     <div class="home-content relative">
-      <Hero />
-
-      <InlineContact />
+      <Hero>
+        <InlineContact slot="contact" embedded />
+      </Hero>
     </div>
   </div>
 

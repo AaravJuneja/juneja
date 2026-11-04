@@ -1,12 +1,14 @@
 ---
 import SocialLinks from "./SocialLinks.astro";
+interface Props {embedded?:boolean;}
+const {embedded=false}=Astro.props;
 ---
 
-<section id="contact" aria-labelledby="contact-title" class="mx-auto w-full max-w-[1280px] px-6 py-8 sm:px-10 lg:px-12">
+<section id="contact" aria-labelledby="contact-title" class={embedded?"order-3 w-full":"mx-auto w-full max-w-[1280px] px-6 py-8 sm:px-10 lg:px-12"}>
   <div class="contact-letter">
     <span class="contact-clip" aria-hidden="true"></span>
-    <h2 id="contact-title" tabindex="-1">leave a little hello.</h2>
-    <a class="contact-email" href="mailto:aarav.juneja2044@gmail.com">aarav.juneja2044@gmail.com <span aria-hidden="true">↗</span></a>
+    <h2 id="contact-title" tabindex="-1">leave a little hello</h2>
+    <a class="contact-email" href="mailto:aarav.juneja2044@gmail.com">aarav.juneja2044@gmail.com</a>
     <SocialLinks />
   </div>
 </section>
