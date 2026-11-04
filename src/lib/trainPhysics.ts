@@ -64,17 +64,69 @@ export function carriageStructure():CarriagePart[] {
   ];
 }
 
+const PRONE_RADIUS=.2;
+const PRONE_OFFSETS=[-.4,0,.4];
+const PRONE_SHIFTS=[0,-.1,.1,-.2,.2,-.3,.3,-.4,.4];
+type Bounds={min:[number,number];max:[number,number]};
+
 const overlaps=(x:number,z:number,box:CarriageCollider,radius=RADIUS)=>{
   const dx=x-Math.max(box.min[0],Math.min(x,box.max[0]));
   const dz=z-Math.max(box.min[1],Math.min(z,box.max[1]));
   return dx*dx+dz*dz<radius*radius;
 };
 
-const bodyOverlaps=(state:PlayerState,x:number,z:number,box:CarriageCollider)=>{
-  if(!state.prone)return overlaps(x,z,box);
-  const heading=state.heading??0;
-  return [-.4,0,.4].some(offset=>overlaps(x+Math.sin(heading)*offset,z+Math.cos(heading)*offset,box,.2));
+const circlePenetration=(x:number,z:number,box:CarriageCollider,radius:number)=>{
+  const dx=x-Math.max(box.min[0],Math.min(x,box.max[0]));
+  const dz=z-Math.max(box.min[1],Math.min(z,box.max[1]));
+  const squared=dx*dx+dz*dz;
+  if(squared>=radius*radius)return 0;
+  if(squared>0)return radius-Math.sqrt(squared);
+  return radius+Math.min(x-box.min[0],box.max[0]-x,z-box.min[1],box.max[1]-z);
 };
+
+function footprintPenetration(state:PlayerState,x:number,z:number,colliders:CarriageCollider[],height:number,heading=state.heading??0) {
+  const sin=Math.sin(heading),cos=Math.cos(heading);
+  let total=0;
+  for(const box of colliders) {
+    if(state.feet>=box.top-.015||state.feet+height<=box.bottom+.015)continue;
+    if(!state.prone) {total+=circlePenetration(x,z,box,RADIUS);continue;}
+    for(const offset of PRONE_OFFSETS)total+=circlePenetration(x+sin*offset,z+cos*offset,box,PRONE_RADIUS);
+  }
+  return total;
+}
+
+function blocked(state:PlayerState,x:number,z:number,height:number,bounds:Bounds,world?:MovementWorld) {
+  if(x<bounds.min[0]||x>bounds.max[0]||z<bounds.min[1]||z>bounds.max[1])return true;
+  if(world&&world.groundHeight(x,z)>state.feet+.22)return true;
+  return state.feet+height>(world?world.ceilingHeight(x,z):Math.abs(x)>1.24?2.35:2.61)+.01;
+}
+
+function canMove(state:PlayerState,x:number,z:number,height:number,colliders:CarriageCollider[],bounds:Bounds,world?:MovementWorld) {
+  if(blocked(state,x,z,height,bounds,world))return false;
+  const penetration=footprintPenetration(state,x,z,colliders,height);
+  return penetration===0||penetration<footprintPenetration(state,state.x,state.z,colliders,height)-1e-6;
+}
+
+export function lieDown(state:PlayerState,colliders:CarriageCollider[],bounds:Bounds,world?:MovementWorld) {
+  if(state.prone||!state.grounded)return false;
+  const heading=state.heading??0,sin=Math.sin(heading),cos=Math.cos(heading);
+  const prone={...state,prone:true};
+  for(const shift of PRONE_SHIFTS) {
+    const x=state.x+sin*shift,z=state.z+cos*shift;
+    if(blocked(prone,x,z,PRONE_HEIGHT,bounds,world)||footprintPenetration(prone,x,z,colliders,PRONE_HEIGHT,heading)>0)continue;
+    state.x=x;state.z=z;state.prone=true;
+    return true;
+  }
+  return false;
+}
+
+export function turnPlayer(state:PlayerState,heading:number,colliders:CarriageCollider[]) {
+  if(!state.prone||state.heading===undefined||heading===state.heading) {state.heading=heading;return true;}
+  const next=footprintPenetration(state,state.x,state.z,colliders,PRONE_HEIGHT,heading);
+  if(next>0&&next>footprintPenetration(state,state.x,state.z,colliders,PRONE_HEIGHT)+1e-6)return false;
+  state.heading=heading;
+  return true;
+}
 
 export function jumpPlayer(state:PlayerState) {
   if(state.prone)return false;
@@ -89,20 +141,14 @@ export function canStand(state:PlayerState,colliders:CarriageCollider[],ceiling=
   return state.feet+BODY_HEIGHT<=ceiling+.01&&!colliders.some(box=>state.feet<box.top-.015&&state.feet+BODY_HEIGHT>box.bottom+.015&&overlaps(state.x,state.z,box));
 }
 
-export function stepPlayer(state:PlayerState,dx:number,dz:number,elapsed:number,colliders:CarriageCollider[],bounds:{min:[number,number];max:[number,number]},world?:MovementWorld) {
+export function stepPlayer(state:PlayerState,dx:number,dz:number,elapsed:number,colliders:CarriageCollider[],bounds:Bounds,world?:MovementWorld) {
   const height=state.prone?PRONE_HEIGHT:BODY_HEIGHT;
   const steps=Math.max(1,Math.ceil(elapsed/(1/90)));
   const dt=elapsed/steps;
-  const canMove=(x:number,z:number)=>{
-    if(x<bounds.min[0]||x>bounds.max[0]||z<bounds.min[1]||z>bounds.max[1])return false;
-    if(world&&world.groundHeight(x,z)>state.feet+.22)return false;
-    if(state.feet+height>(world?world.ceilingHeight(x,z):Math.abs(x)>1.24?2.35:2.61)+.01)return false;
-    return !colliders.some(box=>state.feet<box.top-.015&&state.feet+height>box.bottom+.015&&bodyOverlaps(state,x,z,box));
-  };
   for(let step=0;step<steps;step++) {
-    if(canMove(state.x+dx/steps,state.z))state.x+=dx/steps;
+    if(dx&&canMove(state,state.x+dx/steps,state.z,height,colliders,bounds,world))state.x+=dx/steps;
     const travel=dz/steps+(state.transportZ??0)*dt;
-    if(canMove(state.x,state.z+travel))state.z+=travel;
+    if(travel&&canMove(state,state.x,state.z+travel,height,colliders,bounds,world))state.z+=travel;
     state.velocityY-=12*dt;
     const previous=state.feet;
     let next=previous+state.velocityY*dt;

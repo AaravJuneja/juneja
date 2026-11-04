@@ -1,5 +1,5 @@
 import { describe,expect,test } from "bun:test";
-import { BODY_HEIGHT,EYE_HEIGHT,MAX_EXTERIOR_TRAVEL,SPRINT_SPEED,WALK_SPEED,carriageStructure,exteriorMovementBounds,jumpPlayer,stepPlayer,trainDrift,type CarriageCollider,type MovementWorld,type PlayerState } from "../src/lib/trainPhysics";
+import { BODY_HEIGHT,EYE_HEIGHT,MAX_EXTERIOR_TRAVEL,SPRINT_SPEED,WALK_SPEED,carriageStructure,exteriorMovementBounds,jumpPlayer,lieDown,stepPlayer,trainDrift,turnPlayer,type CarriageCollider,type MovementWorld,type PlayerState } from "../src/lib/trainPhysics";
 import { terrainHeight,terrainSurfaceHeight } from "../src/lib/trainEnvironment";
 import {islandGroundLift,islandSurfaceHeight} from "../src/lib/trainLandmark";
 import scene from "../public/train/scene.json";
@@ -90,6 +90,60 @@ describe("carriage movement",()=>{
       const x=i*11-550,z=j*300/52-150;
       expect(terrainSurfaceHeight(x,z,300)).toBeCloseTo(terrainHeight(x,z,300),5);
     }
+  });
+});
+
+describe("lying flat beside walls",()=>{
+  const room={min:[-2,-2] as [number,number],max:[2,2] as [number,number]};
+  const wall:CarriageCollider={min:[-1,.3],max:[1,.5],bottom:0,top:2.7};
+  const side:CarriageCollider={min:[.25,-2],max:[.45,2],bottom:0,top:2.7};
+  const blocked=(p:PlayerState,colliders:CarriageCollider[])=>colliders.some(box=>[-.4,0,.4].some(offset=>{
+    const x=p.x+Math.sin(p.heading??0)*offset,z=p.z+Math.cos(p.heading??0)*offset;
+    const dx=x-Math.max(box.min[0],Math.min(x,box.max[0])),dz=z-Math.max(box.min[1],Math.min(z,box.max[1]));
+    return dx*dx+dz*dz<.04;
+  }));
+  test("lying down facing a wall slides the body clear instead of trapping it",()=>{
+    const p=player();p.heading=0;
+    expect(lieDown(p,[wall],room)).toBe(true);
+    expect(p.prone).toBe(true);expect(p.z).toBeLessThanOrEqual(-.3+1e-9);expect(blocked(p,[wall])).toBe(false);
+    const before=p.z;
+    stepPlayer(p,0,-.3,.2,[wall],room);expect(p.z).toBeLessThan(before);
+    stepPlayer(p,.3,0,.2,[wall],room);expect(p.x).toBeGreaterThan(0);
+  });
+  test("lying down is refused when no nearby footprint fits",()=>{
+    const p=player();p.heading=0;
+    const closet=[wall,{...wall,min:[-1,-.5] as [number,number],max:[1,-.3] as [number,number]}];
+    expect(lieDown(p,closet,room)).toBe(false);
+    expect(p.prone).toBeUndefined();expect(p.z).toBe(0);
+    const airborne=player();airborne.grounded=false;
+    expect(lieDown(airborne,[],room)).toBe(false);
+  });
+  test("turning while prone cannot swing the body into a wall",()=>{
+    const p=player();p.heading=0;
+    expect(lieDown(p,[side],room)).toBe(true);
+    expect(turnPlayer(p,Math.PI/2,[side])).toBe(false);
+    expect(p.heading).toBe(0);
+    expect(turnPlayer(p,Math.PI,[side])).toBe(true);
+    expect(p.heading).toBe(Math.PI);
+    const standing=player();standing.heading=0;
+    expect(turnPlayer(standing,Math.PI/2,[side])).toBe(true);
+  });
+  test("an overlapping prone body can crawl out but never deeper",()=>{
+    const p=player();Object.assign(p,{prone:true,heading:0,z:-.05});
+    expect(blocked(p,[wall])).toBe(true);
+    stepPlayer(p,0,.2,.2,[wall],room);expect(p.z).toBe(-.05);
+    stepPlayer(p,.3,0,.2,[wall],room);expect(p.x).toBe(0);
+    stepPlayer(p,0,-.5,.5,[wall],room);
+    expect(p.z).toBeLessThan(-.3);expect(blocked(p,[wall])).toBe(false);
+    stepPlayer(p,.3,0,.2,[wall],room);expect(p.x).toBeGreaterThan(0);
+  });
+  test("lying down near the real carriage end wall still allows crawling",()=>{
+    const shell=carriageStructure();
+    const p=player();p.z=-4.05;p.heading=Math.PI;
+    expect(lieDown(p,[...scene.colliders,...shell],scene.bounds as typeof bounds)).toBe(true);
+    const start=p.z;
+    for(let i=0;i<30;i++)stepPlayer(p,0,.6/30,1/60,[...scene.colliders,...shell],scene.bounds as typeof bounds);
+    expect(p.z).toBeGreaterThan(start);
   });
 });
 
