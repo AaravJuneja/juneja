@@ -192,7 +192,7 @@ function avatarBytes(avatar) {
 }
 
 function clearCookie() {
-  return `${COOKIE_NAME}=; Path=${COOKIE_PATH}; HttpOnly; Secure; SameSite=Strict`;
+  return `${COOKIE_NAME}=; Path=${COOKIE_PATH}; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Strict`;
 }
 
 function setCookie(token) {

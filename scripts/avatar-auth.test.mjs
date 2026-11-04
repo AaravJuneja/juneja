@@ -106,7 +106,7 @@ test("private labels come from environment configuration and stay hidden before 
   assert.deepEqual(await access.json(),{unlocked:true,avatar:{label:"Updated display name"}});
 });
 
-test("unlock issues a bounded session cookie, authorizes the avatar, and delete revokes it", async () => {
+test("unlock issues a bounded session cookie and authorizes the avatar", async () => {
   const instance = worker();
   const env = environment();
   const response = await unlock(instance, env);
@@ -130,15 +130,31 @@ test("unlock issues a bounded session cookie, authorizes the avatar, and delete 
   assert.equal(low.status,200);
   assert.deepEqual(new Uint8Array(await low.arrayBuffer()),lowAvatarBytes);
   assert.equal((await lowInstance.fetch(request("/api/train/avatar?quality=medium",{headers:{cookie}}),env)).status,400);
+});
 
-  const revoked = await instance.fetch(request("/api/train/access", {
-    method: "DELETE",
-    headers: { origin }
-  }), env);
+test("delete expires the browser cookie but a previously issued token stays valid until its own expiry", async () => {
+  const instance = worker();
+  const env = environment();
+  const cookie = sessionCookie(await unlock(instance, env));
+  const revoked = await instance.fetch(request("/api/train/access", { method: "DELETE", headers: { origin } }), env);
+  assert.equal(revoked.status, 200);
   assert.deepEqual(await revoked.json(), { unlocked: false });
-  const clearedCookie = revoked.headers.get("set-cookie").split(";", 1)[0];
-  const afterRevoke = await instance.fetch(request("/api/train/access", { headers: { cookie: clearedCookie } }), env);
-  assert.deepEqual(await afterRevoke.json(), { unlocked: false });
+  assert.equal(revoked.headers.get("cache-control"), "private, no-store, max-age=0");
+  const cleared = revoked.headers.get("set-cookie");
+  const [pair, ...attributes] = cleared.split("; ");
+  assert.equal(pair, "train_session=");
+  assert.ok(attributes.includes("Max-Age=0"));
+  const expires = attributes.find((attribute) => attribute.startsWith("Expires="));
+  assert.ok(expires);
+  assert.ok(Date.parse(expires.slice("Expires=".length)) < nowMs);
+  for (const attribute of ["Path=/api/train", "HttpOnly", "Secure", "SameSite=Strict"]) assert.ok(attributes.includes(attribute));
+  const browserAfterDelete = await instance.fetch(request("/api/train/access", { headers: { cookie: pair } }), env);
+  assert.deepEqual(await browserAfterDelete.json(), { unlocked: false });
+  const replayed = await instance.fetch(request("/api/train/access", { headers: { cookie } }), env);
+  assert.deepEqual(await replayed.json(), { unlocked: true, avatar: { label: "Test avatar" } });
+  const crossOrigin = await instance.fetch(request("/api/train/access", { method: "DELETE", headers: { origin: "https://attacker.test" } }), env);
+  assert.equal(crossOrigin.status, 403);
+  assert.equal(crossOrigin.headers.get("set-cookie"), null);
 });
 
 test("rejects tampered and expired session tokens", async () => {
