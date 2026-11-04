@@ -5,7 +5,6 @@ import SocialLinks from "./SocialLinks.astro";
 <section id="contact" aria-labelledby="contact-title" class="mx-auto w-full max-w-[1280px] px-6 py-8 sm:px-10 lg:px-12">
   <div class="contact-letter">
     <span class="contact-clip" aria-hidden="true"></span>
-    <span class="contact-postmark" aria-hidden="true">a.j.</span>
     <h2 id="contact-title" tabindex="-1">leave a little hello.</h2>
     <a class="contact-email" href="mailto:aarav.juneja2044@gmail.com">aarav.juneja2044@gmail.com <span aria-hidden="true">↗</span></a>
     <SocialLinks />
@@ -16,7 +15,6 @@ import SocialLinks from "./SocialLinks.astro";
   .contact-letter {
     --letter-ink:#302338;
     --letter-rule:#7c658a44;
-    --letter-stamp:#705e78;
     position:relative;
     width:min(100% - 8px,400px);
     margin-inline:4px;
@@ -31,8 +29,7 @@ import SocialLinks from "./SocialLinks.astro";
   .contact-letter::after { content:"";position:absolute;right:0;bottom:0;border-style:solid;border-width:0 0 16px 16px;border-color:transparent transparent #8f7c99 transparent;filter:drop-shadow(-1px -1px 1px #0002);pointer-events:none; }
   .contact-clip { position:absolute;top:-15px;left:27px;width:12px;height:34px;border:2px solid #bba988;border-radius:9px;box-shadow:1px 1px 1px #38232c77;transform:rotate(-5deg);pointer-events:none; }
   .contact-clip::after { content:"";position:absolute;inset:3px 1px 6px 3px;border:1px solid #776349;border-radius:6px; }
-  .contact-postmark { position:absolute;right:22px;top:15px;border:1px solid var(--letter-rule);outline:1px solid var(--letter-rule);outline-offset:3px;border-radius:50%;width:35px;height:35px;display:grid;place-items:center;font:italic 13px Georgia,serif;color:var(--letter-stamp);transform:rotate(-16deg);pointer-events:none; }
-  .contact-letter h2 { font-size:21px;font-weight:600;letter-spacing:-.035em;line-height:1.4;margin:0 32px 6px 0; }
+  .contact-letter h2 { font-size:21px;font-weight:600;letter-spacing:-.035em;line-height:1.4;margin:0 0 6px; }
   .contact-email { font-size:14px;line-height:1.5;min-height:44px;text-decoration:none;display:flex;align-items:center;justify-content:space-between;gap:8px;overflow-wrap:anywhere; }
   .contact-email:hover { text-decoration:underline;text-underline-offset:4px; }
   .contact-letter :global(nav) { margin-top:10px;padding-top:6px;border-top:1px solid var(--letter-rule); }
@@ -40,7 +37,7 @@ import SocialLinks from "./SocialLinks.astro";
   .contact-letter :global(nav a) { font-size:12px;color:var(--letter-ink); }
   .contact-letter :global(nav a:hover) { color:var(--letter-ink);text-decoration:underline;text-underline-offset:4px; }
   .contact-letter :global(a:focus-visible) { outline:2px solid var(--letter-ink);outline-offset:4px; }
-  :global(:root[data-portrait]) .contact-letter { --letter-ink:#382619;--letter-rule:#765b3844;--letter-stamp:#715839;background:repeating-linear-gradient(0deg,#ffffff03 0 1px,transparent 1px 3px),linear-gradient(115deg,#ded0b5,#cbb994);border-color:#e6d4b766;box-shadow:1px 3px 0 #a08b6855,0 12px 25px #0005; }
+  :global(:root[data-portrait]) .contact-letter { --letter-ink:#382619;--letter-rule:#765b3844;background:repeating-linear-gradient(0deg,#ffffff03 0 1px,transparent 1px 3px),linear-gradient(115deg,#ded0b5,#cbb994);border-color:#e6d4b766;box-shadow:1px 3px 0 #a08b6855,0 12px 25px #0005; }
   :global(:root[data-portrait]) .contact-letter::after { border-bottom-color:#9b835d; }
   @media(max-width:480px) {
     .contact-letter { padding-inline:20px; }

@@ -9,5 +9,5 @@ test("the correspondence card retains the contact anchor, email and existing soc
   expect(contact).toContain('href="mailto:aarav.juneja2044@gmail.com"');
   expect(contact).toContain("<SocialLinks />");
   expect(contact).toContain('class="contact-clip" aria-hidden="true"');
-  expect(contact).toContain('class="contact-postmark" aria-hidden="true"');
+  expect(contact).not.toContain("a.j.");
 });
