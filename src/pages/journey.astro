@@ -6,6 +6,6 @@ import { allAchievements } from "../data.ts";
 const teams = [...new Set(allAchievements.map((a) => a.team))].join(" and ");
 ---
 
-<Layout title="journey" description={`Every CTF receipt. ${allAchievements.length} competitions across ${teams}.`}>
+<Layout title="journey" description={`${allAchievements.length} CTF results with ${teams}, 2025 to 2026`}>
   <Journey />
 </Layout>

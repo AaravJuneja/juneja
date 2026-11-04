@@ -12,7 +12,7 @@ interface Props {
   noindex?: boolean;
   compact?: boolean;
 }
-const { title = "home", description = "Hi, I'm Aarav. I like figuring things out and trying whatever catches my attention.", noindex = false, compact = false } = Astro.props;
+const { title = "home", description = "Hi, I'm Aarav. I like figuring things out and trying whatever catches my attention", noindex = false, compact = false } = Astro.props;
 const canonical = new URL(Astro.url.pathname, "https://squeakyfiddlepro.me/");
 ---
 

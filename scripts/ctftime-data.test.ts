@@ -15,7 +15,7 @@ const results=[
 
 test("Sudocrypt is recorded as a Syndication win without treating CTF points as rating points",()=>{
   const result=achievements2026Syndication.find(result=>result.href==="https://ctftime.org/event/3443");
-  expect(result).toEqual({rating:"4,069 points",source:"CTFtime",title:"Sudocrypt v16.0",href:"https://ctftime.org/event/3443",team:"Syndication",dates:"27 Oct 2026 - 28 Oct 2026",scope:"International",organizer:"Exun Clan, DPS RK Puram",finish:"Finished 1st."});
+  expect(result).toEqual({rating:"4,069 points",source:"CTFtime",title:"Sudocrypt v16.0",href:"https://ctftime.org/event/3443",team:"Syndication",dates:"27 Oct 2026 - 28 Oct 2026",scope:"International",organizer:"Exun Clan, DPS RK Puram",finish:"Finished 1st, earning ₹30,000."});
   expect(achievements2026Syndication).toHaveLength(5);
   expect(allAchievements).toContain(result!);
 });

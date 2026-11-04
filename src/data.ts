@@ -36,7 +36,7 @@ export const repositories: Repository[] = [
     href: "https://github.com/AaravJuneja/HackZero-CTF-2026-Writeups",
     owner: "AaravJuneja",
     title: "HackZero-CTF-2026-Writeups",
-    summary: "Challenges Syndication solved at HackZero CTF 2026 written up with solutions",
+    summary: "Writeups for the challenges Syndication solved at HackZero CTF 2026",
     coverage: ["PWN", "CLOUD", "CRYPTO", "OSINT", "WEB"],
     updated: "UPDATED MAY 2026",
   },
@@ -251,7 +251,7 @@ export const achievements2026Syndication: Achievement[] = [
     dates: "27 Oct 2026 - 28 Oct 2026",
     scope: "International",
     organizer: "Exun Clan, DPS RK Puram",
-    finish: "Finished 1st.",
+    finish: "Finished 1st, earning ₹30,000.",
   },
   {
     rating: "HackZero",

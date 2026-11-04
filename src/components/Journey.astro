@@ -5,23 +5,23 @@ const chapters = [
   {
     id: "2025-syndication",
     badge: "2025",
-    title: "THE rookie SEASON",
+    title: "First season",
     team: "SYNDICATION",
-    copy: "The journey began here: 12th in India, 251st worldwide and 219.890 rating points",
+    copy: "Syndication’s first season: 12th in India and 251st worldwide on CTFtime, with 219.890 rating points",
     achievements: achievements2025Syndication,
   },
   {
     id: "2026-syndication",
     badge: "2026",
-    title: "THE TRIO LEVELS UP",
+    title: "Still a trio",
     team: "SYNDICATION",
-    copy: "Kept competing as a trio separate from the larger and experienced squad",
+    copy: "The same three kept playing as Syndication, alongside the bigger 0bscuri7y roster",
     achievements: achievements2026Syndication,
   },
   {
     id: "2026-obscuri",
     badge: "2026",
-    title: "LEVELING UP AGAIN",
+    title: "Joining 0bscuri7y",
     team: "0BSCURI7Y",
     copy: `Joined 0bscuri7y at the start of 2026 and peaked at #1 in India. Currently #${ctftime2026Obscuri.countryPlace} in India and #${ctftime2026Obscuri.overallPlace} worldwide with ${ctftime2026Obscuri.ratingPoints.toFixed(3)} rating points`,
     achievements: achievements2026Obscuri,
@@ -32,17 +32,18 @@ const chapters = [
 <section id="journey" data-reveal class="w-full">
   <div class="w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-12 pt-20 sm:pt-24 pb-16 sm:pb-20">
     <div class="max-w-[820px] flex flex-col gap-4 mb-6">
-      <p class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-accent">CTF receipts</p>
-      <h1 class="font-dm trim-caps font-bold text-[clamp(26px,4vw,34px)] leading-tight text-text uppercase">CTF ACHIEVEMENTS</h1>
+      <p class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-accent">Journey</p>
+      <h1 class="font-dm trim-caps font-bold text-[clamp(26px,4vw,34px)] leading-tight text-text uppercase">CTF results, 2025 to 2026</h1>
       <p class="font-outfit text-[clamp(18px,2.1vw,21px)] leading-[1.55] text-muted-text tracking-[-0.005em]">Some sleepless nights and loads of caffeine</p>
     </div>
 
     <div class="flex flex-col sm:flex-row sm:items-center gap-3 bg-surface border border-dashed border-accent px-4 py-4 mb-8">
       <div class="flex items-center gap-3.5 flex-1">
         <img src="/images/medal.svg" alt="" width="20" height="20" class="w-5 h-5 theme-icon" loading="lazy" decoding="async" />
-        <span class="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-muted-text">les réalisations</span>
+        <label for="journey-search" class="font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-muted-text">Filter</label>
       </div>
       <input id="journey-search" type="search" placeholder="FILTER EVENTS" autocomplete="off" spellcheck="false" aria-label="Filter events" class="w-full sm:w-[240px] bg-raised-surface border border-line px-3 py-2.5 font-dm trim-caps text-[11px] tracking-[0.08em] uppercase text-text placeholder:text-muted-text focus:border-accent" />
+      <button id="journey-clear" type="button" class="hidden min-h-[44px] px-3 py-2 font-outfit text-sm text-muted-text underline underline-offset-4 hover:text-text">Clear filter</button>
     </div>
 
     <div class="sticky top-3 sm:top-4 z-30 py-3 bg-background/90 backdrop-blur-sm flex flex-nowrap overflow-x-auto sm:flex-wrap sm:overflow-visible gap-2 mb-8">
@@ -64,7 +65,7 @@ const chapters = [
               </div>
               <div class="flex-1 bg-surface border border-line p-5 sm:p-6 flex flex-col gap-2.5 relative">
                 <div class="flex flex-wrap items-center gap-x-3 gap-y-2 pr-6 sm:pr-0">
-                  <h3 class="font-dm trim-caps font-bold text-[17px] sm:text-[18px] tracking-tight text-text uppercase">{ch.title}</h3>
+                  <h2 class="font-dm trim-caps font-bold text-[17px] sm:text-[18px] tracking-tight text-text uppercase">{ch.title}</h2>
                   <span class="inline-flex items-center bg-accent/10 border border-accent/20 px-2.5 py-1 font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-accent">{ch.team}</span>
                 </div>
                 <p class="font-outfit text-[15px] sm:text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">{ch.copy}</p>
@@ -99,7 +100,7 @@ const chapters = [
       ))}
     </div>
 
-    <div id="journey-empty" class="hidden border border-dashed border-line px-4 py-10 mt-10 text-center font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-muted-text">NO EVENTS MATCH THAT FILTER</div>
+    <div id="journey-empty" class="hidden border border-dashed border-line px-4 py-10 mt-10 text-center font-outfit text-sm text-muted-text" role="status">No events match. Clear the filter to see all of them</div>
   </div>
 </section>
 

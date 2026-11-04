@@ -1,7 +1,7 @@
 ---
 import { allAchievements } from "../data.ts";
 
-const podiumTitles = ["Redfox CTF 2026", "picoMini", "HackZero", "cruXipher 2025"];
+const podiumTitles = ["Sudocrypt v16.0", "Redfox CTF 2026", "picoMini", "HackZero", "cruXipher 2025"];
 const podiumMap = new Map(allAchievements.map((a) => [a.title, a]));
 const podiums = podiumTitles.map((t) => podiumMap.get(t)).filter((a) => a !== undefined);
 const rankOf = (finish: string) => {
@@ -13,16 +13,15 @@ const rankOf = (finish: string) => {
 <section id="highlights" data-reveal class="w-full">
   <div class="w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-12 py-16 sm:py-20">
     <div class="max-w-[820px] flex flex-col gap-4 mb-11">
-      <p class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-accent">HIGHLIGHTS</p>
-      <h1 class="font-dm trim-caps font-bold text-[clamp(26px,4vw,34px)] leading-tight text-text uppercase">POW</h1>
+      <p class="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-accent">Achievements</p>
+      <h1 class="font-dm trim-caps font-bold text-[clamp(26px,4vw,34px)] leading-tight text-text uppercase">Proof of work</h1>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <div class="md:col-span-2 lg:col-span-2 bg-raised-surface border border-accent p-5 sm:p-6 flex flex-col gap-4">
         <p class="font-outfit text-[13px] text-muted-text">Team project</p>
         <h3 class="font-dm trim-caps font-bold text-[20px] sm:text-[22px] leading-tight text-text">FROM SCRAP TO SOLAR</h3>
-        <p class="font-outfit text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">First every home had its own dish, then whole societies shared one, then streaming killed the need. 12.65 million subscriptions died between 2021 and 2025, and the dishes went to scrap. This was one of them</p>
-        <p class="font-outfit text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">A discarded TV dish was rebuilt with mirror tiles into a solar cooker with a motion sensor to keep birds away from the focal point</p>
+        <p class="font-outfit text-[16px] leading-[1.55] text-muted-text tracking-[-0.003em]">We rebuilt a discarded TV dish into a solar cooker with a motion sensor to keep birds away</p>
         <ul class="flex flex-col gap-2 border-t border-accent/35 pt-4 list-none m-0 p-0">
           <li class="font-outfit text-[16px] leading-[1.5] tracking-[-0.003em] flex gap-2.5">
             <span class="text-accent" aria-hidden="true">+</span>
@@ -30,11 +29,11 @@ const rankOf = (finish: string) => {
           </li>
           <li class="font-outfit text-[16px] leading-[1.5] tracking-[-0.003em] flex gap-2.5">
             <span class="text-accent" aria-hidden="true">+</span>
-            <a href="https://www.sih.gov.in/sih-2022-junior-edition-final-result" target="_blank" rel="noopener noreferrer" class="text-text hover:text-accent transition-colors">smart india hackathon junior 2022, finale, Rs 25,000</a>
+            <a href="https://www.sih.gov.in/sih-2022-junior-edition-final-result" target="_blank" rel="noopener noreferrer" class="text-text hover:text-accent transition-colors">smart india hackathon junior 2022, finalist, ₹25,000</a>
           </li>
           <li class="font-outfit text-[16px] leading-[1.5] tracking-[-0.003em] flex gap-2.5">
             <span class="text-accent" aria-hidden="true">+</span>
-            <a href="https://www.inspireawards-dst.gov.in/students_corner/states/haryana/2021-22/student_list/STList-1222202113426PM.pdf" target="_blank" rel="noopener noreferrer" class="text-text hover:text-accent transition-colors">inspire manak, state level, Rs 10,000</a>
+            <a href="https://www.inspireawards-dst.gov.in/students_corner/states/haryana/2021-22/student_list/STList-1222202113426PM.pdf" target="_blank" rel="noopener noreferrer" class="text-text hover:text-accent transition-colors">inspire manak, state level, ₹10,000</a>
           </li>
           <li class="font-outfit text-[16px] leading-[1.5] tracking-[-0.003em] flex gap-2.5">
             <span class="text-accent" aria-hidden="true">+</span>
@@ -42,14 +41,14 @@ const rankOf = (finish: string) => {
           </li>
           <li class="font-outfit text-[16px] leading-[1.5] tracking-[-0.003em] flex gap-2.5">
             <span class="text-accent" aria-hidden="true">+</span>
-            <a href="https://www.linkedin.com/in/aaravjuneja" target="_blank" rel="noopener noreferrer" class="text-text hover:text-accent transition-colors">felicitated national awardee by the chairperson, 2024</a>
+            <a href="https://www.linkedin.com/in/aaravjuneja" target="_blank" rel="noopener noreferrer" class="text-text hover:text-accent transition-colors">recognized as a national awardee by Dr. Amita Chauhan, chairperson of Amity International Schools, 2024</a>
           </li>
         </ul>
       </div>
 
       <div class="md:col-span-2 lg:col-span-1 bg-raised-surface border border-line grid grid-cols-2">
         {podiums.map((p, i) => (
-          <a href={p.href} target="_blank" rel="noopener noreferrer" class={`group/cell p-5 sm:p-6 flex flex-col gap-2 transition-all duration-150 hover:bg-surface ${i % 2 === 0 ? "border-r border-line" : ""} ${i < 2 ? "border-b border-line" : ""}`}>
+          <a href={p.href} target="_blank" rel="noopener noreferrer" class={`group/cell p-5 sm:p-6 flex flex-col gap-2 transition-all duration-150 hover:bg-surface ${i === 0 ? "col-span-2" : ""} ${i % 2 === 1 ? "border-r border-line" : ""} ${i < podiums.length - 2 ? "border-b border-line" : ""}`}>
             <span class="font-anton text-[32px] leading-none text-text group-hover/cell:text-accent transition-colors duration-150" aria-hidden="true">{rankOf(p.finish)}</span>
             <h3 class="font-dm trim-caps font-bold text-[15px] sm:text-[16px] leading-tight text-text min-w-0 break-words">{p.title}</h3>
             <p class="font-outfit text-[14px] leading-[1.5] text-muted-text tracking-[-0.003em]">{p.finish.replace(/\.$/, "")}</p>

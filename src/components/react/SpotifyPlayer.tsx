@@ -812,7 +812,7 @@ export default function SpotifyPlayer({ covers }: Props) {
       className="relative shrink-0 transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none"
       style={{ width: expanded ? "min(340px, calc(100vw - 48px))" : "min(180px, calc(100vw - 48px))", height: 44 }}
     >
-      <span className="sr-only" aria-live="polite">{displayTitle}{displayError?". Playback unavailable. Try again.":""}</span>
+      <span className="sr-only" aria-live="polite">{displayTitle}{displayError?". Playback unavailable. Try again":""}</span>
       <button
         ref={triggerRef}
         type="button"
@@ -835,7 +835,7 @@ export default function SpotifyPlayer({ covers }: Props) {
         }}
       >
         <div className="w-7 h-7 rounded-full overflow-hidden border border-line shrink-0">
-          {station?radioArtwork:<img src={covers[track.cover].collapsed} draggable={false} alt="Album Art" width={28} height={28} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="lazy" decoding="async" />}
+          {station?radioArtwork:<img src={covers[track.cover].collapsed} draggable={false} alt="" width={28} height={28} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="lazy" decoding="async" />}
         </div>
         <div className="flex flex-col min-w-0">
           <span className="font-dm trim-caps text-[12px] tracking-[0.08em] uppercase text-muted-text leading-none">{station?"Live radio":displayPlaying?"Now playing":"Paused"}</span>
@@ -874,7 +874,7 @@ export default function SpotifyPlayer({ covers }: Props) {
           <div className="w-11 h-11 rounded-md overflow-hidden border border-line shrink-0 relative">
             {station?<span className="flex h-full items-center justify-center text-accent-soft">{radioArtwork}</span>:<img
               src={covers[track.cover].expanded}
-              alt="Album Art"
+              alt=""
               draggable={false}
               loading="lazy"
               decoding="async"
@@ -944,9 +944,9 @@ export default function SpotifyPlayer({ covers }: Props) {
           <input aria-label="Music volume" type="range" min="0" max="100" value={Math.round(volume*100)} disabled={!volumeSupported} onChange={event=>changeVolume(Number(event.target.value)/100)} className="h-11 min-w-0 flex-1 accent-accent" />
           <span className="w-9 text-right tabular-nums">{Math.round(volume*100)}%</span>
         </label>
-        {!volumeSupported&&<p className="text-xs text-muted-text">Use your device volume buttons.</p>}
+        {!volumeSupported&&<p className="text-xs text-muted-text">Use your device volume buttons</p>}
         {station&&<a href={station.homepage} target="_blank" rel="noopener noreferrer" className="text-xs text-accent-soft underline">Stream provided by {station.provider}</a>}
-        {displayError&&<p role="status" className="text-xs text-muted-text">Could not play. Press play to retry, or choose another source.</p>}
+        {displayError&&<p role="status" className="text-xs text-muted-text">Could not play this track. Press play to try again</p>}
       </div>
       <audio ref={(el) => { deckRef.current[0] = el; }} crossOrigin="anonymous" preload="metadata" style={{ display: "none" }} />
       <audio ref={(el) => { deckRef.current[1] = el; }} crossOrigin="anonymous" preload="metadata" style={{ display: "none" }} />

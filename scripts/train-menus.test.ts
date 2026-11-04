@@ -28,7 +28,7 @@ test("the travel case shows every interest without an accordion",()=>{
 
 test("notebooks show useful project metadata rather than sync implementation details",()=>{
   const notebooks=dialog("notebook-panel");
-  expect(notebooks).toContain("My public GitHub projects, newest first.");
+  expect(notebooks).toContain("My public GitHub projects, newest first");
   expect(notebooks).toContain("Updated <a");
   expect(notebooks).toContain("repo.commitHref ?? repo.commitsHref");
   expect(notebooks).not.toContain("usingPreviousCommit");
@@ -66,17 +66,16 @@ test("avatar selection has its own settings menu",()=>{
 
 test("the keyboard guide documents movement and gameplay controls without manual action toggles",()=>{
   const keys=dialog("keys-panel");
-  for(const [key,description] of [["W A S D","Walk"],["Control","Sprint"],["C","Crawl or stand"],["Shift","Toggle shift lock"],["V","First or third person"],["O","Free orbit or character aim"],["Space","Jump; press again to double jump"],["E","Interact"],["Esc","Release mouse lock or close a menu"]]) {
+  for(const [key,description] of [["W A S D","Walk"],["Control","Sprint"],["C","Crawl or stand"],["Shift","Toggle shift lock"],["V","First or third person"],["O","Free orbit or character aim"],["Space","Jump; press again to double jump"],["E","Interact"],["Q","Toggle torch"],["M","Open catalog"],["Home","Return to your seat"],["Esc","Release mouse lock or close a menu"]]) {
     expect(keys).toContain(`<kbd>${key}</kbd></dt><dd>${description}</dd>`);
   }
-  expect(keys).not.toContain("<kbd>Q</kbd>");
   expect(keys).not.toMatch(/<(?:input|select)\b/);
   expect(keys.match(/<button\b/g)).toHaveLength(1);
   expect(keys.match(/<dl\b/g)).toHaveLength(1);
   expect(keys).not.toContain("<h3");
   expect(keys).not.toMatch(/<kbd>[WASD↑↓←→]<\/kbd>/);
   expect(keys).toContain("<kbd>E</kbd></dt><dd>Interact</dd>");
-  expect(keys.match(/<kbd>/g)).toHaveLength(9);
+  expect(keys.match(/<kbd>/g)).toHaveLength(12);
   expect(template).toContain("data-train-keys");
 });
 

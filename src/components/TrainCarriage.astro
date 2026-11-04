@@ -18,7 +18,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
 ---
 
   <section class="train-page" data-train aria-label="Night train carriage">
-    <img data-train-image src="/train/night.webp" draggable="false" alt="Timber carriage with plum benches, warm opal lamps and a night view through framed windows." width="1120" height="700" loading="eager" decoding="async" fetchpriority="high" />
+    <img data-train-image src="/train/night.webp" draggable="false" alt="Train carriage" width="1120" height="700" loading="eager" decoding="async" fetchpriority="high" />
     <div data-train-canvas></div>
     <h1 class="sr-only">Night train</h1>
     <div class="train-reticle" aria-hidden="true">+</div>
@@ -50,7 +50,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 7-7 7 7" /><path d="M12 19V5" /></svg>
     </button>
     <dl class="train-key-hints" aria-label="Quick controls">
-      <div><dt>Crouch</dt><dd><kbd>C</kbd></dd></div>
+      <div><dt>Crawl</dt><dd><kbd>C</kbd></dd></div>
       <div><dt>Sprint</dt><dd><kbd>Ctrl</kbd></dd></div>
       <div><dt>Torch</dt><dd><kbd>Q</kbd></dd></div>
     </dl>
@@ -77,7 +77,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       <div class="train-panel">
         <button class="train-close" data-close type="button" aria-label="Close notebooks">×</button>
         <h2 id="notebook-title" tabindex="-1">Notebooks</h2>
-        <p class="train-lede">My public GitHub projects, newest first.</p>
+        <p class="train-lede">My public GitHub projects, newest first</p>
         {repositories.map(repo=><article class="train-repository">
           <h3><a href={repo.href} target="_blank" rel="noopener noreferrer">{repo.name}</a></h3>
           {(repo.description || repo.name==="AaravJuneja") && <p>{(repo.description || "My GitHub profile page").replace(/\.$/, "")}</p>}
@@ -90,7 +90,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       <div class="train-panel">
         <button class="train-close" data-close type="button" aria-label="Close catalog">×</button>
         <h2 id="catalog-title" tabindex="-1">Catalog</h2>
-        <p class="train-lede">Choose your torch finish.</p>
+        <p class="train-lede">Choose your torch finish</p>
         <div class="train-catalog-layout">
         <section class="train-catalog-content" aria-label="Torch skins">
           <div class="train-skin-grid" data-train-skins>
@@ -102,7 +102,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
         <aside class="train-catalog-detail" aria-label="Selected item">
           <div class="train-skin-card train-detail-preview" data-train-detail-preview aria-hidden="true"><span class="train-skin-swatch"></span></div>
           <h3 data-train-detail-title>Yellow</h3>
-          <p data-train-detail-description>Recreated flashlight finish.</p>
+          <p data-train-detail-description>Select a finish to equip it</p>
         </aside>
         </div>
         <p class="train-catalog-status" data-train-catalog-status role="status" aria-live="polite" hidden></p>
@@ -112,7 +112,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       <div class="train-panel">
         <button class="train-close" data-close type="button" aria-label="Close settings">×</button>
         <h2 id="settings-title" tabindex="-1">Settings</h2>
-        <p class="train-lede">Your character for this trip.</p>
+        <p class="train-lede">Your character for this trip</p>
         <label class="train-avatar-setting">Avatar<select data-train-avatar><option value="sniqr">Sniqr</option></select></label>
         <p class="train-avatar-status-inline" data-train-avatar-status-inline role="status" aria-live="polite" hidden></p>
       </div>
@@ -124,17 +124,17 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       <div class="train-panel">
         <button class="train-close" data-close type="button" aria-label="Close simulation controls">×</button>
         <h2 id="simulation-title" tabindex="-1">Simulation</h2>
-        <p class="train-lede">Speed up or slow down the train, movement, jumps and stamina. Music stays at normal speed.</p>
+        <p class="train-lede">Speed up or slow down the train, movement, jumps and stamina. Music stays at normal speed</p>
         <label>World speed<select data-train-world-speed><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1× (normal)</option><option value="1.5">1.5×</option><option value="2">2×</option><option value="3">3×</option></select></label>
         <label><input data-train-hitboxes type="checkbox" /> Show hitboxes</label>
-        <p class="train-lede">Amber: solid collisions. Cyan: clickable areas. Pink: your body.</p>
+        <p class="train-lede">Amber: solid collisions. Cyan: clickable areas. Pink: your body</p>
       </div>
     </dialog>
     <dialog id="keys-panel" class="train-dialog train-keys-dialog" aria-labelledby="keys-title">
       <div class="train-panel">
         <button class="train-close" data-close type="button" aria-label="Close keys">×</button>
         <h2 id="keys-title" tabindex="-1">Keys</h2>
-        <p class="train-lede">Click the carriage to take control.</p>
+        <p class="train-lede">Click the carriage to take control</p>
         <dl class="train-key-list">
           <div><dt><kbd>W A S D</kbd></dt><dd>Walk</dd></div>
           <div><dt><kbd>Control</kbd></dt><dd>Sprint</dd></div>
@@ -144,9 +144,12 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
           <div><dt><kbd>V</kbd></dt><dd>First or third person</dd></div>
           <div><dt><kbd>O</kbd></dt><dd>Free orbit or character aim</dd></div>
           <div><dt><kbd>E</kbd></dt><dd>Interact</dd></div>
+          <div><dt><kbd>Q</kbd></dt><dd>Toggle torch</dd></div>
+          <div><dt><kbd>M</kbd></dt><dd>Open catalog</dd></div>
+          <div><dt><kbd>Home</kbd></dt><dd>Return to your seat</dd></div>
           <div><dt><kbd>Esc</kbd></dt><dd>Release mouse lock or close a menu</dd></div>
         </dl>
-        <p class="train-touch-help">On touch screens, drag to look. Drag with two fingers to walk, farther to sprint. Tap the jump button, then tap again in the air to double jump.</p>
+        <p class="train-touch-help">On touch screens, drag to look. Drag with two fingers to walk, farther to sprint. Tap the jump button, then tap again in the air to double jump</p>
       </div>
     </dialog>
     <dialog id="radio-panel" class="train-dialog train-radio-dialog" aria-labelledby="radio-title">
@@ -166,8 +169,8 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
         <label data-train-radio-station-row hidden>Station<select data-train-radio-station>{RADIO_STATIONS.map(station=><option value={station.id}>{station.name}</option>)}</select></label>
         <label class="radio-volume">Volume<input data-train-radio-volume type="range" min="0" max="100" value="100" aria-label="Radio volume" disabled /><output data-train-radio-volume-value>100%</output></label>
         <label class="radio-spatial"><input data-train-radio-spatial type="checkbox" checked /> 3D sound</label>
-        <p class="train-lede radio-help" data-train-radio-spatial-help>Sound comes from the radio and echoes around the carriage. Best with headphones.</p>
-        <p class="train-lede radio-help" data-train-radio-volume-help hidden>Use your device volume buttons.</p>
+        <p class="train-lede radio-help" data-train-radio-spatial-help>Sound comes from the radio and echoes around the carriage. Best with headphones</p>
+        <p class="train-lede radio-help" data-train-radio-volume-help hidden>Use your device volume buttons</p>
         <p class="train-lede radio-help" data-train-radio-info></p>
         <a data-train-radio-link target="_blank" rel="noopener noreferrer" hidden>Visit station</a>
       </div>
@@ -182,7 +185,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
   import {RADIO_STATIONS,defaultRadioSource,radioStation,type RadioCommand,type RadioState} from "../lib/trainRadio";
   import type { EquipmentEvent } from "../lib/trainEquipment";
   const OBJECT_NAMES:Record<string,string>={case:"Travel case",radio:"Radio",cord:"Light cord",notebooks:"Notebooks",windows:"Window",desk:"Writing desk",luggage:"Luggage rack",door:"Front door","equipment:key":"Brass key","equipment:drawer":"Desk drawer","equipment:charm":"Charm"};
-  const EQUIPMENT_MESSAGES:Record<EquipmentEvent,string>={key:"Picked up a small brass key.",locked:"The drawer is locked.",open:"The drawer slides open. Something glints inside.",close:"Drawer closed.",charm:"The charm vanishes.",none:"Nothing to do there right now."};
+  const EQUIPMENT_MESSAGES:Record<EquipmentEvent,string>={key:"Picked up a small brass key",locked:"The drawer is locked",open:"The drawer slides open. Something glints inside",close:"Drawer closed",charm:"The charm vanishes",none:"Nothing to do there right now"};
   const EQUIPMENT_SOUNDS={key:"key",locked:"locked",open:"drawer-open",close:"drawer-close",charm:"charm"} as const;
   function initTrain() {
     const root = document.querySelector<HTMLElement>("[data-train]");
@@ -274,7 +277,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
         button.setAttribute("aria-pressed", String(equipment?.skin === button.dataset.trainSkin));
       }
       const skin=skins.find(item=>item.id===equipment?.skin)??skins.find(item=>item.id==="yellow")!;
-      showDetail(skin.label,"Recreated flashlight finish. Select a skin to equip it.",skin.id);
+      showDetail(skin.label,"Select a finish to equip it",skin.id);
     };
     const syncSettings=()=>{
       avatarSelect.value=session?.getAvatarControls().avatar??"sniqr";
@@ -317,7 +320,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       if(station)radioStationSelect.value=station.id;
       get("radio-station-row").hidden=!live;
       get("radio-title").textContent=state.title;
-      const status=state.error?live?"No signal. Press Play to try again or pick another station.":"Could not play this track. Press Play to try again.":state.loading?live?"Tuning in…":"Loading…":state.playing?state.volume===0?"Muted":live?"Live":"Playing":live?"Off":"Paused";
+      const status=state.error?live?"No signal. Press Play to try again or pick another station":"Could not play this track. Press Play to try again":state.loading?live?"Tuning in…":"Loading…":state.playing?state.volume===0?"Muted":live?"Live":"Playing":live?"Off":"Paused";
       const statusElement=get("radio-status");
       if(statusElement.textContent!==status)statusElement.textContent=status;
       get("radio-needle").style.left=station?`${16+RADIO_STATIONS.indexOf(station)*31}%`:"50%";
@@ -325,10 +328,10 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       radioVolume.value=String(Math.round(state.volume*100));
       radioSpatial.checked=state.spatialEnabled;
       radioSpatial.disabled=!state.spatialSupported;
-      get("radio-spatial-help").textContent=state.spatialSupported?"Sound comes from the radio and echoes around the carriage. Best with headphones.":"This browser cannot place sound in 3D. Music still plays in stereo.";
+      get("radio-spatial-help").textContent=state.spatialSupported?"Sound comes from the radio and echoes around the carriage. Best with headphones":"This browser cannot place sound in 3D. Music still plays in stereo";
       get("radio-volume-value").textContent=`${Math.round(state.volume*100)}%`;
       get("radio-volume-help").hidden=state.volumeSupported;
-      get("radio-info").textContent=station?"Live radio only plays in this carriage. Your playlist comes back when you leave.":"Your playlist keeps playing on other pages.";
+      get("radio-info").textContent=station?"Live radio only plays in this carriage. Your playlist comes back when you leave":"Your playlist keeps playing on other pages";
       const link=get<HTMLAnchorElement>("radio-link");link.hidden=!station;
       if(station) {link.href=station.homepage;link.textContent=`Stream provided by ${station.provider}`;}
       session?.setRadioPlaying(state.playing&&!state.error&&state.volume>0);
@@ -482,10 +485,10 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     };
     const activate = (object: string) => {
       if (object==="case"||object==="luggage") openDialog(caseDialog);
-      else if (object==="cord"||object==="windows") {toggleDay();announce(morning?"Morning outside the windows.":"Night outside the windows.");}
+      else if (object==="cord"||object==="windows") {toggleDay();announce(morning?"Morning outside the windows":"Night outside the windows");}
       else if (object==="radio") radio();
       else if (object==="notebooks"||object==="desk") openDialog(notebookDialog);
-      else if (object==="door") {audio.play("locked");announce("The front carriage is closed. Use the open rear platform to step outside.");}
+      else if (object==="door") {audio.play("locked");announce("The front carriage is closed. Use the open rear platform to step outside");}
       else if (object==="lamps") { refreshLamp(); openDialog(lampDialog); }
       else if (object==="avatar") openDialog(catalogDialog);
       else if (object.startsWith("equipment:")) { if (!session?.activateEquipment(object)) equipmentEvent("none"); }
@@ -499,7 +502,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     const toggleDay = () => {
       morning = !morning;
       image.src = `/train/${morning ? "morning" : "night"}.webp`;
-      image.alt = `${morning ? "Morning" : "Night"} view of a timber carriage with plum benches and opal lamps.`;
+      image.alt = "Train carriage";
       session?.setDay(morning);
     };
     const stop = () => {
@@ -521,7 +524,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     };
     const fallback = () => {
       stop();
-      status.textContent = "The carriage is shown as an image. 3D is unavailable right now";
+      status.textContent = "3D didn’t load, so this is a still image. Press Retry 3D to try again";
       retry.hidden = false;
       retry.disabled = false;
       message.hidden = false;
@@ -544,7 +547,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
           hover(object) {
             reticle.dataset.active=String(!!object);
             const name=object?OBJECT_NAMES[object]??"Lamp":"";
-            interaction.textContent=object?`${name}. Press E ${object==="windows"?"to switch day or night":"to interact"}.`:"";
+            interaction.textContent=object?`${name}. Press E ${object==="windows"?"to switch day or night":"to interact"}`:"";
           },
           stamina(energy,sprinting,exhausted) {
             stamina.hidden=energy>=1&&!sprinting;
@@ -657,22 +660,22 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     root.querySelector<HTMLElement>("[data-train-skins]")!.addEventListener("click",event=>{
       const button = event.target instanceof Element ? event.target.closest<HTMLButtonElement>("[data-train-skin]") : null;
       if (!button) return;
-      if (!session) { setCatalogStatus("The 3D controls are not ready yet."); return; }
+      if (!session) { setCatalogStatus("The 3D controls are not ready yet"); return; }
       const id = button.dataset.trainSkin!;
       session.setSkin(id);
       audio.play("equip");
       syncCatalog();
-      setCatalogStatus(`${skins.find(skin=>skin.id===id)?.label ?? "Skin"} equipped.`);
+      setCatalogStatus(`${skins.find(skin=>skin.id===id)?.label ?? "Skin"} equipped`);
     },{signal:events.signal});
     avatarSelect.addEventListener("change",()=>{
-      if (!session) { syncSettings();avatarStatusMessage="The 3D controls are not ready yet.";syncAvatarStatus();return; }
+      if (!session) { syncSettings();avatarStatusMessage="The 3D controls are not ready yet";syncAvatarStatus();return; }
       if (avatarSelect.value === "private") {
         avatarSelect.disabled = true;
         void refreshAccess().then(allowed=>{
           avatarSelect.disabled = false;
           if (allowed !== true || !session) {
             syncSettings();
-            avatarStatusMessage=allowed === false ? "Access expired. Unlock again to use this avatar." : "Could not verify access. Try again.";
+            avatarStatusMessage=allowed === false ? "Access expired. Unlock again to use this avatar" : "Could not verify access. Try again";
             syncAvatarStatus();
             return;
           }
