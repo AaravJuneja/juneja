@@ -21,6 +21,13 @@ test("the incoming reveal respects reduced motion",()=>{
   expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*\{\s*::view-transition-old\(root\),\s*::view-transition-new\(root\)\s*\{\s*animation: none;/);
 });
 
+test("the incoming view reveals along an opaque curve from the top-right corner",()=>{
+  const keyframes=css.split("@keyframes page-enter {")[1]?.split("@keyframes")[0]??"";
+  expect(keyframes).toContain("clip-path: circle(0% at 100% 0%);");
+  expect(keyframes).toContain("clip-path: circle(150% at 100% 0%);");
+  expect(keyframes).not.toContain("opacity:");
+});
+
 test("client swaps preserve reveal enhancement before the incoming page is painted",()=>{
   expect(layout).toMatch(/document\.addEventListener\("astro:before-swap",event=>\{\s*if\(document\.documentElement\.classList\.contains\("js"\)\)event\.newDocument\.documentElement\.classList\.add\("js"\);/);
 });
