@@ -71,12 +71,12 @@ test("carriage objects have a visually hidden button list that shares the intera
   const list=template.split("<ul ")[1]?.split("</ul>")[0]??"";
   expect(list).toStartWith('class="sr-only train-objects" aria-label="Carriage objects" data-train-objects>');
   expect(template).toMatch(/\.train-objects:focus-within \{[^}]*position:absolute;[^}]*width:auto;[^}]*clip:auto;/);
-  for(const [object,label] of [["case","Travel case"],["notebooks","Notebooks"],["radio","Radio"],["cord","Light cord"],["lamps","Lamps"],["avatar","Torch catalog"]])expect(list).toContain(`["${object}","${label}",`);
+  for(const [object,label] of [["case","Travel case"],["notebooks","Notebooks"],["radio","Radio"],["cord","Light cord"],["lamps","Lamps"],["windows","Windows: switch day or night"],["desk","Writing desk"],["luggage","Luggage racks"],["door","Front door"],["avatar","Torch catalog"]])expect(list).toContain(`["${object}","${label}",`);
   expect(list).toContain('<button type="button" data-train-object={object}');
   expect(template.match(/data-train-object=/g)).toHaveLength(1);
   expect(template).not.toMatch(/\.sr-only\s*\{/);
   expect(template).toContain("if(button?.dataset.trainObject)activate(button.dataset.trainObject);");
-  for(const object of ["case","cord","radio","notebooks","lamps","avatar"])expect(template).toContain(`object==="${object}"`);
+  for(const object of ["case","cord","radio","notebooks","lamps","windows","desk","luggage","door","avatar"])expect(template).toContain(`object==="${object}"`);
   expect(template).not.toContain("data-train-action");
   expect(scene).not.toMatch(/"Key[IRLPTF]"/);
   expect(scene).toContain('event.code === "KeyE"');

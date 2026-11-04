@@ -17,6 +17,7 @@ import { STEP_SOUNDS, stepStride, type StrideState, type TrainSound } from "./tr
 import { createRadioNotes } from "./trainRadioNotes";
 import type { RadioSpatialFrame } from "./radioSpatialAudio";
 import { advanceTrainTiming,dampTrainHeading,resetTrainTiming,TRAIN_SIMULATION_STEP,type TrainTimingState } from "./trainTiming";
+import {createTrainInteractionRegions,pickTrainInteraction} from "./trainInteraction";
 
 type Point = [number, number];
 export interface TrainActions {
@@ -248,6 +249,15 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
     const hoverHits:THREE.Intersection[]=[];
     const pointerPosition = new THREE.Vector2();
     const interactive = meshes.filter(m => ["case", "radio", "cord", "notebooks"].includes(m.name) || m.name.startsWith("NT_R02_Lamp"));
+    const regions=createTrainInteractionRegions();
+    const charmRegion={name:"equipment:charm",bounds:new THREE.Box3(),enabled:false};
+    regions.push(charmRegion);
+    const interactionPoint=new THREE.Vector3();
+    const isInteractive=(name:string)=>{
+      if(name.startsWith("equipment:"))return !!equipment?.isInteractive(name);
+      for(const mesh of interactive)if(mesh.name===name)return true;
+      return false;
+    };
     const solid = meshes.filter(m => !HIDDEN_MESHES.includes(m.name));
     const ceilingHeight=(x:number,z:number)=>Math.abs(x)<1.58&&Math.abs(z)<4.3&&player.feet<2.5?(Math.abs(x)>1.24?2.35:2.61):Infinity;
     let hover: string | null = null;
@@ -267,9 +277,9 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
       } else pointerPosition.set(0, 0);
       ray.setFromCamera(pointerPosition, camera);
       hoverHits.length = 0;
-      const hit = ray.intersectObjects(solid, false, hoverHits)[0];
-      const target = hit && hit.distance < 4 && interactive.includes(hit.object as THREE.Mesh) ? hit.object.name : null;
-      const name = target?.startsWith("equipment:") && !equipment?.isInteractive(target) ? null : target;
+      ray.intersectObjects(solid, false, hoverHits);
+      charmRegion.enabled=equipment?.getCharmBounds(charmRegion.bounds)??false;
+      const name=pickTrainInteraction(ray.ray,hoverHits,regions,isInteractive,interactionPoint);
       if (hover !== name) { hover = name; actions.hover(name); }
     };
     const requestHover = () => {
@@ -527,6 +537,7 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
       updateRadioSpatial(now);
       const shadowPending=torch.update(camera,avatar.getHandSocket(),perspective==="first",avatarVisible,torchOccluders,now,heading,locked);
       const equipmentAnimating=equipment?.update(now,torch.getBeam(),torchOccluders,reducedMotion.matches)??false;
+      if(equipmentAnimating)hoverDirty=true;
       const radioAnimating=radioNotes?.update(now,reducedMotion.matches)??false;
       renderer.render(scene,camera);
       if(graphicsQuality==="low") {

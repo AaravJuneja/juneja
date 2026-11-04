@@ -84,6 +84,13 @@ export async function createTrainEquipment(scene:THREE.Scene,signal:AbortSignal,
     materials:[...materials],
     getState(){return {...state};},
     isInteractive(name:string){return equipmentInteractive(state,name);},
+    getCharmBounds(target:THREE.Box3) {
+      if(!state.drawerOpen||!charm)return false;
+      if(drawer)drawer.updateWorldMatrix(true,true);
+      else charm.updateWorldMatrix(true,false);
+      target.setFromObject(charm).expandByScalar(.035);
+      return true;
+    },
     activate(name:string,now=performance.now()):EquipmentEvent {
       const result=equipmentAction(state,name);
       state=result.state;

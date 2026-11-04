@@ -24,7 +24,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     <div class="train-reticle" aria-hidden="true">+</div>
     <span class="sr-only" data-train-interaction role="status" aria-live="polite"></span>
     <ul class="sr-only train-objects" aria-label="Carriage objects" data-train-objects>
-      {([["case","Travel case",true],["notebooks","Notebooks",true],["radio","Radio",true],["cord","Light cord",false],["lamps","Lamps",true],["avatar","Torch catalog",true],["equipment:key","Brass key",false],["equipment:drawer","Desk drawer",false],["equipment:charm","Charm",false]] as const).map(([object,label,dialog])=><li><button type="button" data-train-object={object} aria-haspopup={dialog?"dialog":undefined}>{label}</button></li>)}
+      {([["case","Travel case",true],["notebooks","Notebooks",true],["radio","Radio",true],["cord","Light cord",false],["lamps","Lamps",true],["windows","Windows: switch day or night",false],["desk","Writing desk",true],["luggage","Luggage racks",true],["door","Front door",false],["avatar","Torch catalog",true],["equipment:key","Brass key",false],["equipment:drawer","Desk drawer",false],["equipment:charm","Charm",false]] as const).map(([object,label,dialog])=><li><button type="button" data-train-object={object} aria-haspopup={dialog?"dialog":undefined}>{label}</button></li>)}
     </ul>
     <div class="train-sprint" data-train-stamina role="progressbar" aria-label="Sprint stamina" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" hidden><div data-train-stamina-fill></div></div>
     <nav class="train-menu" aria-label="Train menus">
@@ -153,7 +153,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
   import { readGraphicsPreference,saveGraphicsPreference } from "../lib/trainGraphics";
   import {RADIO_STATIONS,defaultRadioSource,radioStation,type RadioCommand,type RadioState} from "../lib/trainRadio";
   import type { EquipmentEvent } from "../lib/trainEquipment";
-  const OBJECT_NAMES:Record<string,string>={case:"Travel case",radio:"Radio",cord:"Light cord",notebooks:"Notebooks","equipment:key":"Brass key","equipment:drawer":"Desk drawer","equipment:charm":"Charm"};
+  const OBJECT_NAMES:Record<string,string>={case:"Travel case",radio:"Radio",cord:"Light cord",notebooks:"Notebooks",windows:"Window",desk:"Writing desk",luggage:"Luggage rack",door:"Front door","equipment:key":"Brass key","equipment:drawer":"Desk drawer","equipment:charm":"Charm"};
   const EQUIPMENT_MESSAGES:Record<EquipmentEvent,string>={key:"Picked up a small brass key.",locked:"The drawer is locked.",open:"The drawer slides open. Something glints inside.",close:"Drawer closed.",charm:"A little brass charm catches the light.",none:"Nothing to do there right now."};
   const EQUIPMENT_SOUNDS={key:"key",locked:"locked",open:"drawer-open",close:"drawer-close",charm:"charm"} as const;
   function initTrain() {
@@ -425,10 +425,11 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       window.dispatchEvent(new CustomEvent("music:request-state"));
     };
     const activate = (object: string) => {
-      if (object==="case") openDialog(caseDialog);
-      else if (object==="cord") toggleDay();
+      if (object==="case"||object==="luggage") openDialog(caseDialog);
+      else if (object==="cord"||object==="windows") {toggleDay();announce(morning?"Morning outside the windows.":"Night outside the windows.");}
       else if (object==="radio") radio();
-      else if (object==="notebooks") openDialog(notebookDialog);
+      else if (object==="notebooks"||object==="desk") openDialog(notebookDialog);
+      else if (object==="door") {audio.play("locked");announce("The front carriage is closed. Use the open rear platform to step outside.");}
       else if (object==="lamps") { refreshLamp(); openDialog(lampDialog); }
       else if (object==="avatar") openDialog(catalogDialog);
       else if (object.startsWith("equipment:")) { if (!session?.activateEquipment(object)) equipmentEvent("none"); }
@@ -482,7 +483,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
           hover(object) {
             reticle.dataset.active=String(!!object);
             const name=object?OBJECT_NAMES[object]??"Lamp":"";
-            interaction.textContent=object?`${name}. Press E to interact.`:"";
+            interaction.textContent=object?`${name}. Press E ${object==="windows"?"to switch day or night":"to interact"}.`:"";
           },
           stamina(energy,sprinting,exhausted) {
             stamina.hidden=energy>=1&&!sprinting;
