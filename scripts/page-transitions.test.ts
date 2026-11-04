@@ -6,7 +6,7 @@ const layout=readFileSync(new URL("../src/layouts/Layout.astro",import.meta.url)
 
 test("navigation never overlays the outgoing page snapshot on the destination",()=>{
   expect(css).toMatch(/::view-transition-old\(root\)\s*\{[^}]*display:\s*none;[^}]*animation:\s*none;/);
-  expect(css).toMatch(/::view-transition-new\(root\)\s*\{[^}]*animation:\s*page-enter 320ms[^}]*mix-blend-mode:\s*normal;/);
+  expect(css).toMatch(/::view-transition-new\(root\)\s*\{[^}]*animation:\s*page-enter 400ms cubic-bezier\(0\.4, 0, 0\.2, 1\) both;[^}]*mix-blend-mode:\s*normal;/);
   expect(css).toMatch(/::view-transition-group\(root\)\s*\{[^}]*animation:\s*none;/);
   expect(css).not.toContain("vt-scale-in");
   expect(css).not.toContain("vt-scale-out");
