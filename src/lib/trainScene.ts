@@ -12,12 +12,16 @@ import { TORCH_SHADOW_LAYER,createTrainTorch } from "./trainTorch";
 import { stepAdaptiveGraphics,trainFrameBudget,trainFrameDue,trainGraphicsProfile,trainPowerPreference,type AdaptiveGraphicsState,type FramePacer,type TrainGraphicsQuality } from "./trainGraphics";
 import { fetchTrainModel } from "./trainAsset";
 import { parseTrainManifest } from "./trainManifest";
+import { createTrainEquipment, type EquipmentEvent } from "./trainEquipment";
+import { STEP_SOUNDS, stepStride, type StrideState, type TrainSound } from "./trainAudio";
 
 type Point = [number, number];
 export interface TrainActions {
   failed: () => void;
   activate: (object: string) => void;
   hover: (object: string | null) => void;
+  equipment?: (event:EquipmentEvent)=>void;
+  sound?: (sound:TrainSound,options?:{volume?:number;rate?:number})=>void;
   stamina?: (energy:number,sprinting:boolean,exhausted:boolean)=>void;
   avatarStatus?: (message:string)=>void;
 }
@@ -99,9 +103,12 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
   let visibility: IntersectionObserver | undefined;
   const keys = new Set<string>();
   let moving = false;
+  let equipment:Awaited<ReturnType<typeof createTrainEquipment>>|undefined;
+  const stride:StrideState={travelled:0,last:-1};
   const dispose = () => {
     if (disposed) return;
     disposed = true;
+    equipment?.dispose();
     cancelAnimationFrame(frame);
     cancelAnimationFrame(hoverFrame);
     observer?.disconnect();
@@ -252,7 +259,8 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
       ray.setFromCamera(pointerPosition, camera);
       hoverHits.length = 0;
       const hit = ray.intersectObjects(solid, false, hoverHits)[0];
-      const name = hit && hit.distance < 4 && interactive.includes(hit.object as THREE.Mesh) ? hit.object.name : null;
+      const target = hit && hit.distance < 4 && interactive.includes(hit.object as THREE.Mesh) ? hit.object.name : null;
+      const name = target?.startsWith("equipment:") && !equipment?.isInteractive(target) ? null : target;
       if (hover !== name) { hover = name; actions.hover(name); }
     };
     const requestHover = () => {
@@ -361,6 +369,21 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
       environment?.patchMaterials(material=>torch.patch(material));
     };
     patchMaterials();
+    void createTrainEquipment(scene,signal).then(loaded=>{
+      if(disposed) {loaded.dispose();return;}
+      equipment=loaded;
+      equipment.setDay(morning);
+      for(const material of loaded.materials) {materials.add(material);torch.patch(material);}
+      for(const mesh of loaded.meshes) {
+        if(mesh.name==="equipment:drawer-cavity")continue;
+        solid.push(mesh);
+        if(mesh.name==="equipment:drawer")torchOccluders.push(mesh);
+        interactive.push(mesh);
+      }
+      torch.castShadows(loaded.meshes);
+      hoverDirty=true;
+      return renderer.compileAsync(scene,camera);
+    }).catch(()=>{}).then(()=>{if(!disposed)restart();});
     const updateScenery=()=>{
       if(distance===sceneryDistance)return;
       sceneryDistance=distance;
@@ -429,8 +452,13 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
       if(player.prone)heading=player.heading!;
       const beforeX=player.x,beforeZ=player.z;
       stepPlayer(player,dx,dz,delta,colliders,outdoorBounds,movementWorld);
-      const walked=Math.hypot(player.x-beforeX,player.z-beforeZ-(player.transportZ??0)*delta)>.0001;
+      const moved=Math.hypot(player.x-beforeX,player.z-beforeZ-(player.transportZ??0)*delta);
+      const walked=moved>.0001;
       stepSprint(sprint,sprinting&&walked,delta);
+      if(walked&&player.grounded&&!player.prone&&!outside) {
+        const step=stepStride(stride,moved,sprinting);
+        if(step!==undefined)actions.sound?.(STEP_SOUNDS[step],{rate:.94+Math.random()*.12,volume:sprinting?1.25:1});
+      } else if(!walked)stride.travelled=0;
       const nextStamina=Math.round(sprint.energy*100)*8+(sprint.energy===1?4:0)+(sprinting&&walked?2:0)+(sprint.exhausted?1:0);
       if(nextStamina!==staminaState) {staminaState=nextStamina;actions.stamina?.(sprint.energy,sprinting&&walked,sprint.exhausted);}
       if(locked) {if(!player.prone)heading=yaw+Math.PI;}
@@ -465,6 +493,7 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
       }
       camera.updateMatrixWorld();
       const shadowPending=torch.update(camera,avatar.getHandSocket(),perspective==="first",avatarVisible,torchOccluders,now,heading,locked);
+      const equipmentAnimating=equipment?.update(now,torch.getBeam(),torchOccluders,reducedMotion.matches)??false;
       renderer.render(scene,camera);
       if(graphicsQuality==="low") {
         const scale=adaptiveGraphics.scale;
@@ -474,7 +503,7 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
       cancelAnimationFrame(hoverFrame);hoverFrame=0;
       updateHover();
       moving = length > 0 || keys.size > 0 || !player.grounded || sprint.energy<1;
-      if (drift || moving || animating || shadowPending) frame = requestAnimationFrame(render);
+      if (drift || moving || animating || shadowPending || equipmentAnimating) frame = requestAnimationFrame(render);
     };
     const restart = () => {
       if(disposed||switching||!inView||document.hidden||suspended) {cancelAnimationFrame(frame);frame=0;last=0;return;}
@@ -485,7 +514,21 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
     };
     const clearInput = () => { keys.clear();touches.clear();touchOrigin=undefined;touchX=touchZ=0;touchSprint=false;pointer=undefined; };
     const jump = () => { if (!suspended) { jumpPlayer(player); restart(); } };
-    const use = () => { updateHover(true); if (hover) actions.activate(hover); };
+    const activateEquipment = (name:string) => {
+      if(!equipment)return false;
+      const event=equipment.activate(name);
+      if(event==="none")return false;
+      hoverDirty=true;
+      actions.equipment?.(event);
+      restart();
+      return true;
+    };
+    const use = () => {
+      updateHover(true);
+      if (!hover) return;
+      if (hover.startsWith("equipment:")) activateEquipment(hover);
+      else actions.activate(hover);
+    };
     const look = (horizontal: number, vertical = 0) => { yaw -= horizontal; pitch = THREE.MathUtils.clamp(pitch-vertical,-1.15,1.15); restart(); };
     let pendingLock=0;
     let lockGeneration=0;
@@ -617,7 +660,7 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
         else if(event.code==="KeyV"&&!event.repeat)perspective=perspective==="third"?"first":"third";
         else if(event.code==="KeyO"&&!event.repeat)cameraMode=cameraMode==="orbit"?"aim":"orbit";
         else if(event.code==="KeyM"&&!event.repeat)actions.activate("avatar");
-        else if(event.code==="KeyQ"&&!event.repeat)torch.setTorch(!torch.getState().torch);
+        else if(event.code==="KeyQ"&&!event.repeat) {torch.setTorch(!torch.getState().torch);actions.sound?.("torch",{rate:torch.getState().torch?1:.88});}
         else if(MOVEMENT_KEYS.includes(event.code))keys.add(event.code);
         if (event.code === "Escape") { clearInput();setShiftLock(false); }
         restart();
@@ -685,6 +728,8 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
       getPosition(){return {x:player.x,y:player.feet+(player.prone?PRONE_EYE_HEIGHT:EYE_HEIGHT),z:player.z,grounded:player.grounded};},
       getAvatarControls(){return {avatar:avatarId,perspective,cameraMode,shiftLock,prone:!!player.prone};},
       getGraphics(){return graphicsQuality;},
+      activateEquipment,
+      getEquipmentState(){return equipment?.getState();},
       setShiftLock,
       async setAvatar(value:AvatarId){
         desired.avatar=value;
@@ -725,6 +770,7 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
         updateSky();
         environment?.setDay(morning);
         islandSign?.setDay(morning);
+        equipment?.setDay(morning);
         avatarAmbient.intensity=morning?2.8:2;
         avatarKey.intensity=morning?2.5:2.2;
         tint.setRGB(morning?1.8:1,morning?1.9:1,morning?2:1);

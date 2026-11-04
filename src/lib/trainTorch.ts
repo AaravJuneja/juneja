@@ -32,6 +32,7 @@ export function createTrainTorch(scene:THREE.Scene,renderer:THREE.WebGLRenderer,
     trainTorchTexelSize:{value:new THREE.Vector2(1/initialGraphics.torchShadowSize,1/initialGraphics.torchShadowSize)},
     trainTorchShadows:{value:0},
   };
+  const beam={origin:uniforms.trainTorchPosition.value,direction:uniforms.trainTorchDirection.value,range:9,enabled:false};
   const resources={geometries:new Set<THREE.BufferGeometry>(),materials:new Set<THREE.Material>(),textures:new Set<THREE.Texture>()};
   let disposed=false;
   let shell:THREE.MeshStandardMaterial[]=[];
@@ -194,6 +195,7 @@ export function createTrainTorch(scene:THREE.Scene,renderer:THREE.WebGLRenderer,
       setSkin(selectedSkin);
     },
     setTorch(value:boolean){enabled=value;},
+    getBeam(){beam.enabled=enabled&&uniforms.trainTorchStrength.value>0;return beam;},
     setRenderer(value:THREE.WebGLRenderer){shadowTarget.dispose();target=value;shadowReady=false;lastShadow=-Infinity;},
     castShadows(objects:Iterable<THREE.Object3D>){for(const object of objects)object.layers.enable(TORCH_SHADOW_LAYER);},
     getState(){return {skin:selectedSkin,torch:enabled};},
