@@ -1,5 +1,6 @@
 ---
 import MatchboxBrand from "./MatchboxBrand.astro";
+import {ctftime2026Obscuri} from "../data.ts";
 ---
 
 <section id="team" data-reveal class="w-full">
@@ -53,7 +54,7 @@ import MatchboxBrand from "./MatchboxBrand.astro";
                 <span class="xs">2026</span>
               </div>
               <div class="face back">
-                <a href="https://ctftime.org/team/370140/" target="_blank" rel="noopener">0bscuri7y on ctftime</a>
+                <a href={ctftime2026Obscuri.href} target="_blank" rel="noopener">0bscuri7y on ctftime</a>
                 <span class="made">since january 2026</span>
               </div>
             </div>
@@ -72,11 +73,11 @@ import MatchboxBrand from "./MatchboxBrand.astro";
           <p class="font-dm trim-caps text-[10px] sm:text-[12px] tracking-[0.08em] uppercase text-muted-text leading-tight whitespace-normal sm:whitespace-nowrap">INDIA · 2025</p>
         </div>
         <div class="group bg-raised-surface border border-accent p-3 sm:p-5 flex flex-col items-center justify-center gap-2 text-center hover:shadow-[4px_4px_0px_0px_var(--color-accent)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-150">
-          <p class="font-dm trim-caps font-bold text-[19px] sm:text-[22px] text-text tabular-nums" data-count="455.576" data-decimals="3">455.576</p>
+          <p class="font-dm trim-caps font-bold text-[19px] sm:text-[22px] text-text tabular-nums" data-count={ctftime2026Obscuri.ratingPoints} data-decimals="3">{ctftime2026Obscuri.ratingPoints.toFixed(3)}</p>
           <p class="font-dm trim-caps text-[10px] sm:text-[12px] tracking-[0.08em] uppercase text-muted-text leading-tight whitespace-normal sm:whitespace-nowrap">0BSCURI7Y · 2026 RP</p>
         </div>
         <div class="group bg-raised-surface border border-line p-3 sm:p-5 flex flex-col items-center justify-center gap-2 text-center hover:border-accent/30 hover:-translate-y-0.5 transition-all duration-150">
-          <p class="font-dm trim-caps font-bold text-[19px] sm:text-[22px] text-text group-hover:text-accent transition-colors duration-150">NOW #6</p>
+          <p class="font-dm trim-caps font-bold text-[19px] sm:text-[22px] text-text group-hover:text-accent transition-colors duration-150">NOW #{ctftime2026Obscuri.countryPlace}</p>
           <p class="font-dm trim-caps text-[10px] sm:text-[12px] tracking-[0.08em] uppercase text-muted-text leading-tight whitespace-normal sm:whitespace-nowrap">PEAK #1 · INDIA 2026</p>
         </div>
       </div>

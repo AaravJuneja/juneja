@@ -42,6 +42,14 @@ export const repositories: Repository[] = [
   },
 ]
 
+export const ctftime2026Obscuri = {
+  href: "https://ctftime.org/team/370140/",
+  checkedAt: "2026-11-05",
+  ratingPoints: 477.647,
+  countryPlace: 6,
+  overallPlace: 58,
+}
+
 export type Achievement = {
   rating: string
   source: string
@@ -381,7 +389,7 @@ export const achievements2026Obscuri: Achievement[] = [
     finish: "Finished 49th among 614 teams.",
   },
   {
-    rating: "26.966 RP",
+    rating: "27.000 RP",
     source: "CTFtime",
     title: "PascalCTF 2026",
     href: "https://ctftime.org/event/2767",
@@ -480,7 +488,7 @@ export const achievements2026Obscuri: Achievement[] = [
     finish: "Finished 29th among 324 teams.",
   },
   {
-    rating: "16.775 RP",
+    rating: "16.441 RP",
     source: "CTFtime",
     title: "0xFUN CTF 2026",
     href: "https://ctftime.org/event/3081",
@@ -500,6 +508,39 @@ export const achievements2026Obscuri: Achievement[] = [
     scope: "International",
     organizer: "Hack for a Change",
     finish: "Finished 13th among 179 teams.",
+  },
+  {
+    rating: "12.872 RP",
+    source: "CTFtime",
+    title: "Midnight Flag CTF - EXECUTION",
+    href: "https://ctftime.org/event/3105",
+    team: "0bscuri7y",
+    dates: "13 Mar 2026 - 15 Mar 2026",
+    scope: "International",
+    organizer: "Midnight Flag - INFEKTION",
+    finish: "Finished 76th among 756 teams.",
+  },
+  {
+    rating: "12.859 RP",
+    source: "CTFtime",
+    title: "SekaiCTF 2026",
+    href: "https://ctftime.org/event/3113",
+    team: "0bscuri7y",
+    dates: "27 Jun 2026 - 29 Jun 2026",
+    scope: "International",
+    organizer: "Project Sekai",
+    finish: "Finished 156th among 925 teams.",
+  },
+  {
+    rating: "12.725 RP",
+    source: "CTFtime",
+    title: "VishwaCTF'2026",
+    href: "https://ctftime.org/event/3197",
+    team: "0bscuri7y",
+    dates: "3 Apr 2026 - 5 Apr 2026",
+    scope: "International",
+    organizer: "CyberCell VIIT",
+    finish: "Finished 82nd among 517 teams.",
   },
   {
     rating: "10.586 RP",
@@ -524,7 +565,7 @@ export const achievements2026Obscuri: Achievement[] = [
     finish: "Finished 50th among 433 teams.",
   },
   {
-    rating: "8.223 RP",
+    rating: "8.220 RP",
     source: "CTFtime",
     title: "PsychCTF 2026",
     href: "https://ctftime.org/event/3166",
@@ -533,6 +574,17 @@ export const achievements2026Obscuri: Achievement[] = [
     scope: "International",
     organizer: "IIT Mandi",
     finish: "Finished 42nd among 420 teams.",
+  },
+  {
+    rating: "7.480 RP",
+    source: "CTFtime",
+    title: "TaipanByte’s Chart CTF",
+    href: "https://ctftime.org/event/3086",
+    team: "0bscuri7y",
+    dates: "14 Feb 2026 - 15 Feb 2026",
+    scope: "International",
+    organizer: "TaipanByte",
+    finish: "Finished 133rd among 461 teams.",
   },
   {
     rating: "6.527 RP",
@@ -544,6 +596,28 @@ export const achievements2026Obscuri: Achievement[] = [
     scope: "International",
     organizer: "West University of Timișoara",
     finish: "Finished 48th among 314 teams.",
+  },
+  {
+    rating: "0.823 RP",
+    source: "CTFtime",
+    title: "Pragyan CTF 2026",
+    href: "https://ctftime.org/event/3058",
+    team: "0bscuri7y",
+    dates: "6 Feb 2026 - 8 Feb 2026",
+    scope: "International",
+    organizer: "Pragyan, NIT Trichy",
+    finish: "Finished 42nd among 892 teams.",
+  },
+  {
+    rating: "0.000 RP",
+    source: "CTFtime",
+    title: "SWIMMER OSINT CTF",
+    href: "https://ctftime.org/event/2986",
+    team: "0bscuri7y",
+    dates: "17 Jan 2026",
+    scope: "Japan-based, open internationally",
+    organizer: "DIVER OSINT CTF",
+    finish: "Finished 149th among 686 teams.",
   },
 ]
 

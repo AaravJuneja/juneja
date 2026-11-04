@@ -1,5 +1,5 @@
 ---
-import { achievements2025Syndication, achievements2026Syndication, achievements2026Obscuri } from "../data.ts";
+import { achievements2025Syndication, achievements2026Syndication, achievements2026Obscuri,ctftime2026Obscuri } from "../data.ts";
 
 const chapters = [
   {
@@ -23,7 +23,7 @@ const chapters = [
     badge: "2026",
     title: "LEVELING UP AGAIN",
     team: "0BSCURI7Y",
-    copy: "Joined 0bscuri7y at the start of 2026 and climbed to #1 in India",
+    copy: `Joined 0bscuri7y at the start of 2026 and peaked at #1 in India. Currently #${ctftime2026Obscuri.countryPlace} in India and #${ctftime2026Obscuri.overallPlace} worldwide with ${ctftime2026Obscuri.ratingPoints.toFixed(3)} rating points`,
     achievements: achievements2026Obscuri,
   },
 ];
