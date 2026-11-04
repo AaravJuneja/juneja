@@ -1,5 +1,5 @@
 export const RADIO_STATIONS=[
-  {id:"mellow",name:"Radio Paradise · Mellow",description:"Mellow, eclectic music for the night carriage",url:"https://stream.radioparadise.com/mellow-128",homepage:"https://radioparadise.com/listen/stream-links",provider:"Radio Paradise"},
+  {id:"mellow",name:"Radio Paradise Mellow Mix",description:"Mellow, eclectic music for the night carriage",url:"https://stream.radioparadise.com/mellow-128",homepage:"https://radioparadise.com/listen/stream-links",provider:"Radio Paradise"},
   {id:"jazz24",name:"Jazz24",description:"Jazz for a brighter journey",url:"https://knkx-live-a.edge.audiocdn.com/6285_128k",homepage:"https://www.jazz24.org/ways-to-listen/",provider:"Jazz24"},
   {id:"kexp",name:"KEXP",description:"Independent music and eclectic discoveries",url:"https://kexp.streamguys1.com/kexp160.aac",homepage:"https://www.kexp.org/streaming-urls/",provider:"KEXP"},
 ] as const;

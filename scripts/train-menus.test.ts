@@ -17,6 +17,37 @@ test("the compact toolbar keeps labeled icon controls and persistent state indic
   expect(template).toContain('.train-menu .train-icon-button[hidden] { display:none; }');
 });
 
+test("the travel case shows every interest without an accordion",()=>{
+  const travelCase=dialog("travel-case");
+  expect(travelCase).toContain('<ul class="train-interests">');
+  expect(travelCase).toContain("interest.description");
+  expect(travelCase).not.toContain("<details");
+  expect(travelCase).toContain('href="/team">Team</a>');
+  expect(travelCase).toContain('<footer class="train-footer">');
+});
+
+test("notebooks show useful project metadata rather than sync implementation details",()=>{
+  const notebooks=dialog("notebook-panel");
+  expect(notebooks).toContain("My public GitHub projects, newest first.");
+  expect(notebooks).toContain("Updated <a");
+  expect(notebooks).toContain("repo.commitHref ?? repo.commitsHref");
+  expect(notebooks).not.toContain("usingPreviousCommit");
+  expect(notebooks).not.toContain("No commits yet");
+  expect(notebooks).toContain("All repositories on GitHub");
+});
+
+test("radio controls distinguish playlist playback from live broadcasts",()=>{
+  expect(template).toContain("radioNext.hidden=live");
+  expect(template).not.toContain('radioPlay.setAttribute("aria-pressed"');
+  expect(template).toContain('live?"Live":"Playing"');
+  expect(template).toContain('live?"Off":"Paused"');
+  expect(template).toContain('if(statusElement.textContent!==status)statusElement.textContent=status');
+  expect(template).toContain("Live radio only plays in this carriage.");
+  expect(template).toContain("Stream provided by ${station.provider}");
+  expect(template).not.toContain("Live audio uses your internet connection");
+  expect(dialog("radio-panel")).not.toContain("<span>88</span>");
+});
+
 test("the catalog contains skins without gameplay or avatar controls",()=>{
   const catalog=dialog("catalog-panel");
   expect(catalog).toContain("data-train-skins");

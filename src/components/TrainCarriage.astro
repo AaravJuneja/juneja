@@ -61,9 +61,9 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     <noscript><p class="train-noscript">Enable JavaScript to explore the carriage in 3D</p></noscript>
     <dialog id="travel-case" class="train-dialog" aria-labelledby="case-title">
       <div class="train-panel"><button class="train-close" data-close type="button" aria-label="Close travel case">×</button><h2 id="case-title" tabindex="-1">In my case</h2>
-        {interests.map((interest,i)=><details class="train-interest" name="travel-case-interests" open={i===0}><summary>{interest.title}</summary><p>{interest.description}</p></details>)}
-        <nav class="train-links" aria-label="More about Aarav"><a href="/team">My teams</a><a href="/writeups">Writeups</a><a href="/achievements">Achievements</a></nav>
-        <a href="/train/credits.txt">Asset credits</a>
+        <ul class="train-interests">{interests.map(interest=><li class="train-interest"><strong>{interest.title}</strong><p>{interest.description}</p></li>)}</ul>
+        <nav class="train-links" aria-label="More about Aarav"><a href="/team">Team</a><a href="/writeups">Writeups</a><a href="/achievements">Achievements</a></nav>
+        <footer class="train-footer"><a href="/train/credits.txt">Credits</a></footer>
       </div>
     </dialog>
     <dialog id="lamp-panel" class="train-dialog" aria-labelledby="lamp-title">
@@ -77,13 +77,13 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       <div class="train-panel">
         <button class="train-close" data-close type="button" aria-label="Close notebooks">×</button>
         <h2 id="notebook-title" tabindex="-1">Notebooks</h2>
-        <p class="train-lede">Public repositories, sorted by commit date</p>
+        <p class="train-lede">My public GitHub projects, newest first.</p>
         {repositories.map(repo=><article class="train-repository">
           <h3><a href={repo.href} target="_blank" rel="noopener noreferrer">{repo.name}</a></h3>
-          <div class="train-repository-meta">{repo.lastCommitAt ? <>{repo.usingPreviousCommit ? "Previous commit" : "Last commit"} <a href={repo.commitHref ?? repo.commitsHref ?? `${repo.href}/commits/`} target="_blank" rel="noopener noreferrer"><time datetime={repo.lastCommitAt}>{commitDate.format(new Date(repo.lastCommitAt))}</time></a></> : repo.usingPreviousCommit ? "No earlier commit" : "No commits yet"}{repo.archived && <span>Archived</span>}</div>
-          {repo.description && <p>{repo.description.replace(/\.$/, "")}</p>}
+          {(repo.description || repo.name==="AaravJuneja") && <p>{(repo.description || "My GitHub profile page").replace(/\.$/, "")}</p>}
+          {(repo.lastCommitAt || repo.archived) && <div class="train-repository-meta">{repo.lastCommitAt && <>Updated <a href={repo.commitHref ?? repo.commitsHref ?? `${repo.href}/commits/`} target="_blank" rel="noopener noreferrer"><time datetime={repo.lastCommitAt}>{commitDate.format(new Date(repo.lastCommitAt))}</time></a></>}{repo.archived && <span>Archived</span>}</div>}
         </article>)}
-        <a href="https://github.com/AaravJuneja?tab=repositories" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+        <footer class="train-footer"><a href="https://github.com/AaravJuneja?tab=repositories" target="_blank" rel="noopener noreferrer">All repositories on GitHub</a></footer>
       </div>
     </dialog>
     <dialog id="catalog-panel" class="train-dialog train-catalog-dialog" aria-labelledby="catalog-title">
@@ -146,17 +146,17 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
           <div><dt><kbd>E</kbd></dt><dd>Interact</dd></div>
           <div><dt><kbd>Esc</kbd></dt><dd>Release mouse lock or close a menu</dd></div>
         </dl>
-        <p class="train-touch-help">On touch screens, drag to look. Drag with two fingers to walk, farther to sprint. Double tap empty space to jump.</p>
+        <p class="train-touch-help">On touch screens, drag to look. Drag with two fingers to walk, farther to sprint. Tap the jump button, then tap again in the air to double jump.</p>
       </div>
     </dialog>
     <dialog id="radio-panel" class="train-dialog train-radio-dialog" aria-labelledby="radio-title">
       <div class="train-panel">
         <button class="train-close" data-close type="button" aria-label="Close radio">×</button>
-        <h2 id="radio-title" tabindex="-1">Carriage radio</h2>
+        <h2 id="radio-title" tabindex="-1">Radio</h2>
         <div class="radio-display">
-          <p class="radio-track" data-train-radio-title>Connecting to the player…</p>
-          <p data-train-radio-status role="status" aria-live="polite">Waiting for the player</p>
-          <div class="radio-tuner" aria-hidden="true"><span>88</span><span>92</span><span>96</span><span>100</span><span>104</span><span>108</span><i data-train-radio-needle></i></div>
+          <p class="radio-track" data-train-radio-title>Nothing playing</p>
+          <p data-train-radio-status role="status" aria-live="polite"></p>
+          <div class="radio-tuner" aria-hidden="true"><i data-train-radio-needle></i></div>
         </div>
         <div class="radio-transport">
           <button type="button" data-train-radio-play disabled>Play</button>
@@ -165,10 +165,10 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
         <label>Listen to<select data-train-radio-mode disabled><option value="playlist">My playlist</option><option value="live">Live radio</option></select></label>
         <label data-train-radio-station-row hidden>Station<select data-train-radio-station>{RADIO_STATIONS.map(station=><option value={station.id}>{station.name}</option>)}</select></label>
         <label class="radio-volume">Volume<input data-train-radio-volume type="range" min="0" max="100" value="100" aria-label="Radio volume" disabled /><output data-train-radio-volume-value>100%</output></label>
-        <label class="radio-spatial"><input data-train-radio-spatial type="checkbox" checked /> 3D sound &amp; carriage echo</label>
-        <p class="train-lede radio-help" data-train-radio-spatial-help>Walk closer to hear more. Turn to hear the radio change direction. Best with headphones.</p>
+        <label class="radio-spatial"><input data-train-radio-spatial type="checkbox" checked /> 3D sound</label>
+        <p class="train-lede radio-help" data-train-radio-spatial-help>Sound comes from the radio and echoes around the carriage. Best with headphones.</p>
         <p class="train-lede radio-help" data-train-radio-volume-help hidden>Use your device volume buttons.</p>
-        <p class="train-lede radio-help" data-train-radio-info>Music stays with you when you leave the carriage.</p>
+        <p class="train-lede radio-help" data-train-radio-info></p>
         <a data-train-radio-link target="_blank" rel="noopener noreferrer" hidden>Visit station</a>
       </div>
     </dialog>
@@ -182,7 +182,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
   import {RADIO_STATIONS,defaultRadioSource,radioStation,type RadioCommand,type RadioState} from "../lib/trainRadio";
   import type { EquipmentEvent } from "../lib/trainEquipment";
   const OBJECT_NAMES:Record<string,string>={case:"Travel case",radio:"Radio",cord:"Light cord",notebooks:"Notebooks",windows:"Window",desk:"Writing desk",luggage:"Luggage rack",door:"Front door","equipment:key":"Brass key","equipment:drawer":"Desk drawer","equipment:charm":"Charm"};
-  const EQUIPMENT_MESSAGES:Record<EquipmentEvent,string>={key:"Picked up a small brass key.",locked:"The drawer is locked.",open:"The drawer slides open. Something glints inside.",close:"Drawer closed.",charm:"A little brass charm catches the light.",none:"Nothing to do there right now."};
+  const EQUIPMENT_MESSAGES:Record<EquipmentEvent,string>={key:"Picked up a small brass key.",locked:"The drawer is locked.",open:"The drawer slides open. Something glints inside.",close:"Drawer closed.",charm:"The charm vanishes.",none:"Nothing to do there right now."};
   const EQUIPMENT_SOUNDS={key:"key",locked:"locked",open:"drawer-open",close:"drawer-close",charm:"charm"} as const;
   function initTrain() {
     const root = document.querySelector<HTMLElement>("[data-train]");
@@ -312,22 +312,23 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       const live=!!station;
       radioPlay.disabled=false;radioMode.disabled=false;
       radioPlay.textContent=state.playing||state.loading?"Pause":"Play";
-      radioPlay.setAttribute("aria-pressed",String(state.playing));
-      radioNext.disabled=live;
+      radioNext.hidden=live;radioNext.disabled=live;
       radioMode.value=live?"live":"playlist";
       if(station)radioStationSelect.value=station.id;
       get("radio-station-row").hidden=!live;
       get("radio-title").textContent=state.title;
-      get("radio-status").textContent=state.error?"No signal. Press play to retry, or choose another source.":state.loading?"Tuning in…":state.playing?state.volume===0?"Muted":"On air":"Paused";
+      const status=state.error?live?"No signal. Press Play to try again or pick another station.":"Could not play this track. Press Play to try again.":state.loading?live?"Tuning in…":"Loading…":state.playing?state.volume===0?"Muted":live?"Live":"Playing":live?"Off":"Paused";
+      const statusElement=get("radio-status");
+      if(statusElement.textContent!==status)statusElement.textContent=status;
       get("radio-needle").style.left=station?`${16+RADIO_STATIONS.indexOf(station)*31}%`:"50%";
       radioVolume.disabled=!state.volumeSupported;
       radioVolume.value=String(Math.round(state.volume*100));
       radioSpatial.checked=state.spatialEnabled;
       radioSpatial.disabled=!state.spatialSupported;
-      get("radio-spatial-help").textContent=state.spatialSupported?"Walk closer to hear more. Turn to hear the radio change direction. Best with headphones.":"3D audio is unavailable in this browser. Normal stereo playback is still available.";
+      get("radio-spatial-help").textContent=state.spatialSupported?"Sound comes from the radio and echoes around the carriage. Best with headphones.":"This browser cannot place sound in 3D. Music still plays in stereo.";
       get("radio-volume-value").textContent=`${Math.round(state.volume*100)}%`;
       get("radio-volume-help").hidden=state.volumeSupported;
-      get("radio-info").textContent=station?`${station.description}. Live audio uses your internet connection; stopping disconnects the stream.`:"Music stays with you when you leave the carriage.";
+      get("radio-info").textContent=station?"Live radio only plays in this carriage. Your playlist comes back when you leave.":"Your playlist keeps playing on other pages.";
       const link=get<HTMLAnchorElement>("radio-link");link.hidden=!station;
       if(station) {link.href=station.homepage;link.textContent=`Stream provided by ${station.provider}`;}
       session?.setRadioPlaying(state.playing&&!state.error&&state.volume>0);
@@ -755,16 +756,19 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
   .train-panel h2 { margin:0 44px 12px 0;font:600 clamp(26px,5vw,32px)/1.15 Outfit,sans-serif; }
   .train-close { position:absolute;right:12px;top:12px;font-size:25px; }
   .train-lede { margin:0 0 24px;color:var(--train-muted); }
-  .train-interest { border-top:1px solid var(--train-line);padding-block:4px; }
-  .train-interest summary { display:flex;justify-content:flex-start;color:var(--train-accent);font-size:17px; }
-  .train-interest p { margin:0 12px 16px;line-height:1.6; }
+  .train-interests { list-style:none;margin:20px 0 0;padding:0; }
+  .train-interest { border-top:1px solid var(--train-line);padding-block:14px; }
+  .train-interest strong { color:var(--train-accent);font-size:17px;font-weight:500; }
+  .train-interest p { margin:4px 0 0;line-height:1.6; }
   .train-repository { border-top:1px solid var(--train-line);padding-block:20px; }
   .train-repository h3 { margin:0 0 10px;font-size:18px;font-weight:500;overflow-wrap:anywhere; }
-  .train-repository p { margin:12px 0 0;line-height:1.6; }
+  .train-repository p { margin:0 0 10px;line-height:1.6; }
   .train-repository-meta { display:flex;align-items:baseline;flex-wrap:wrap;gap:6px;color:var(--train-muted);font-size:13px; }
   .train-repository-meta span { margin-left:8px; }
   .train-links { display:flex;flex-wrap:wrap;gap:20px;margin-block:20px; }
   .train-links a { display:inline-flex;min-height:44px;align-items:center; }
+  .train-footer { margin-top:16px;padding-top:12px;border-top:1px solid var(--train-line);font-size:13px; }
+  .train-footer a { display:inline-flex;align-items:center;min-height:44px;color:var(--train-muted); }
   .train-panel label { display:flex;align-items:center;gap:12px;margin-block:24px; }
   .train-panel select { min-height:44px;max-width:100%;padding:8px;background:var(--train-background);color:var(--train-text);border:1px solid var(--train-edge);font:inherit; }
   .train-panel input { width:20px;height:20px;accent-color:var(--train-accent); }
