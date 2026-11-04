@@ -92,6 +92,9 @@ const canonical = new URL(Astro.url.pathname, "https://squeakyfiddlepro.me/");
 <script>
   import {initPortraitTheme} from "../lib/portraitTheme";
   initPortraitTheme();
+  document.addEventListener("astro:before-swap",event=>{
+    if(document.documentElement.classList.contains("js"))event.newDocument.documentElement.classList.add("js");
+  });
 </script>
 
 <style>

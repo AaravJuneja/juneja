@@ -1,0 +1,26 @@
+import {expect,test} from "bun:test";
+import {readFileSync} from "node:fs";
+
+const css=readFileSync(new URL("../src/styles/global.css",import.meta.url),"utf8");
+const layout=readFileSync(new URL("../src/layouts/Layout.astro",import.meta.url),"utf8");
+
+test("navigation never overlays the outgoing page snapshot on the destination",()=>{
+  expect(css).toMatch(/::view-transition-old\(root\)\s*\{[^}]*display:\s*none;[^}]*animation:\s*none;/);
+  expect(css).toMatch(/::view-transition-new\(root\)\s*\{[^}]*animation:\s*page-enter 320ms[^}]*mix-blend-mode:\s*normal;/);
+  expect(css).toMatch(/::view-transition-group\(root\)\s*\{[^}]*animation:\s*none;/);
+  expect(css).not.toContain("vt-scale-in");
+  expect(css).not.toContain("vt-scale-out");
+});
+
+test("incoming page reveals retain client routing and the persistent music player",()=>{
+  expect(layout).toContain("<ClientRouter />");
+  expect(layout).toContain('transition:persist="spotify-player"');
+});
+
+test("the incoming reveal respects reduced motion",()=>{
+  expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*\{\s*::view-transition-old\(root\),\s*::view-transition-new\(root\)\s*\{\s*animation: none;/);
+});
+
+test("client swaps preserve reveal enhancement before the incoming page is painted",()=>{
+  expect(layout).toMatch(/document\.addEventListener\("astro:before-swap",event=>\{\s*if\(document\.documentElement\.classList\.contains\("js"\)\)event\.newDocument\.documentElement\.classList\.add\("js"\);/);
+});
