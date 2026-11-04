@@ -1,6 +1,6 @@
 import {describe,expect,test} from "bun:test";
 import * as THREE from "three";
-import {cameraBoomDistance} from "../src/lib/trainCamera";
+import {cameraBoomDistance,cameraGroundDistance} from "../src/lib/trainCamera";
 import type {CarriageCollider} from "../src/lib/trainPhysics";
 
 describe("third-person camera collision",()=>{
@@ -24,6 +24,24 @@ describe("third-person camera collision",()=>{
   test("returns zero when the camera starts inside the collision margin",()=>{
     const wall:CarriageCollider={min:[-.7,-.7],max:[.7,.7],bottom:0,top:2};
     expect(cameraBoomDistance(new THREE.Vector3(0,1,0),new THREE.Vector3(0,0,1),3,[wall])).toBe(0);
+  });
+
+  test("pulls the outside boom in before it dips under rising terrain",()=>{
+    const slope=(x:number,z:number)=>-1.9+Math.max(0,z-1)*1.5+x*0;
+    const eye=new THREE.Vector3(0,-.78,0),back=new THREE.Vector3(0,0,1);
+    const distance=cameraGroundDistance(eye,back,2.8,slope);
+    expect(distance).toBeGreaterThan(1.5);expect(distance).toBeLessThan(1.65);
+    const end=eye.clone().addScaledVector(back,distance);
+    expect(end.y).toBeGreaterThanOrEqual(slope(end.x,end.z)+.2-1e-9);
+    expect(cameraGroundDistance(eye,back,2.8,()=>-1.9)).toBe(2.8);
+  });
+
+  test("looking up from the ground keeps the boom above the surface",()=>{
+    const down=new THREE.Vector3(0,-.6,.8).normalize(),eye=new THREE.Vector3(5,-.78,5);
+    const distance=cameraGroundDistance(eye,down,2.8,()=>-1.9);
+    expect(eye.y+down.y*distance).toBeGreaterThanOrEqual(-1.7-1e-9);
+    expect(eye.y+down.y*distance).toBeLessThan(-1.6);
+    expect(cameraGroundDistance(new THREE.Vector3(0,-1.8,0),down,2.8,()=>-1.9)).toBe(0);
   });
 
   test("respects low clearance along the prone camera ray",()=>{
