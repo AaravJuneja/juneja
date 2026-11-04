@@ -10,7 +10,8 @@ export function canSprint(state:SprintState,requested:boolean,moving:boolean) {
 
 export function stepSprint(state:SprintState,sprinting:boolean,elapsed:number) {
   if(sprinting) {
-    state.energy=Math.max(0,state.energy-elapsed/4.5);
+    const remaining=state.energy-elapsed/4.5;
+    state.energy=remaining<1e-12?0:remaining;
     state.cooldown=.8;
     if(state.energy===0)state.exhausted=true;
   } else {

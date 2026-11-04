@@ -294,4 +294,70 @@ describe("avatar loading lifecycle",()=>{
       else Reflect.deleteProperty(globalThis,"ImageBitmap");
     }
   });
+
+  test("locomotion playback follows partial movement speed without slowing idle or airborne clips",async()=>{
+    const originalParse=GLTFLoader.prototype.parseAsync;
+    GLTFLoader.prototype.parseAsync=async function() {
+      const scene=new THREE.Group(),root=new THREE.Object3D();
+      root.name="root";scene.add(root);
+      const animations=["Idle","Walk","Run","Jump","Fall","Prone","Crawl"].map(name=>new THREE.AnimationClip(name,4,[new THREE.VectorKeyframeTrack("root.position",[0,4],[0,0,0,4,0,0])]));
+      return {scene,animations} as Awaited<ReturnType<GLTFLoader["parseAsync"]>>;
+    };
+    globalThis.fetch=async()=>new Response("");
+    const scene=new THREE.Scene(),controller=new AbortController();
+    const avatar=createTrainAvatar(scene,controller.signal,()=>{});
+    try {
+      await avatar.select("sniqr");
+      const state=player(),root=avatar.group.getObjectByName("root")!;
+      avatar.update(state,0,true,false,true,.5,false,.25);
+      expect(root.position.x).toBeCloseTo(.125,6);
+      avatar.update(state,0,true,false,true,.5,false,.5);
+      expect(root.position.x).toBeCloseTo(.375,6);
+      avatar.update(state,0,true,true,true,.5,false,.5);
+      expect(root.position.x).toBeCloseTo(.25,6);
+      state.prone=true;
+      avatar.update(state,0,true,false,true,.5,false,.5);
+      expect(root.position.x).toBeCloseTo(.25,6);
+      avatar.update(state,0,false,false,true,.5,false,.1);
+      expect(root.position.x).toBeCloseTo(.5,6);
+      state.prone=false;
+      avatar.update(state,0,false,false,true,.5,false,.1);
+      expect(root.position.x).toBeCloseTo(.5,6);
+      state.grounded=false;state.velocityY=1;
+      avatar.update(state,0,true,false,true,.5,false,.1);
+      expect(root.position.x).toBeCloseTo(.5,6);
+      state.velocityY=-1;
+      avatar.update(state,0,true,false,true,.5,false,.1);
+      expect(root.position.x).toBeCloseTo(.5,6);
+    } finally {
+      avatar.dispose();
+      GLTFLoader.prototype.parseAsync=originalParse;
+    }
+  });
+
+  test("partial-speed locomotion advances equally across FPS and still respects reduced motion",async()=>{
+    const originalParse=GLTFLoader.prototype.parseAsync;
+    GLTFLoader.prototype.parseAsync=async function() {
+      const scene=new THREE.Group(),root=new THREE.Object3D();
+      root.name="root";scene.add(root);
+      return {scene,animations:[new THREE.AnimationClip("Walk",4,[new THREE.VectorKeyframeTrack("root.position",[0,4],[0,0,0,4,0,0])])]} as Awaited<ReturnType<GLTFLoader["parseAsync"]>>;
+    };
+    globalThis.fetch=async()=>new Response("");
+    try {
+      for(const fps of [5,15,30,60]) {
+        const scene=new THREE.Scene(),controller=new AbortController();
+        const avatar=createTrainAvatar(scene,controller.signal,()=>{});
+        try {
+          await avatar.select("sniqr");
+          const state=player(),root=avatar.group.getObjectByName("root")!;
+          for(let i=0;i<fps;i++)avatar.update(state,0,true,false,true,1/fps,false,.25);
+          expect(root.position.x).toBeCloseTo(.25,6);
+          avatar.update(state,0,true,false,true,.5,true,.25);
+          expect(root.position.x).toBeCloseTo(.25,6);
+          avatar.update(state,0,true,false,true,.5,false,.25);
+          expect(root.position.x).toBeCloseTo(.375,6);
+        } finally {avatar.dispose();}
+      }
+    } finally {GLTFLoader.prototype.parseAsync=originalParse;}
+  });
 });

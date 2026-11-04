@@ -95,10 +95,23 @@ function footprintPenetration(state:PlayerState,x:number,z:number,colliders:Carr
   return total;
 }
 
-function blocked(state:PlayerState,x:number,z:number,height:number,bounds:Bounds,world?:MovementWorld) {
-  if(x<bounds.min[0]||x>bounds.max[0]||z<bounds.min[1]||z>bounds.max[1])return true;
-  if(world&&world.groundHeight(x,z)>state.feet+.22)return true;
-  return state.feet+height>(world?world.ceilingHeight(x,z):Math.abs(x)>1.24?2.35:2.61)+.01;
+function footprintOverlaps(state:PlayerState,box:CarriageCollider,radius=RADIUS) {
+  if(!state.prone)return overlaps(state.x,state.z,box,radius);
+  const sin=Math.sin(state.heading??0),cos=Math.cos(state.heading??0);
+  for(const offset of PRONE_OFFSETS)if(overlaps(state.x+sin*offset,state.z+cos*offset,box,PRONE_RADIUS))return true;
+  return false;
+}
+
+function blocked(state:PlayerState,x:number,z:number,height:number,bounds:Bounds,world?:MovementWorld,heading=state.heading??0) {
+  const sin=state.prone?Math.sin(heading):0,cos=state.prone?Math.cos(heading):0;
+  const count=state.prone?PRONE_OFFSETS.length:1;
+  for(let i=0;i<count;i++) {
+    const offset=state.prone?PRONE_OFFSETS[i]:0,px=x+sin*offset,pz=z+cos*offset;
+    if(px<bounds.min[0]||px>bounds.max[0]||pz<bounds.min[1]||pz>bounds.max[1])return true;
+    if(world&&world.groundHeight(px,pz)>state.feet+.22)return true;
+    if(state.feet+height>(world?world.ceilingHeight(px,pz):Math.abs(px)>1.24?2.35:2.61)+.01)return true;
+  }
+  return false;
 }
 
 function canMove(state:PlayerState,x:number,z:number,height:number,colliders:CarriageCollider[],bounds:Bounds,world?:MovementWorld) {
@@ -120,10 +133,19 @@ export function lieDown(state:PlayerState,colliders:CarriageCollider[],bounds:Bo
   return false;
 }
 
-export function turnPlayer(state:PlayerState,heading:number,colliders:CarriageCollider[]) {
-  if(!state.prone||state.heading===undefined||heading===state.heading) {state.heading=heading;return true;}
-  const next=footprintPenetration(state,state.x,state.z,colliders,PRONE_HEIGHT,heading);
-  if(next>0&&next>footprintPenetration(state,state.x,state.z,colliders,PRONE_HEIGHT)+1e-6)return false;
+export function turnPlayer(state:PlayerState,heading:number,colliders:CarriageCollider[],bounds?:Bounds,world?:MovementWorld) {
+  if(!state.prone) {state.heading=heading;return true;}
+  const start=state.heading??0;
+  const delta=Math.atan2(Math.sin(heading-start),Math.cos(heading-start));
+  const steps=Math.max(1,Math.ceil(Math.abs(delta)/(Math.PI/36)));
+  let penetration=footprintPenetration(state,state.x,state.z,colliders,PRONE_HEIGHT,start);
+  for(let i=1;i<=steps;i++) {
+    const angle=start+delta*i/steps;
+    if(bounds&&blocked(state,state.x,state.z,PRONE_HEIGHT,bounds,world,angle))return false;
+    const next=footprintPenetration(state,state.x,state.z,colliders,PRONE_HEIGHT,angle);
+    if(next>penetration+1e-6)return false;
+    penetration=next;
+  }
   state.heading=heading;
   return true;
 }
@@ -132,7 +154,7 @@ export function jumpPlayer(state:PlayerState) {
   if(state.prone)return false;
   if(!state.grounded&&(state.jumps??1)>=2)return false;
   state.jumps=state.grounded?1:2;
-  state.velocityY=state.jumps===2?5.2:4.8;
+  state.velocityY=state.jumps===2?10:4.8;
   state.grounded=false;
   return true;
 }
@@ -145,20 +167,31 @@ export function stepPlayer(state:PlayerState,dx:number,dz:number,elapsed:number,
   const height=state.prone?PRONE_HEIGHT:BODY_HEIGHT;
   const steps=Math.max(1,Math.ceil(elapsed/(1/90)));
   const dt=elapsed/steps;
+  let distance=0;
   for(let step=0;step<steps;step++) {
-    if(dx&&canMove(state,state.x+dx/steps,state.z,height,colliders,bounds,world))state.x+=dx/steps;
-    const travel=dz/steps+(state.transportZ??0)*dt;
+    let movedX=0,movedZ=0;
+    const inputX=dx/steps,inputZ=dz/steps;
+    if(inputX&&canMove(state,state.x+inputX,state.z,height,colliders,bounds,world)) {state.x+=inputX;movedX=inputX;}
+    if(inputZ&&canMove(state,state.x,state.z+inputZ,height,colliders,bounds,world)) {state.z+=inputZ;movedZ=inputZ;}
+    distance+=Math.hypot(movedX,movedZ);
+    const travel=(state.transportZ??0)*dt;
     if(travel&&canMove(state,state.x,state.z+travel,height,colliders,bounds,world))state.z+=travel;
     state.velocityY-=12*dt;
     const previous=state.feet;
     let next=previous+state.velocityY*dt;
-    let ceiling=world?world.ceilingHeight(state.x,state.z):Math.abs(state.x)>1.24?2.35:2.61;
-    for(const box of colliders)if(previous+height<=box.bottom+.015&&overlaps(state.x,state.z,box))ceiling=Math.min(ceiling,box.bottom);
+    const sin=state.prone?Math.sin(state.heading??0):0,cos=state.prone?Math.cos(state.heading??0):0;
+    const count=state.prone?PRONE_OFFSETS.length:1;
+    let ceiling=Infinity,ground=-Infinity;
+    for(let i=0;i<count;i++) {
+      const offset=state.prone?PRONE_OFFSETS[i]:0,x=state.x+sin*offset,z=state.z+cos*offset;
+      ceiling=Math.min(ceiling,world?world.ceilingHeight(x,z):Math.abs(x)>1.24?2.35:2.61);
+      ground=Math.max(ground,world?.groundHeight(x,z)??0);
+    }
+    for(const box of colliders)if(previous+height<=box.bottom+.015&&footprintOverlaps(state,box))ceiling=Math.min(ceiling,box.bottom);
     if(next+height>ceiling) {next=ceiling-height;state.velocityY=Math.min(0,state.velocityY);}
-    const ground=world?.groundHeight(state.x,state.z)??0;
     let support=ground;
     if(state.velocityY<=0) {
-      for(const box of colliders)if(previous>=box.top-.02&&next<=box.top&&box.top>support&&overlaps(state.x,state.z,box,.12))support=box.top;
+      for(const box of colliders)if(previous>=box.top-.02&&next<=box.top&&box.top>support&&footprintOverlaps(state,box,.12))support=box.top;
     }
     if(state.velocityY<=0&&next<=support) {
       state.feet=support;state.velocityY=0;state.grounded=true;
@@ -166,4 +199,5 @@ export function stepPlayer(state:PlayerState,dx:number,dz:number,elapsed:number,
       state.transportZ=support===ground?(world?.driftZ??0):0;
     } else {state.feet=next;state.grounded=false;}
   }
+  return distance;
 }

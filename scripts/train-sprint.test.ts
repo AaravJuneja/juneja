@@ -10,11 +10,12 @@ describe("sprint stamina",()=>{
     expect(state.energy).toBe(1);expect(state.exhausted).toBe(false);
   });
   test("a full bar supports 4.5 seconds of sprinting",()=>{
-    const state=fresh();
-    for(let i=0;i<270;i++)stepSprint(state,canSprint(state,true,true),1/60);
-    expect(state.energy).toBeCloseTo(0,8);
-    stepSprint(state,true,1/60);
-    expect(state.exhausted).toBe(true);expect(canSprint(state,true,true)).toBe(false);
+    for(const fps of [30,60,90,120,144]) {
+      const state=fresh();
+      for(let i=0;i<4.5*fps;i++)stepSprint(state,canSprint(state,true,true),1/fps);
+      expect(state.energy).toBe(0);
+      expect(state.exhausted).toBe(true);expect(canSprint(state,true,true)).toBe(false);
+    }
   });
   test("stamina recovers after a delay instead of instantly on release",()=>{
     const state=fresh();stepSprint(state,true,2.25);expect(state.energy).toBeCloseTo(.5,6);

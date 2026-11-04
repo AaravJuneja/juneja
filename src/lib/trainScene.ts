@@ -16,6 +16,7 @@ import { createTrainEquipment, type EquipmentEvent } from "./trainEquipment";
 import { STEP_SOUNDS, stepStride, type StrideState, type TrainSound } from "./trainAudio";
 import { createRadioNotes } from "./trainRadioNotes";
 import type { RadioSpatialFrame } from "./radioSpatialAudio";
+import { advanceTrainTiming,dampTrainHeading,resetTrainTiming,TRAIN_SIMULATION_STEP,type TrainTimingState } from "./trainTiming";
 
 type Point = [number, number];
 export interface TrainActions {
@@ -222,7 +223,9 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
     let paused = reducedMotion.matches;
     let suspended = false;
     let inView = true;
-    let last = 0;
+    const timing:TrainTimingState={lastAt:NaN,remainder:0};
+    let animationElapsed=0;
+    let animationTravel=0;
     let distance = 0;
     let sceneryDistance = Number.NaN;
     let exteriorTravel=0;
@@ -443,52 +446,58 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
     const render = (now: number) => {
       frame=0;
       if (disposed || switching || !inView || document.hidden || suspended) return;
-      const elapsed=last?now-last:0;
-      if(!trainFrameDue(pacer,graphicsQuality,now,!last)) {frame=requestAnimationFrame(render);return;}
       const started=performance.now();
-      const delta = last ? Math.min(elapsed/1000, .1) : 0;
-      last = now;
+      const fresh=!Number.isFinite(timing.lastAt);
+      const steps=advanceTrainTiming(timing,now);
       let strafe = Number(keys.has("KeyD"))-Number(keys.has("KeyA"))+touchX;
       let forward = Number(keys.has("KeyW"))-Number(keys.has("KeyS"))+touchZ;
       const turn = Number(keys.has("ArrowRight"))-Number(keys.has("ArrowLeft"));
-      yaw -= turn*delta*1.5;
-      pitch = THREE.MathUtils.clamp(pitch+(Number(keys.has("ArrowUp"))-Number(keys.has("ArrowDown")))*delta, -1.15, 1.15);
       const length = Math.hypot(strafe, forward);
       if (length > 1) { strafe /= length; forward /= length; }
-      const sprinting=!player.prone&&canSprint(sprint,keys.has("ControlLeft")||keys.has("ControlRight")||touchSprint,length>0);
-      const speed = (player.prone?CRAWL_SPEED:sprinting ? SPRINT_SPEED : WALK_SPEED)*delta;
-      const dx = (Math.cos(yaw)*strafe-Math.sin(yaw)*forward)*speed;
-      const dz = (-Math.sin(yaw)*strafe-Math.cos(yaw)*forward)*speed;
-      const outside=Math.abs(player.x)>1.74||player.z>4.45||player.z<-4.45;
-      if(!outside)exteriorTravel=0;
-      const drift=trainDrift(paused,outside,exteriorTravel);
-      if(drift) {
-        distance=(distance+delta*drift)%tileLength;
-        if(outside)exteriorTravel=Math.min(MAX_EXTERIOR_TRAVEL,exteriorTravel+delta*drift);
-      }
-      updateScenery();
-      if(!drift||player.grounded&&player.transportZ)player.transportZ=drift;
-      movementWorld.driftZ=drift;
       const locked=shiftLock||cameraMode==="aim"||perspective==="first";
-      turnPlayer(player,locked?yaw+Math.PI:heading,colliders);
-      if(player.prone)heading=player.heading!;
-      const beforeX=player.x,beforeZ=player.z;
-      stepPlayer(player,dx,dz,delta,colliders,outdoorBounds,movementWorld);
-      const moved=Math.hypot(player.x-beforeX,player.z-beforeZ-(player.transportZ??0)*delta);
-      const walked=moved>.0001;
-      stepSprint(sprint,sprinting&&walked,delta);
-      if(walked&&player.grounded&&!player.prone&&!outside) {
-        const step=stepStride(stride,moved,sprinting);
-        if(step!==undefined)actions.sound?.(STEP_SOUNDS[step],{rate:.94+Math.random()*.12,volume:sprinting?1.25:1});
-      } else if(!walked)stride.travelled=0;
-      const nextStamina=Math.round(sprint.energy*100)*8+(sprint.energy===1?4:0)+(sprinting&&walked?2:0)+(sprint.exhausted?1:0);
-      if(nextStamina!==staminaState) {staminaState=nextStamina;actions.stamina?.(sprint.energy,sprinting&&walked,sprint.exhausted);}
-      if(locked) {if(!player.prone)heading=yaw+Math.PI;}
-      else if(walked&&length>0) {
-        const targetHeading=Math.atan2(dx,dz);
-        heading+=Math.atan2(Math.sin(targetHeading-heading),Math.cos(targetHeading-heading))*Math.min(1,delta*14);
+      let sprinting=!player.prone&&canSprint(sprint,keys.has("ControlLeft")||keys.has("ControlRight")||touchSprint,length>0);
+      for(let i=0;i<steps;i++) {
+        const delta=TRAIN_SIMULATION_STEP;
+        yaw -= turn*delta*1.5;
+        pitch = THREE.MathUtils.clamp(pitch+(Number(keys.has("ArrowUp"))-Number(keys.has("ArrowDown")))*delta, -1.15, 1.15);
+        sprinting=!player.prone&&canSprint(sprint,keys.has("ControlLeft")||keys.has("ControlRight")||touchSprint,length>0);
+        const speed = (player.prone?CRAWL_SPEED:sprinting ? SPRINT_SPEED : WALK_SPEED)*delta;
+        const dx = (Math.cos(yaw)*strafe-Math.sin(yaw)*forward)*speed;
+        const dz = (-Math.sin(yaw)*strafe-Math.cos(yaw)*forward)*speed;
+        const outside=Math.abs(player.x)>1.74||player.z>4.45||player.z<-4.45;
+        if(!outside)exteriorTravel=0;
+        const drift=trainDrift(paused,outside,exteriorTravel);
+        if(drift) {
+          distance=(distance+delta*drift)%tileLength;
+          if(outside)exteriorTravel=Math.min(MAX_EXTERIOR_TRAVEL,exteriorTravel+delta*drift);
+        }
+        if(!drift||player.grounded&&player.transportZ)player.transportZ=drift;
+        movementWorld.driftZ=drift;
+        turnPlayer(player,locked?yaw+Math.PI:heading,colliders,outdoorBounds,movementWorld);
+        if(player.prone)heading=player.heading!;
+        const moved=stepPlayer(player,dx,dz,delta,colliders,outdoorBounds,movementWorld);
+        const walked=moved>.0001;
+        animationElapsed+=delta;
+        animationTravel+=moved;
+        stepSprint(sprint,sprinting&&walked,delta);
+        if(walked&&player.grounded&&!player.prone&&!outside) {
+          const step=stepStride(stride,moved,sprinting);
+          if(step!==undefined)actions.sound?.(STEP_SOUNDS[step],{rate:.94+Math.random()*.12,volume:sprinting?1.25:1});
+        } else if(!walked)stride.travelled=0;
+        const nextStamina=Math.round(sprint.energy*100)*8+(sprint.energy===1?4:0)+(sprinting&&walked?2:0)+(sprint.exhausted?1:0);
+        if(nextStamina!==staminaState) {staminaState=nextStamina;actions.stamina?.(sprint.energy,sprinting&&walked,sprint.exhausted);}
+        if(locked) {if(!player.prone)heading=yaw+Math.PI;}
+        else if(walked&&length>0)heading=dampTrainHeading(heading,Math.atan2(dx,dz),delta);
+        if(player.prone&&!turnPlayer(player,heading,colliders,outdoorBounds,movementWorld))heading=player.heading!;
       }
-      if(player.prone&&!turnPlayer(player,heading,colliders))heading=player.heading!;
+      if(!trainFrameDue(pacer,graphicsQuality,now,fresh)) {frame=requestAnimationFrame(render);return;}
+      const outside=Math.abs(player.x)>1.74||player.z>4.45||player.z<-4.45;
+      const drift=trainDrift(paused,outside,exteriorTravel);
+      const walked=animationTravel>.0001;
+      const nominalSpeed=player.prone?CRAWL_SPEED:sprinting?SPRINT_SPEED:WALK_SPEED;
+      const locomotionScale=animationElapsed>0?animationTravel/(nominalSpeed*animationElapsed):0;
+      updateScenery();
+      if(locked&&!player.prone)heading=yaw+Math.PI;
       const eyeHeight=player.prone?PRONE_EYE_HEIGHT:EYE_HEIGHT;
       cameraTarget.set(player.x,eyeHeight+player.feet,player.z);
       orientation.set(pitch,yaw,0);
@@ -508,7 +517,8 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
         camera.position.addScaledVector(cameraDirection,boom);
       }
       const avatarVisible=perspective==="third"&&boom>.55;
-      const animating=avatar.update(player,heading,walked&&length>0,sprinting,avatarVisible,delta,reducedMotion.matches);
+      const animating=avatar.update(player,heading,walked&&length>0,sprinting,avatarVisible,animationElapsed,reducedMotion.matches,locomotionScale);
+      animationElapsed=animationTravel=0;
       if(outside!==castingOutside) {
         castingOutside=outside;
         for(const object of outsideCasters)if(outside)object.layers.enable(TORCH_SHADOW_LAYER);else object.layers.disable(TORCH_SHADOW_LAYER);
@@ -531,9 +541,10 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
       else updateRadioSpatial(now,true);
     };
     const restart = () => {
-      if(disposed||switching||!inView||document.hidden||suspended) {cancelAnimationFrame(frame);frame=0;last=0;return;}
+      if(disposed||switching||!inView||document.hidden||suspended) {cancelAnimationFrame(frame);frame=0;resetTrainTiming(timing);animationElapsed=animationTravel=0;return;}
       if(frame)return;
-      last = 0;
+      resetTrainTiming(timing);
+      animationElapsed=animationTravel=0;
       cancelAnimationFrame(hoverFrame);hoverFrame=0;
       frame = requestAnimationFrame(render);
     };

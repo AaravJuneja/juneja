@@ -55,7 +55,7 @@ describe("carriage movement",()=>{
     for(let i=0;i<24;i++)stepPlayer(p,0,0,1/60,[],bounds,open);
     jumpPlayer(p);let peak=p.feet;
     for(let i=0;i<120;i++) {stepPlayer(p,0,0,1/60,[],bounds,open);peak=Math.max(peak,p.feet);}
-    expect(peak).toBeGreaterThan(1.9);expect(peak).toBeLessThan(2.2);
+    expect(peak).toBeGreaterThan(5);expect(peak).toBeLessThan(5.2);
     expect(p.jumps).toBe(0);expect(p.grounded).toBe(true);expect(jumpPlayer(p)).toBe(true);
   });
   test("walking off an edge grants only one air jump",()=>{
@@ -66,6 +66,36 @@ describe("carriage movement",()=>{
     const p=player();p.z=-.3;
     const thin={...bench,min:[-.6,-.7] as [number,number],max:[.6,-.68] as [number,number]};
     stepPlayer(p,0,-SPRINT_SPEED*.1,.1,[thin],bounds);expect(p.z).toBeGreaterThan(-.68);
+  });
+  test("returned movement counts accepted input separately from transport",()=>{
+    const world:MovementWorld={groundHeight:()=>0,ceilingHeight:()=>Infinity,driftZ:1};
+    const room={min:[-2,-2] as [number,number],max:[2,2] as [number,number]};
+    const p=player();p.transportZ=1;
+    expect(stepPlayer(p,0,0,.1,[],room,world)).toBe(0);
+    expect(p.z).toBeCloseTo(.1);
+    const q=player();q.transportZ=1;
+    expect(stepPlayer(q,0,-.1,.1,[],room,world)).toBeCloseTo(.1);
+    expect(q.z).toBeCloseTo(0);
+    const wall:CarriageCollider={min:[-2,.5],max:[2,.6],bottom:0,top:2};
+    const r=player();r.z=.339;r.transportZ=1;
+    expect(stepPlayer(r,.1,0,.1,[wall],room,world)).toBeCloseTo(.1);
+    expect(r.z).toBeCloseTo(.339);
+    expect(stepPlayer(r,0,.1,.1,[wall],room,world)).toBe(0);
+    const s=player();
+    expect(stepPlayer(s,.3,.4,.1,[],room)).toBeCloseTo(.5);
+  });
+  test("prone turns cannot sweep beyond movement bounds or through terrain",()=>{
+    const room={min:[-2,-2] as [number,number],max:[2,2] as [number,number]};
+    const p={...player(),x:1.8,prone:true,heading:0};
+    expect(turnPlayer(p,Math.PI,[],room)).toBe(false);
+    expect(p.heading).toBe(0);
+    const q={...player(),prone:true,heading:0};
+    const world:MovementWorld={groundHeight:(x)=>x>.25?1:0,ceilingHeight:()=>Infinity,driftZ:0};
+    expect(turnPlayer(q,Math.PI,[],room,world)).toBe(false);
+    expect(q.heading).toBe(0);
+    const low:MovementWorld={groundHeight:()=>0,ceilingHeight:(x)=>x>.25?.5:Infinity,driftZ:0};
+    expect(turnPlayer(q,Math.PI,[],room,low)).toBe(false);
+    expect(turnPlayer(q,Math.PI/6,[],room,world)).toBe(true);
   });
   test("terrain repeats without cracks and supports the whole rail corridor",()=>{
     for(const x of [-500,-100,-20,0,20,100,500])expect(terrainHeight(x,-150,300)).toBeCloseTo(terrainHeight(x,150,300),8);
@@ -123,10 +153,46 @@ describe("lying flat beside walls",()=>{
     expect(lieDown(p,[side],room)).toBe(true);
     expect(turnPlayer(p,Math.PI/2,[side])).toBe(false);
     expect(p.heading).toBe(0);
-    expect(turnPlayer(p,Math.PI,[side])).toBe(true);
-    expect(p.heading).toBe(Math.PI);
+    expect(turnPlayer(p,Math.PI,[side])).toBe(false);
+    expect(p.heading).toBe(0);
     const standing=player();standing.heading=0;
     expect(turnPlayer(standing,Math.PI/2,[side])).toBe(true);
+  });
+  test("prone turns use the shortest arc and check an undefined starting heading",()=>{
+    const p=player();p.prone=true;
+    expect(turnPlayer(p,Math.PI,[side])).toBe(false);
+    expect(p.heading).toBeUndefined();
+    p.heading=Math.PI-.1;
+    expect(turnPlayer(p,-Math.PI+.1,[side])).toBe(true);
+    expect(p.heading).toBeCloseTo(-Math.PI+.1);
+  });
+  test("prone footprint stays within center-based bounds and samples terrain",()=>{
+    const p=player();p.x=1.8;p.heading=Math.PI/2;
+    const world:MovementWorld={groundHeight:()=>0,ceilingHeight:()=>Infinity,driftZ:0};
+    expect(lieDown(p,[],room,world)).toBe(true);
+    expect(p.x).toBeLessThanOrEqual(1.6);
+    const start=p.x;
+    stepPlayer(p,.5,0,.5,[],room,world);
+    expect(p.x).toBeCloseTo(start);
+    const blockedGround:MovementWorld={...world,groundHeight:(x)=>x>.45?1:0};
+    const q=player();q.prone=true;q.heading=Math.PI/2;
+    stepPlayer(q,.1,0,.1,[],room,blockedGround);
+    expect(q.x).toBeGreaterThan(0);expect(q.x).toBeLessThanOrEqual(.05);
+  });
+  test("prone ends collide with supports and ceilings",()=>{
+    const world:MovementWorld={groundHeight:()=>0,ceilingHeight:()=>Infinity,driftZ:0};
+    const support:CarriageCollider={min:[-.1,.3],max:[.1,.5],bottom:.5,top:.8};
+    const p=player();Object.assign(p,{prone:true,heading:0,feet:1,velocityY:-1,grounded:false});
+    for(let i=0;i<120;i++)stepPlayer(p,0,0,1/60,[support],room,world);
+    expect(p.feet).toBeCloseTo(.8);expect(p.grounded).toBe(true);
+    const ceiling:CarriageCollider={...support,bottom:1,top:1.2};
+    const q=player();Object.assign(q,{prone:true,heading:0,velocityY:4,grounded:false});
+    for(let i=0;i<10;i++)stepPlayer(q,0,0,1/60,[ceiling],room,world);
+    expect(q.feet+.66).toBeLessThanOrEqual(1+1e-8);
+    const r=player();r.prone=true;r.heading=0;r.velocityY=4;r.grounded=false;
+    const lowCeiling:MovementWorld={...world,ceilingHeight:(_x,z)=>z>.3?1:Infinity};
+    for(let i=0;i<10;i++)stepPlayer(r,0,0,1/60,[],room,lowCeiling);
+    expect(r.feet+.66).toBeLessThanOrEqual(1+1e-8);
   });
   test("an overlapping prone body can crawl out but never deeper",()=>{
     const p=player();Object.assign(p,{prone:true,heading:0,z:-.05});
@@ -168,6 +234,40 @@ describe("leaving and reboarding the train",()=>{
   test("walls remain solid instead of allowing escape through windows",()=>{
     const p=player();tick(p,3,0);expect(p.x).toBeLessThan(1.58);
     tick(p,0,-7);expect(p.z).toBeGreaterThan(-4.3);
+  });
+  test("double jumping inside cannot pass through the carriage roof",()=>{
+    const p=player();
+    jumpPlayer(p);
+    for(let i=0;i<20;i++)stepPlayer(p,0,0,1/60,shell,outside,world);
+    expect(jumpPlayer(p)).toBe(true);
+    let peak=p.feet;
+    for(let i=0;i<90;i++) {
+      stepPlayer(p,0,0,1/60,shell,outside,world);
+      peak=Math.max(peak,p.feet);
+    }
+    expect(peak+BODY_HEIGHT).toBeLessThanOrEqual(2.61+1e-8);
+    expect(p.feet).toBe(0);
+  });
+  test("a timed exterior double jump reaches and lands on the roof",()=>{
+    for(const fps of [5,15,30,60]) {
+      const p=player();p.x=2.15;p.feet=-1.9;
+      const movement:MovementWorld={
+        groundHeight:()=>-1.9,
+        ceilingHeight:(x,z)=>Math.abs(x)<1.58&&Math.abs(z)<4.3&&p.feet<2.5?(Math.abs(x)>1.24?2.35:2.61):Infinity,
+        driftZ:0,
+      };
+      expect(jumpPlayer(p)).toBe(true);
+      for(let i=0;i<Math.round(.4*fps);i++)stepPlayer(p,0,0,1/fps,shell,outside,movement);
+      expect(jumpPlayer(p)).toBe(true);expect(jumpPlayer(p)).toBe(false);
+      for(let i=0;i<fps*2;i++)stepPlayer(p,p.x>1?-WALK_SPEED/fps:0,0,1/fps,shell,outside,movement);
+      expect(p.x).toBeLessThan(1.58);expect(p.feet).toBeCloseTo(2.78);expect(p.grounded).toBe(true);
+      expect(p.transportZ).toBe(0);
+      for(let i=0;i<fps/2;i++)stepPlayer(p,-WALK_SPEED/fps,0,1/fps,shell,outside,movement);
+      expect(p.feet).toBeCloseTo(2.78);expect(p.grounded).toBe(true);
+      expect(jumpPlayer(p)).toBe(true);
+      for(let i=0;i<fps*2;i++)stepPlayer(p,-WALK_SPEED/fps,0,1/fps,shell,outside,movement);
+      expect(p.x).toBeLessThan(-1.74);expect(p.feet).toBeCloseTo(-1.9);expect(p.grounded).toBe(true);
+    }
   });
   test("outside terrain does not act as an invisible carriage floor or ceiling",()=>{
     const p=player();p.x=3;p.z=5;p.feet=3;p.grounded=false;

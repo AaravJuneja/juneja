@@ -142,12 +142,13 @@ export function createTrainAvatar(scene:THREE.Scene,signal:AbortSignal,status:(m
         if(pending===controller)pending=undefined;
       }
     },
-    update(player:PlayerState,heading:number,walking:boolean,sprinting:boolean,visible:boolean,delta:number,reducedMotion=false):boolean {
+    update(player:PlayerState,heading:number,walking:boolean,sprinting:boolean,visible:boolean,delta:number,reducedMotion=false,locomotionScale=1):boolean {
       group.position.set(player.x,player.feet,player.z);
       group.rotation.y=heading;
       group.visible=visible;
       if(!mixer)return false;
-      const next=clips.get(avatarClip(player,walking,sprinting));
+      const clip=avatarClip(player,walking,sprinting);
+      const next=clips.get(clip);
       if(!next) {
         for(const action of fadingOut.keys())action.stop();
         fadingOut.clear();
@@ -156,6 +157,7 @@ export function createTrainAvatar(scene:THREE.Scene,signal:AbortSignal,status:(m
         return false;
       }
       const elapsed=Number.isFinite(delta)?Math.max(0,delta):0;
+      const timeScale=clip==="Walk"||clip==="Run"||clip==="Crawl"?Number.isFinite(locomotionScale)?THREE.MathUtils.clamp(locomotionScale,0,1):0:1;
       if(reducedMotion) {
         for(const action of fadingOut.keys())action.stop();
         fadingOut.clear();
@@ -172,8 +174,8 @@ export function createTrainAvatar(scene:THREE.Scene,signal:AbortSignal,status:(m
           active.stopFading().fadeOut(TRANSITION_DURATION);
           fadingOut.set(active,TRANSITION_DURATION);
         }
-        active=next.reset().setEffectiveWeight(1).setEffectiveTimeScale(1).fadeIn(TRANSITION_DURATION).play();
-      } else active.setEffectiveTimeScale(1);
+        active=next.reset().setEffectiveWeight(1).setEffectiveTimeScale(timeScale).fadeIn(TRANSITION_DURATION).play();
+      } else active.setEffectiveTimeScale(timeScale);
       mixer.update(elapsed);
       for(const [action,remaining] of fadingOut) {
         const timeLeft=remaining-elapsed;
