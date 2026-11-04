@@ -33,7 +33,7 @@ export interface TrainActions {
   avatarStatus?: (message:string)=>void;
 }
 
-const CANVAS_LABEL="Interactive train carriage. Drag to look, WASD to walk, Control to sprint, Shift to toggle shift lock, C to lie flat or stand, V to switch perspective, O to switch free orbit and character aim, M for the catalog, Q to toggle the flashlight, arrows to turn, Space to double jump, E to interact with the object ahead. Click objects directly to use them. On touch screens, drag with two fingers to walk, drag farther to sprint, and double tap empty space to jump. Home returns to your seat, Escape releases controls";
+const CANVAS_LABEL="Interactive train carriage. Drag to look, WASD to walk, Control to sprint, Shift to toggle shift lock, C to lie flat or stand, V to switch perspective, O to switch free orbit and character aim, M for the catalog, Q to toggle the flashlight, arrows to turn, Space to double jump, E to interact with the object ahead. Click objects directly to use them. On touch screens, drag with two fingers to walk, drag farther to sprint, and use the Jump button or double tap empty space to jump. Tap Jump again in the air to double jump. Home returns to your seat, Escape releases controls";
 const CANVAS_SHORTCUTS="W A S D Control Shift C V O M Q ArrowLeft ArrowRight ArrowUp ArrowDown Space E Home Escape";
 const MOVEMENT_KEYS=["KeyW","KeyA","KeyS","KeyD","ArrowLeft","ArrowRight","ArrowUp","ArrowDown","ControlLeft","ControlRight","Space"];
 const CONTROL_KEYS=["ShiftLeft","ShiftRight","KeyC","KeyV","KeyO","KeyM","KeyQ","KeyE","Home"];

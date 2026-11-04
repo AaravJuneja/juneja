@@ -1,6 +1,7 @@
 import {expect,test} from "bun:test";
 import {readFileSync,statSync} from "node:fs";
 import * as THREE from "three";
+import {carriageStructure} from "../src/lib/trainPhysics";
 import {createTrainMedia,frontMediaFrame,FRONT_FRAME_COUNT,FRONT_FRAME_MS,FRONT_MEDIA_POSITION,FRONT_MEDIA_SIZE} from "../src/lib/trainMedia";
 
 test("the front animation keeps the source GIF timing and freezes under reduced motion",()=>{
@@ -11,7 +12,10 @@ test("the front animation keeps the source GIF timing and freezes under reduced 
   expect(frontMediaFrame(1000,true)).toBe(0);
   expect(frontMediaFrame(NaN,false)).toBe(0);
   expect(frontMediaFrame(-10,false)).toBe(0);
-  expect(FRONT_MEDIA_POSITION).toEqual([0,2.7/2,-4.25]);
+  const frontWall=carriageStructure()[3];
+  expect(FRONT_MEDIA_POSITION[0]).toBe((frontWall.min[0]+frontWall.max[0])/2);
+  expect(FRONT_MEDIA_POSITION[1]).toBe((frontWall.bottom+frontWall.top)/2);
+  expect(FRONT_MEDIA_POSITION[2]).toBeLessThan(frontWall.min[1]);
   expect(FRONT_MEDIA_SIZE[0]/FRONT_MEDIA_SIZE[1]).toBeCloseTo(45/51);
 });
 
@@ -28,6 +32,10 @@ test("scene media switches full-image sun and moon textures and disposes loaded 
     const celestial=scene.getObjectByName("train-celestial") as THREE.Sprite;
     const display=scene.getObjectByName("train-front-media") as THREE.Mesh<THREE.PlaneGeometry,THREE.MeshBasicMaterial>;
     const moon=celestial.material;
+    expect(display.position.toArray()).toEqual([...FRONT_MEDIA_POSITION]);
+    const outward=new THREE.Vector3(0,0,1).applyQuaternion(display.quaternion);
+    expect(outward.z).toBeCloseTo(-1);
+    expect(display.material.side).toBe(THREE.FrontSide);
     expect(media.update(0,false)).toBe(true);
     expect(celestial.scale.toArray()).toEqual([12.8,10,1]);
     expect(moon.map?.repeat.toArray()).toEqual([1,1]);
@@ -65,10 +73,13 @@ test("the charm surprise loads on drawer intent and has motion-safe dismissal an
   expect(template).toContain('scareVideo.addEventListener("ended",()=>closeDialog(scareDialog)');
   expect(template).toContain('scareDialog.addEventListener("close",()=>{scareVideo.pause()');
   expect(template).toContain('scareVideo.removeAttribute("src")');
-  expect(template).toContain('animation:charm-scare-in 180ms');
+  expect(template).toContain('scareVideo.addEventListener("animationend",()=>{if(scareDialog.open)closeDialog(scareDialog)');
+  expect(template).toContain('animation:charm-scare-in 900ms');
   expect(template).toContain('transform:scale(0)');expect(template).toContain('transform-origin:50% 50%');
-  expect(template).toContain('animation:charm-scare-fade 120ms');
-  expect(template).toContain('aria-label="Close surprise"');
+  expect(template).toContain('animation:charm-scare-fade 900ms');
+  const scare=template.split('<dialog id="charm-scare"')[1].split('</dialog>')[0];
+  expect(scare).not.toContain('<button');
+  expect(template).not.toContain('scareVideo.controls=true');
   for(const asset of ["moon.webp","sun.webp","front-atlas.webp","charm-scare.webp","charm-scare.mp4"]) {
     expect(statSync(new URL(`../public/train/${asset}`,import.meta.url)).size).toBeGreaterThan(0);
     expect(statSync(new URL(`../public/train/${asset}`,import.meta.url)).size).toBeLessThan(500_000);

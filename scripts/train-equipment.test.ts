@@ -24,6 +24,17 @@ test("only reachable equipment is offered for interaction",()=>{
   expect(equipmentInteractive({hasKey:false,drawerOpen:false},"equipment:drawer-cavity")).toBe(false);
 });
 
+test("the charm is consumed once and stays gone when the drawer is reopened",()=>{
+  const used=equipmentAction({hasKey:true,drawerOpen:true},"equipment:charm");
+  expect(used.event).toBe("charm");
+  expect(used.state.charmUsed).toBe(true);
+  expect(equipmentInteractive(used.state,"equipment:charm")).toBe(false);
+  expect(equipmentAction(used.state,"equipment:charm").event).toBe("none");
+  const closed=equipmentAction(used.state,"equipment:drawer");
+  const reopened=equipmentAction(closed.state,"equipment:drawer");
+  expect(equipmentInteractive(reopened.state,"equipment:charm")).toBe(false);
+});
+
 test("the drawer eases between its rest and open positions",()=>{
   expect(drawerOffset(0,DRAWER_TRAVEL,0)).toBe(0);
   expect(drawerOffset(0,DRAWER_TRAVEL,DRAWER_DURATION/2)).toBeCloseTo(DRAWER_TRAVEL/2);

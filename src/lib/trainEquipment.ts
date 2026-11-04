@@ -5,7 +5,7 @@ import {fetchTrainModel} from "./trainAsset";
 
 export type EquipmentName="equipment:key"|"equipment:drawer"|"equipment:charm";
 export type EquipmentEvent="key"|"locked"|"open"|"close"|"charm"|"none";
-export interface EquipmentState {hasKey:boolean;drawerOpen:boolean;}
+export interface EquipmentState {hasKey:boolean;drawerOpen:boolean;charmUsed?:boolean;}
 export interface TorchBeam {origin:BeamPoint;direction:BeamPoint;range:number;enabled:boolean;}
 
 export const DRAWER_TRAVEL=.18;
@@ -18,13 +18,13 @@ export function equipmentAction(state:EquipmentState,name:string):{state:Equipme
     if(!state.hasKey)return {state,event:"locked"};
     return {state:{...state,drawerOpen:!state.drawerOpen},event:state.drawerOpen?"close":"open"};
   }
-  if(name==="equipment:charm")return state.drawerOpen?{state,event:"charm"}:{state,event:"none"};
+  if(name==="equipment:charm")return equipmentInteractive(state,name)?{state:{...state,charmUsed:true},event:"charm"}:{state,event:"none"};
   return {state,event:"none"};
 }
 
 export function equipmentInteractive(state:EquipmentState,name:string) {
   if(name==="equipment:key")return !state.hasKey;
-  if(name==="equipment:charm")return state.drawerOpen;
+  if(name==="equipment:charm")return state.drawerOpen&&!state.charmUsed;
   return name==="equipment:drawer";
 }
 
@@ -70,7 +70,7 @@ export async function createTrainEquipment(scene:THREE.Scene,signal:AbortSignal,
   const probeDirection=new THREE.Vector3();
   let state:EquipmentState={hasKey:false,drawerOpen:false};
   let slideFrom=0,slideTo=0,slideStart=-Infinity;
-  let charmUntil=0,rattleUntil=0,glint=0;
+  let rattleUntil=0,glint=0;
   const day=new THREE.Color(1,1,1);
   const tint=(mesh:THREE.Mesh|undefined,scale:number)=>{
     if(!mesh)return;
@@ -85,7 +85,7 @@ export async function createTrainEquipment(scene:THREE.Scene,signal:AbortSignal,
     getState(){return {...state};},
     isInteractive(name:string){return equipmentInteractive(state,name);},
     getCharmBounds(target:THREE.Box3) {
-      if(!state.drawerOpen||!charm)return false;
+      if(!equipmentInteractive(state,"equipment:charm")||!charm)return false;
       if(drawer)drawer.updateWorldMatrix(true,true);
       else charm.updateWorldMatrix(true,false);
       target.setFromObject(charm).expandByScalar(.035);
@@ -101,7 +101,7 @@ export async function createTrainEquipment(scene:THREE.Scene,signal:AbortSignal,
         slideStart=now;
       }
       else if(result.event==="locked")rattleUntil=now+260;
-      else if(result.event==="charm")charmUntil=now+1200;
+      else if(result.event==="charm"&&charm)charm.visible=false;
       return result.event;
     },
     update(now:number,beam:TorchBeam|undefined,occluders:THREE.Object3D[],reducedMotion:boolean) {
@@ -111,11 +111,6 @@ export async function createTrainEquipment(scene:THREE.Scene,signal:AbortSignal,
         if(now<rattleUntil) {offset+=reducedMotion?0:Math.sin((rattleUntil-now)*.12)*.004;animating=true;}
         if(now-slideStart<DRAWER_DURATION)animating=true;
         drawer.position.z=drawerRest+offset;
-      }
-      if(charm) {
-        const sparkle=now<charmUntil?1.4+(reducedMotion?.3:Math.sin(now*.02)*.3):1;
-        tint(charm,sparkle);
-        if(now<charmUntil)animating=true;
       }
       if(key&&key.visible) {
         let lit=false;
@@ -140,8 +135,9 @@ export async function createTrainEquipment(scene:THREE.Scene,signal:AbortSignal,
     },
     reset() {
       state={hasKey:false,drawerOpen:false};
-      slideFrom=slideTo=0;slideStart=-Infinity;charmUntil=rattleUntil=0;glint=0;
+      slideFrom=slideTo=0;slideStart=-Infinity;rattleUntil=0;glint=0;
       if(key)key.visible=true;
+      if(charm)charm.visible=true;
       if(drawer)drawer.position.z=drawerRest;
     },
     dispose,

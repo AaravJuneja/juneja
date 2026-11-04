@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-export const FRONT_MEDIA_POSITION=[0,1.35,-4.25] as const;
+export const FRONT_MEDIA_POSITION=[0,1.35,-4.48] as const;
 export const FRONT_MEDIA_SIZE=[.72,.72*51/45] as const;
 export const FRONT_FRAME_COUNT=131;
 export const FRONT_FRAME_MS=30;
@@ -31,7 +31,7 @@ export function createTrainMedia(scene:THREE.Scene,signal:AbortSignal,ready:()=>
   const celestial=new THREE.Sprite(moonMaterial);celestial.name="train-celestial";celestial.position.set(-140,56,-68);celestial.scale.set(10,10,1);
   const geometry=new THREE.PlaneGeometry(...FRONT_MEDIA_SIZE);
   const material=new THREE.MeshBasicMaterial({map:front,transparent:true,alphaTest:.01,toneMapped:false});
-  const display=new THREE.Mesh(geometry,material);display.name="train-front-media";display.position.set(...FRONT_MEDIA_POSITION);display.updateMatrix();display.matrixAutoUpdate=false;
+  const display=new THREE.Mesh(geometry,material);display.name="train-front-media";display.position.set(...FRONT_MEDIA_POSITION);display.rotation.y=Math.PI;display.updateMatrix();display.matrixAutoUpdate=false;
   scene.add(celestial,display);
   let previous=-1;
   let previousImage:ImageBitmap|undefined;

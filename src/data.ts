@@ -243,6 +243,17 @@ export const achievements2025Syndication: Achievement[] = [
 
 export const achievements2026Syndication: Achievement[] = [
   {
+    rating: "4,069 points",
+    source: "CTFtime",
+    title: "Sudocrypt v16.0",
+    href: "https://ctftime.org/event/3443",
+    team: "Syndication",
+    dates: "27 Oct 2026 - 28 Oct 2026",
+    scope: "International",
+    organizer: "Exun Clan, DPS RK Puram",
+    finish: "Finished 1st.",
+  },
+  {
     rating: "HackZero",
     source: "",
     title: "HackZero",

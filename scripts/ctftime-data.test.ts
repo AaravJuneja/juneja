@@ -1,6 +1,6 @@
 import {expect,test} from "bun:test";
 import {readFileSync} from "node:fs";
-import {achievements2026Obscuri,allAchievements,ctftime2026Obscuri} from "../src/data";
+import {achievements2026Obscuri,achievements2026Syndication,allAchievements,ctftime2026Obscuri} from "../src/data";
 
 const results=[
   [3113,156,"12.859"],[3041,49,"30.214"],[3205,50,"10.586"],[3195,48,"45.148"],
@@ -12,6 +12,13 @@ const results=[
   [3083,13,"15.486"],[3024,6,"22.490"],[3053,7,"25.383"],[2986,149,"0.000"],
   [2969,9,"19.546"],
 ] as const;
+
+test("Sudocrypt is recorded as a Syndication win without treating CTF points as rating points",()=>{
+  const result=achievements2026Syndication.find(result=>result.href==="https://ctftime.org/event/3443");
+  expect(result).toEqual({rating:"4,069 points",source:"CTFtime",title:"Sudocrypt v16.0",href:"https://ctftime.org/event/3443",team:"Syndication",dates:"27 Oct 2026 - 28 Oct 2026",scope:"International",organizer:"Exun Clan, DPS RK Puram",finish:"Finished 1st."});
+  expect(achievements2026Syndication).toHaveLength(5);
+  expect(allAchievements).toContain(result!);
+});
 
 test("the 2026 Obscuri snapshot matches its checked CTFtime team rating",()=>{
   expect(ctftime2026Obscuri).toEqual({href:"https://ctftime.org/team/370140/",checkedAt:"2026-11-05",ratingPoints:477.647,countryPlace:6,overallPlace:58});

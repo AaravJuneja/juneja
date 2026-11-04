@@ -5,6 +5,18 @@ const template=readFileSync(new URL("../src/components/TrainCarriage.astro",impo
 const scene=readFileSync(new URL("../src/lib/trainScene.ts",import.meta.url),"utf8");
 const dialog=(id:string)=>template.split(`<dialog id="${id}"`)[1]?.split("</dialog>")[0]??"";
 
+test("the compact toolbar keeps labeled icon controls and persistent state indicators",()=>{
+  const menu=template.split('<nav class="train-menu"')[1]?.split("</nav>")[0]??"";
+  expect(menu.match(/train-icon-button/g)).toHaveLength(5);
+  expect(menu.match(/<svg /g)).toHaveLength(6);
+  for(const label of ["Switch to high graphics","Sound","Simulation","Settings","Keyboard controls"])expect(menu).toContain(`aria-label="${label}"`);
+  expect(menu).toContain(">Catalog</button>");
+  expect(template).not.toContain("soundButton.textContent");
+  expect(template).not.toContain("graphicsButton.textContent");
+  expect(template).toContain('soundButton.setAttribute("aria-pressed",String(on))');
+  expect(template).toContain('.train-menu .train-icon-button[hidden] { display:none; }');
+});
+
 test("the catalog contains skins without gameplay or avatar controls",()=>{
   const catalog=dialog("catalog-panel");
   expect(catalog).toContain("data-train-skins");
@@ -43,6 +55,17 @@ test("quick controls are non-interactive main-screen hints",()=>{
   expect(hints).not.toMatch(/<(?:button|input|a)\b/);
   expect(template).toMatch(/data-train-settings[^>]*\bhidden>/);
   expect(template).toContain("settingsButton.hidden=!unlocked");
+});
+
+test("touch screens have a dedicated jump button without changing keyboard controls",()=>{
+  expect(template).toContain('data-train-jump type="button" aria-label="Jump. Tap again in the air to double jump"');
+  expect(template).toContain('@media (any-pointer:coarse)');
+  expect(template).toContain('.train-jump { display:none; }');
+  expect(template).toContain('jumpButton.addEventListener("pointerdown"');
+  expect(template).toContain('event.preventDefault();session?.jump()');
+  expect(template).toContain('if(event.detail===0)session?.jump()');
+  expect(template).toContain('jumpButton.disabled=true');
+  expect(template).toContain('jumpButton.disabled=false');
 });
 
 test("public simulation controls expose world speed and hitboxes without unlocking avatar settings",()=>{
