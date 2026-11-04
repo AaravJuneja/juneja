@@ -66,10 +66,12 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
         <footer class="train-footer"><a href="/train/credits.txt">Credits</a></footer>
       </div>
     </dialog>
-    <dialog id="lamp-panel" class="train-dialog" aria-labelledby="lamp-title">
+    <dialog id="lamp-panel" class="train-dialog train-lamp-dialog" aria-labelledby="lamp-title">
       <div class="train-panel"><button class="train-close" data-close type="button" aria-label="Close lamp controls">×</button><h2 id="lamp-title" tabindex="-1">Lamplight</h2>
-        <label>Lamp<select data-train-lamp>{["Pendant", "Sconce"].flatMap(kind=>[1,2,3].map(i=><option value={`NT_R02_Lamp_${kind}_0${i}`}>{kind} {i}</option>))}</select></label>
-        <label><input data-train-lamp-on type="checkbox" checked /> Light on</label>
+        <div class="train-lamp-row">
+          <label>Lamp<select data-train-lamp>{["Pendant", "Sconce"].flatMap(kind=>[1,2,3].map(i=><option value={`NT_R02_Lamp_${kind}_0${i}`}>{kind} {i}</option>))}</select></label>
+          <button class="train-control-button" data-train-lamp-on type="button" aria-label="Light" aria-pressed="true" title="Turn light off"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v10" /><path d="M18.4 6.6a9 9 0 1 1-12.77.04" /></svg></button>
+        </div>
         <label>Color<select data-train-lamp-color><option value="#ffffff">Amber</option><option value="#ff89bc">Rose</option><option value="#b5b5ff">Lavender</option></select></label>
       </div>
     </dialog>
@@ -120,7 +122,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     <dialog id="charm-scare" class="train-scare-dialog" aria-label="Charm surprise" tabindex="-1">
       <video data-train-scare-video muted playsinline preload="none" aria-hidden="true"></video>
     </dialog>
-    <dialog id="simulation-panel" class="train-dialog" aria-labelledby="simulation-title">
+    <dialog id="simulation-panel" class="train-dialog train-simulation-dialog" aria-labelledby="simulation-title">
       <div class="train-panel">
         <button class="train-close" data-close type="button" aria-label="Close simulation controls">×</button>
         <h2 id="simulation-title" tabindex="-1">Simulation</h2>
@@ -157,12 +159,15 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
           <div class="radio-tuner" aria-hidden="true"><i data-train-radio-needle></i></div>
         </div>
         <div class="radio-transport">
-          <button type="button" data-train-radio-play disabled>Play</button>
-          <button type="button" data-train-radio-next disabled>Next track</button>
+          <button class="train-control-button" type="button" data-train-radio-play data-playing="false" aria-label="Play" title="Play" disabled>
+            <svg class="radio-play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z" /></svg>
+            <svg class="radio-pause-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="14" y="3" width="5" height="18" rx="1" /><rect x="5" y="3" width="5" height="18" rx="1" /></svg>
+          </button>
+          <button class="train-control-button" type="button" data-train-radio-next aria-label="Next track" title="Next track" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4v16" /><path d="M6.029 4.285A2 2 0 0 0 3 6v12a2 2 0 0 0 3.029 1.715l9.997-5.998a2 2 0 0 0 .003-3.432z" /></svg></button>
+          <label class="radio-volume"><span class="sr-only">Volume</span><input data-train-radio-volume type="range" min="0" max="100" value="100" aria-label="Radio volume" disabled /><output data-train-radio-volume-value>100%</output></label>
         </div>
         <label>Listen to<select data-train-radio-mode disabled><option value="playlist">My playlist</option><option value="live">Live radio</option></select></label>
         <label data-train-radio-station-row hidden>Station<select data-train-radio-station>{RADIO_STATIONS.map(station=><option value={station.id}>{station.name}</option>)}</select></label>
-        <label class="radio-volume">Volume<input data-train-radio-volume type="range" min="0" max="100" value="100" aria-label="Radio volume" disabled /><output data-train-radio-volume-value>100%</output></label>
         <label class="radio-spatial"><input data-train-radio-spatial type="checkbox" checked /> 3D sound</label>
         <p class="train-lede radio-help" data-train-radio-spatial-help>Sound comes from the radio and echoes around the carriage. Best with headphones</p>
         <p class="train-lede radio-help" data-train-radio-volume-help hidden>Use your device volume buttons</p>
@@ -214,7 +219,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     const scareVideo=get<HTMLVideoElement>("scare-video");
     const radioDialog=root.querySelector<HTMLDialogElement>("#radio-panel")!;
     const lamp = get<HTMLSelectElement>("lamp");
-    const lampOn = get<HTMLInputElement>("lamp-on");
+    const lampOn = get<HTMLButtonElement>("lamp-on");
     const lampColor = get<HTMLSelectElement>("lamp-color");
     const avatarSelect = get<HTMLSelectElement>("avatar");
     const catalogStatus = get<HTMLElement>("catalog-status");
@@ -309,7 +314,10 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       const station=radioStation(state.source);
       const live=!!station;
       radioPlay.disabled=false;radioMode.disabled=false;
-      radioPlay.textContent=state.playing||state.loading?"Pause":"Play";
+      const playing=state.playing||state.loading;
+      radioPlay.dataset.playing=String(playing);
+      radioPlay.setAttribute("aria-label",playing?"Pause":"Play");
+      radioPlay.title=playing?"Pause":"Play";
       radioNext.hidden=live;radioNext.disabled=live;
       radioMode.value=live?"live":"playlist";
       if(station)radioStationSelect.value=station.id;
@@ -471,9 +479,11 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     };
     const refreshLamp = () => {
       const state = lamps.get(lamp.value) ?? {enabled:true,color:"#ffffff"};
-      lampOn.checked=state.enabled; lampColor.value=state.color;
+      lampOn.setAttribute("aria-pressed",String(state.enabled));
+      lampOn.title=state.enabled?"Turn light off":"Turn light on";
+      lampColor.value=state.color;
     };
-    const changeLamp = () => { const state={enabled:lampOn.checked,color:lampColor.value}; lamps.set(lamp.value,state); session?.setLamp(lamp.value,state.enabled,state.color); };
+    const changeLamp = () => { const state={enabled:lampOn.getAttribute("aria-pressed")==="true",color:lampColor.value}; lamps.set(lamp.value,state); session?.setLamp(lamp.value,state.enabled,state.color); };
     const radio = () => {
       openDialog(radioDialog);
       window.dispatchEvent(new CustomEvent("music:request-state"));
@@ -681,7 +691,10 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       void session.setAvatar("sniqr").then(syncSettings);
     },{signal:events.signal});
     lamp.addEventListener("change",refreshLamp,{signal:events.signal});
-    lampOn.addEventListener("change",changeLamp,{signal:events.signal});
+    lampOn.addEventListener("click",()=>{
+      lampOn.setAttribute("aria-pressed",String(lampOn.getAttribute("aria-pressed")!=="true"));
+      changeLamp();refreshLamp();
+    },{signal:events.signal});
     lampColor.addEventListener("change",changeLamp,{signal:events.signal});
     privateInput.addEventListener("keydown",event=>{
       event.stopPropagation();
@@ -735,7 +748,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
   .train-sprint { position:absolute;left:50%;bottom:calc(88px + env(safe-area-inset-bottom));width:104px;height:4px;transform:translateX(-50%);overflow:hidden;border-radius:2px;background:rgb(238 225 201 / 18%);pointer-events:none; }
   .train-sprint > div { height:100%;background:var(--train-text);transform-origin:left; }
   .train-sprint[data-exhausted="true"] > div { background:#d89179; }
-  .train-dialog { margin:auto;padding:0;width:min(600px,calc(100vw - 24px));max-height:calc(100dvh - 48px);border:1px solid var(--train-edge);border-radius:6px;background:var(--train-surface);color:var(--train-text);overflow:auto; }
+  .train-dialog { margin:auto;padding:0;width:min(560px,calc(100vw - 24px));max-height:calc(100dvh - 48px);border:1px solid var(--train-edge);border-radius:6px;background:var(--train-surface);color:var(--train-text);overflow:auto; }
   .train-dialog { user-select:none;-webkit-user-select:none; }
   .train-dialog:focus,.train-panel h2:focus { outline:none; }
   .train-interest p,.train-repository p,.train-repository a,.radio-track,[data-train-radio-info] { user-select:text;-webkit-user-select:text; }
@@ -750,7 +763,8 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     .train-scare-dialog[open] video { animation:charm-scare-fade 900ms linear both; }
     @keyframes charm-scare-fade { 0% { opacity:0; } 12%,100% { opacity:1; } }
   }
-  .train-panel { position:relative;padding:clamp(20px,5vw,36px);font:400 16px/1.6 Outfit,sans-serif; }
+  .train-panel { position:relative;padding:clamp(20px,4vw,28px);font:400 16px/1.6 Outfit,sans-serif; }
+  .train-panel > :last-child { margin-bottom:0; }
   .train-panel h2 { margin:0 44px 12px 0;font:600 clamp(26px,5vw,32px)/1.15 Outfit,sans-serif; }
   .train-close { position:absolute;right:12px;top:12px;font-size:25px; }
   .train-lede { margin:0 0 24px;color:var(--train-muted); }
@@ -767,9 +781,18 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
   .train-links a { display:inline-flex;min-height:44px;align-items:center; }
   .train-footer { margin-top:16px;padding-top:12px;border-top:1px solid var(--train-line);font-size:13px; }
   .train-footer a { display:inline-flex;align-items:center;min-height:44px;color:var(--train-muted); }
-  .train-panel label { display:flex;align-items:center;gap:12px;margin-block:24px; }
-  .train-panel select { min-height:44px;max-width:100%;padding:8px;background:var(--train-background);color:var(--train-text);border:1px solid var(--train-edge);font:inherit; }
+  .train-panel label { display:grid;grid-template-columns:90px minmax(0,1fr);align-items:center;gap:12px;margin-block:16px; }
+  .train-panel label:has(input[type="checkbox"]) { display:flex;min-height:44px; }
+  .train-panel select { width:100%;min-width:0;min-height:44px;max-width:100%;padding:8px;background:var(--train-background);color:var(--train-text);border:1px solid var(--train-edge);font:inherit; }
   .train-panel input { width:20px;height:20px;accent-color:var(--train-accent); }
+  .train-control-button { display:inline-grid;place-items:center;flex-shrink:0;width:44px;height:44px;padding:10px;border:1px solid var(--train-edge);background:var(--train-background); }
+  .train-control-button svg { width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round; }
+  .train-control-button[aria-pressed="true"] { color:var(--train-accent);border-color:var(--train-accent); }
+  .train-lamp-dialog { width:min(380px,calc(100vw - 24px)); }
+  .train-lamp-dialog label { grid-template-columns:54px minmax(0,1fr); }
+  .train-lamp-row { display:flex;align-items:center;gap:10px;margin-block:20px 16px; }
+  .train-lamp-row label { flex:1;min-width:0;margin:0; }
+  .train-simulation-dialog { width:min(440px,calc(100vw - 24px)); }
   .train-menu { position:absolute;z-index:2;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px;max-width:calc(100% - 24px); }
   .train-menu-button { min-width:0;min-height:44px;padding:8px 12px;border:1px solid var(--train-edge);background:var(--train-surface);font:600 12px/1.2 Outfit,sans-serif;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap; }
   .train-menu-button:disabled { cursor:wait;opacity:.68; }
@@ -797,12 +820,12 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
   .train-key-hints kbd { box-sizing:border-box;display:grid;place-items:center;width:42px;height:42px;border:2px solid var(--train-edge);border-bottom-width:5px;border-radius:4px;background:var(--train-surface);font:600 15px/1 Outfit,sans-serif; }
   .train-catalog-dialog { width:min(760px,calc(100vw - 24px));max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px); }
   .train-catalog-dialog .train-panel { padding:clamp(16px,4vw,30px); }
-  .train-settings-dialog { width:min(440px,calc(100vw - 24px)); }
-  .train-panel .train-avatar-setting { display:grid;grid-template-columns:90px minmax(0,1fr);padding-block:20px;border-block:1px solid var(--train-line);color:var(--train-muted); }
+  .train-settings-dialog { width:min(380px,calc(100vw - 24px)); }
+  .train-panel .train-avatar-setting { padding-block:16px;border-block:1px solid var(--train-line);color:var(--train-muted); }
   .train-avatar-setting select { width:100%; }
-  .train-keys-dialog { width:min(620px,calc(100vw - 24px)); }
+  .train-keys-dialog { width:min(500px,calc(100vw - 24px)); }
   .train-key-list { margin:0; }
-  .train-key-list > div { display:grid;grid-template-columns:150px minmax(0,1fr);gap:18px;align-items:center;min-height:48px;padding-block:8px;border-bottom:1px solid var(--train-line); }
+  .train-key-list > div { display:grid;grid-template-columns:76px minmax(0,1fr);gap:12px;align-items:center;min-height:44px;padding-block:8px;border-bottom:1px solid var(--train-line); }
   .train-key-list dt { display:flex;flex-wrap:wrap;gap:4px; }
   .train-key-list dd { margin:0;color:var(--train-muted);font-size:14px;line-height:1.5; }
   .train-key-list kbd { box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;min-width:25px;min-height:28px;padding:4px 6px;border:1px solid var(--train-edge);border-bottom-width:3px;border-radius:4px;background:var(--train-background);color:var(--train-text);font:500 12px/1 Outfit,sans-serif; }
@@ -836,22 +859,24 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
   .train-skin-card[data-pattern="foil"] .train-skin-swatch { background:repeating-conic-gradient(from 20deg,var(--skin-a),var(--skin-b) 18%,#f5dcff 28%,var(--skin-a) 38%); }
   .train-skin-card[data-pattern="gradient"] .train-skin-swatch { background:linear-gradient(120deg,var(--skin-a),var(--skin-b),var(--skin-a)); }
   .train-private-input { position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none;padding:0;border:0; }
-  .train-radio-dialog { width:min(500px,calc(100vw - 24px)); }
+  .train-radio-dialog { width:min(460px,calc(100vw - 24px)); }
   .radio-display { position:relative;padding:18px;border:2px solid var(--train-edge);border-radius:4px;background:#161611;color:#ead9a4;box-shadow:inset 0 2px 10px #0008; }
   .radio-track { margin:0 20px 6px 0;font-size:20px;font-weight:600;overflow-wrap:anywhere; }
   [data-train-radio-status] { margin:0;color:#c4b585;font-size:13px; }
   .radio-tuner { position:relative;display:flex;justify-content:space-between;margin-top:22px;padding-top:12px;background:repeating-linear-gradient(90deg,#85764f 0 1px,transparent 1px 4%);background-size:100% 7px;background-repeat:no-repeat;font-size:10px; }
   .radio-tuner i { position:absolute;top:-4px;bottom:0;width:2px;background:#cb8061;transition:left .25s; }
-  .radio-transport { display:flex;gap:12px;margin-top:18px; }
-  .radio-transport button { flex:1;background:var(--train-background);border:1px solid var(--train-edge);border-bottom-width:4px;font-weight:600; }
+  .radio-transport { display:flex;align-items:center;gap:10px;margin-top:16px; }
+  .radio-transport button { border-bottom-width:3px; }
   .radio-transport button:active { border-bottom-width:1px;transform:translateY(2px); }
   .radio-transport button:disabled { opacity:.45;cursor:default; }
-  .train-radio-dialog label { display:grid;grid-template-columns:80px minmax(0,1fr);margin-block:18px; }
-  .train-radio-dialog .radio-volume { grid-template-columns:80px minmax(0,1fr) 42px; }
+  .radio-pause-icon,[data-train-radio-play][data-playing="true"] .radio-play-icon { display:none; }
+  [data-train-radio-play][data-playing="true"] .radio-pause-icon { display:block; }
+  .train-radio-dialog label { grid-template-columns:80px minmax(0,1fr); }
+  .train-radio-dialog .radio-volume { flex:1;min-width:0;grid-template-columns:minmax(0,1fr) 38px;gap:8px;margin:0; }
   .radio-volume input { width:100%;height:44px;min-width:0;accent-color:var(--train-accent); }
   .radio-volume output { font-size:13px;text-align:right;font-variant-numeric:tabular-nums; }
   .train-radio-dialog .radio-spatial { display:flex;gap:12px;min-height:44px;font-size:14px; }
-  .radio-help { font-size:13px;margin:12px 0 0; }
+  .radio-help { font-size:13px;margin:8px 0 0; }
   [data-train-radio-link] { display:inline-flex;align-items:center;min-height:44px;font-size:13px; }
   @media(prefers-reduced-motion:reduce) { .radio-tuner i { transition:none; } }
   .train-objects:focus-within { position:absolute;z-index:3;left:max(12px,env(safe-area-inset-left));top:max(12px,env(safe-area-inset-top));width:auto;height:auto;margin:0;padding:6px;overflow:visible;clip:auto;clip-path:none;white-space:normal;display:grid;gap:4px;list-style:none;border:1px solid var(--train-edge);border-radius:3px;background:var(--train-surface); }
@@ -872,7 +897,6 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     .train-detail-preview { grid-row:span 2; }
     .train-detail-preview .train-skin-swatch { height:70px; }
     .train-catalog-detail h3,.train-catalog-detail p { margin:0; }
-    .train-key-list > div { grid-template-columns:120px minmax(0,1fr);gap:10px; }
     .train-skin-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
   }
 </style>

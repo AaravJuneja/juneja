@@ -17,6 +17,19 @@ test("the compact toolbar keeps labeled icon controls and persistent state indic
   expect(template).toContain('.train-menu .train-icon-button[hidden] { display:none; }');
 });
 
+test("lamp and playback actions use labeled icons without overwriting their SVGs",()=>{
+  const lamps=dialog("lamp-panel"),radio=dialog("radio-panel");
+  expect(lamps).toContain('data-train-lamp-on type="button" aria-label="Light" aria-pressed="true"');
+  expect(lamps).not.toContain("Light on</label>");
+  expect(template).toContain('lampOn.getAttribute("aria-pressed")==="true"');
+  expect(template).toContain('lampOn.addEventListener("click"');
+  expect(radio).toContain('data-train-radio-play data-playing="false" aria-label="Play"');
+  expect(radio).toContain('data-train-radio-next aria-label="Next track"');
+  expect(template).toContain('radioPlay.dataset.playing=String(playing)');
+  expect(template).not.toContain("radioPlay.textContent");
+  expect(radio.split('<div class="radio-transport">')[1]?.split('</div>')[0]).toContain("data-train-radio-volume");
+});
+
 test("the travel case shows every interest without an accordion",()=>{
   const travelCase=dialog("travel-case");
   expect(travelCase).toContain('<ul class="train-interests">');
