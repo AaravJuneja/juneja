@@ -57,11 +57,24 @@ test("graphics start low and can be switched without adding gameplay controls",(
   expect(template).toContain('data-train-graphics type="button"');
   expect(template).toContain('aria-label="Switch to high graphics"');
   expect(template).toContain('aria-pressed="false" disabled');
-  expect(scene).toContain('graphicsQuality:TrainGraphicsQuality="low"');
+  expect(scene).toContain('initialQuality:TrainGraphicsQuality="low"');
+  expect(template).toContain("}, graphicsQuality);");
+  expect(template).toMatch(/const stop = \(\) => \{[^}]*graphicsButton\.disabled=true;/);
   expect(scene).toContain('setGraphics(value:TrainGraphicsQuality)');
+  expect(scene).toMatch(/const torch=createTrainTorch\(scene,renderer,signal\);\s*torch\.setQuality\(graphicsQuality\);/);
+  expect(scene).toMatch(/const swapped=await swapRenderer\(value\);[\s\S]{0,80}if\(!swapped\) \{\s*desired\.quality=previous;/);
 });
 
-test("world objects have no overlay buttons or shortcut bypasses",()=>{
+test("carriage objects have a visually hidden button list that shares the interaction path and shows on keyboard focus",()=>{
+  const list=template.split("<ul ")[1]?.split("</ul>")[0]??"";
+  expect(list).toStartWith('class="sr-only train-objects" aria-label="Carriage objects" data-train-objects>');
+  expect(template).toMatch(/\.train-objects:focus-within \{[^}]*position:absolute;[^}]*width:auto;[^}]*clip:auto;/);
+  for(const [object,label] of [["case","Travel case"],["notebooks","Notebooks"],["radio","Radio"],["cord","Light cord"],["lamps","Lamps"],["avatar","Torch catalog"]])expect(list).toContain(`["${object}","${label}",`);
+  expect(list).toContain('<button type="button" data-train-object={object}');
+  expect(template.match(/data-train-object=/g)).toHaveLength(1);
+  expect(template).not.toMatch(/\.sr-only\s*\{/);
+  expect(template).toContain("if(button?.dataset.trainObject)activate(button.dataset.trainObject);");
+  for(const object of ["case","cord","radio","notebooks","lamps","avatar"])expect(template).toContain(`object==="${object}"`);
   expect(template).not.toContain("data-train-action");
   expect(scene).not.toMatch(/"Key[IRLPTF]"/);
   expect(scene).toContain('event.code === "KeyE"');

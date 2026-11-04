@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { BODY_HEIGHT, type PlayerState } from "./trainPhysics";
 import type { TrainGraphicsQuality } from "./trainGraphics";
+import { fetchTrainModel } from "./trainAsset";
 
 export type AvatarId="sniqr"|"private";
 export type AvatarClip="Idle"|"Walk"|"Run"|"Jump"|"Fall"|"Prone"|"Crawl";
@@ -71,11 +72,12 @@ function release(model:THREE.Object3D) {
   }
 }
 
-export function createTrainAvatar(scene:THREE.Scene,signal:AbortSignal,status:(message:string)=>void) {
+export function createTrainAvatar(scene:THREE.Scene,signal:AbortSignal,status:(message:string)=>void,prepare?:(model:THREE.Object3D)=>Promise<unknown>|unknown) {
   const group=new THREE.Group();
   group.name="PlayerAvatar";
   scene.add(group);
   let model:THREE.Group|undefined;
+  let hand:THREE.Object3D|undefined;
   let currentId:AvatarId|undefined;
   let mixer:THREE.AnimationMixer|undefined;
   let clips=new Map<string,THREE.AnimationAction>();
@@ -88,7 +90,7 @@ export function createTrainAvatar(scene:THREE.Scene,signal:AbortSignal,status:(m
     mixer?.stopAllAction();
     fadingOut.clear();
     if(model) {mixer?.uncacheRoot(model);group.remove(model);release(model);}
-    model=undefined;currentId=undefined;mixer=undefined;active=undefined;clips.clear();
+    model=undefined;hand=undefined;currentId=undefined;mixer=undefined;active=undefined;clips.clear();
   };
   const dispose=()=>{
     if(disposed)return;
@@ -101,7 +103,7 @@ export function createTrainAvatar(scene:THREE.Scene,signal:AbortSignal,status:(m
     dispose,
     getCurrentId(){return currentId;},
     getHandSocket():THREE.Object3D|undefined {
-      return model?.getObjectByName("Hand.R")??model?.getObjectByName("HandR");
+      return hand;
     },
     async select(id:AvatarId,quality:TrainGraphicsQuality="high") {
       if(disposed||signal.aborted)return false;
@@ -113,20 +115,21 @@ export function createTrainAvatar(scene:THREE.Scene,signal:AbortSignal,status:(m
         status("Loading avatar…");
         const source=id==="private"
           ?quality==="low"?"/api/train/avatar?quality=low":"/api/train/avatar"
-          :quality==="low"?"/train/avatars/sniqr-low.glb":"/train/avatars/sniqr.glb";
+          :quality==="low"?"/train/avatars/sniqr-low.glb.gz":"/train/avatars/sniqr.glb.gz";
         const basePath=id==="private"?"/api/train/":"/train/avatars/";
-        const response=await fetch(source,{signal:controller.signal});
-        if(!response.ok)throw new Error("Avatar download failed");
-        const data=await response.arrayBuffer();
+        const data=await fetchTrainModel(source,controller.signal,"Avatar download failed");
          if(disposed||signal.aborted||controller.signal.aborted||token!==request)return false;
         const gltf=await new GLTFLoader().parseAsync(data,basePath);
         retain(gltf.scene);
          if(disposed||signal.aborted||controller.signal.aborted||token!==request) {release(gltf.scene);return false;}
+        gltf.scene.scale.setScalar(BODY_HEIGHT/1.85);
+        gltf.scene.traverse(object=>{if(object instanceof THREE.Mesh)object.frustumCulled=false;});
+        try {await prepare?.(gltf.scene);} catch {}
+         if(disposed||signal.aborted||controller.signal.aborted||token!==request) {release(gltf.scene);return false;}
         clear();
          model=gltf.scene;
          currentId=id;
-        model.scale.setScalar(BODY_HEIGHT/1.85);
-        model.traverse(object=>{if(object instanceof THREE.Mesh)object.frustumCulled=false;});
+        hand=model.getObjectByName("Hand.R")??model.getObjectByName("HandR");
         group.add(model);
         mixer=new THREE.AnimationMixer(model);
         clips=new Map(gltf.animations.map(clip=>[clip.name,mixer!.clipAction(clip)]));
@@ -177,7 +180,9 @@ export function createTrainAvatar(scene:THREE.Scene,signal:AbortSignal,status:(m
         if(timeLeft<=0) {action.stop();fadingOut.delete(action);}
         else fadingOut.set(action,timeLeft);
       }
-      return (active.isRunning()&&active.getClip().duration>0)||[...fadingOut.keys()].some(action=>action.isRunning()&&action.getClip().duration>0);
+      if(active.isRunning()&&active.getClip().duration>0)return true;
+      for(const action of fadingOut.keys())if(action.isRunning()&&action.getClip().duration>0)return true;
+      return false;
     },
   };
 }

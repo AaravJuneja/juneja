@@ -6,7 +6,7 @@
   "rules": [
     {
       "type": "Data",
-      "globs": ["**/*.glb"],
+      "globs": ["**/*.glb.gz"],
       "fallthrough": false
     }
   ],

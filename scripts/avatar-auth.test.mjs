@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { webcrypto } from "node:crypto";
+import { gzipSync, gunzipSync } from "node:zlib";
 import { createAvatarWorker } from "../worker/avatar-auth.mjs";
 
 const origin = "https://example.test";
@@ -155,6 +156,20 @@ test("delete expires the browser cookie but a previously issued token stays vali
   const crossOrigin = await instance.fetch(request("/api/train/access", { method: "DELETE", headers: { origin: "https://attacker.test" } }), env);
   assert.equal(crossOrigin.status, 403);
   assert.equal(crossOrigin.headers.get("set-cookie"), null);
+});
+
+test("pre-compressed private avatars are labelled as gzip so the client inflates them", async () => {
+  const compressed = new Uint8Array(gzipSync(Buffer.from(avatarBytes)));
+  const instance = worker({ avatar: compressed });
+  const env = environment();
+  const cookie = sessionCookie(await unlock(instance, env));
+  const response = await instance.fetch(request("/api/train/avatar", { headers: { cookie } }), env);
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("content-type"), "application/gzip");
+  assert.equal(response.headers.get("content-encoding"), null);
+  assert.equal(response.headers.get("content-disposition"), "inline; filename=avatar.glb.gz");
+  assert.equal(response.headers.get("cache-control"), "private, no-store, max-age=0");
+  assert.deepEqual(new Uint8Array(gunzipSync(Buffer.from(await response.arrayBuffer()))), avatarBytes);
 });
 
 test("rejects tampered and expired session tokens", async () => {

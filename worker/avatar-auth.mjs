@@ -281,12 +281,13 @@ export function createAvatarWorker({ avatar, avatarLow = avatar, cryptoApi = glo
         const quality=url.searchParams.get("quality")??"high";
         if(quality!=="low"&&quality!=="high")return responseJson({error:"invalid_quality"},400);
         const bytes = avatarBytes(quality==="low"?avatarLow:avatar);
+        const compressed = bytes[0] === 0x1f && bytes[1] === 0x8b;
         return new Response(bytes, {
           headers: {
             ...protectedHeaders,
-            "content-type": "model/gltf-binary",
+            "content-type": compressed ? "application/gzip" : "model/gltf-binary",
             "content-length": String(bytes.byteLength),
-            "content-disposition": "inline; filename=avatar.glb"
+            "content-disposition": `inline; filename=avatar.glb${compressed ? ".gz" : ""}`
           }
         });
       } catch {

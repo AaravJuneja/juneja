@@ -76,7 +76,7 @@ describe("avatar loading lifecycle",()=>{
     const avatar=createTrainAvatar(scene,controller.signal,()=>{});
     await avatar.select("sniqr","low");
     await avatar.select("private","low");
-    expect(urls).toEqual(["/train/avatars/sniqr-low.glb","/api/train/avatar?quality=low"]);
+    expect(urls).toEqual(["/train/avatars/sniqr-low.glb.gz","/api/train/avatar?quality=low"]);
     avatar.dispose();
   });
 
@@ -92,7 +92,7 @@ describe("avatar loading lifecycle",()=>{
     expect(messages.at(-1)).toContain("Select an avatar to retry");
     expect(avatar.getCurrentId()).toBeUndefined();
     await avatar.select("sniqr");
-    expect(urls).toEqual(["/train/avatars/sniqr.glb","/train/avatars/sniqr.glb"]);
+    expect(urls).toEqual(["/train/avatars/sniqr.glb.gz","/train/avatars/sniqr.glb.gz"]);
     expect(avatar.group.children).toHaveLength(1);
     expect(avatar.getCurrentId()).toBe("sniqr");
     expect(messages.at(-1)).toBe("");
@@ -144,9 +144,20 @@ describe("avatar loading lifecycle",()=>{
 
   test("reselection while parsing releases the stale model instead of attaching it",async()=>{
     const originalParse=GLTFLoader.prototype.parseAsync;
+    const originalDescriptor=Object.getOwnPropertyDescriptor(globalThis,"ImageBitmap");
+    let closes=0;
+    class FakeBitmap {close(){closes++;}}
+    Object.defineProperty(globalThis,"ImageBitmap",{configurable:true,value:FakeBitmap});
+    const disposed=new Set<string>();
+    const staleGeometry=new THREE.BoxGeometry(),staleTexture=new THREE.Texture(),staleMaterial=new THREE.MeshBasicMaterial({map:staleTexture});
+    staleTexture.source.data=new FakeBitmap() as unknown as ImageBitmap;
+    staleGeometry.addEventListener("dispose",()=>disposed.add("geometry"));
+    staleMaterial.addEventListener("dispose",()=>disposed.add("material"));
+    staleTexture.addEventListener("dispose",()=>disposed.add("texture"));
+    const staleScene=new THREE.Group();staleScene.add(new THREE.Mesh(staleGeometry,staleMaterial));
     let parseCount=0,markStarted=()=>{},resolveFirst:((gltf:Awaited<ReturnType<GLTFLoader["parseAsync"]>>)=>void)|undefined;
     const firstParseStarted=new Promise<void>(resolve=>{markStarted=resolve;});
-    const parsed=()=>({scene:new THREE.Group(),animations:[]} as Awaited<ReturnType<GLTFLoader["parseAsync"]>>);
+    const parsed=(scene=new THREE.Group())=>({scene,animations:[]} as unknown as Awaited<ReturnType<GLTFLoader["parseAsync"]>>);
     GLTFLoader.prototype.parseAsync=async function() {
       parseCount++;
       if(parseCount===1) {
@@ -164,10 +175,47 @@ describe("avatar loading lifecycle",()=>{
       const latest=avatar.select("private");
       await latest;
       const selectedModel=avatar.group.children[0];
-      resolveFirst!(parsed());
-      await stale;
+      resolveFirst!(parsed(staleScene));
+      expect(await stale).toBe(false);
       expect(avatar.group.children).toHaveLength(1);
       expect(avatar.group.children[0]).toBe(selectedModel);
+      expect([...disposed].sort()).toEqual(["geometry","material","texture"]);
+      expect(closes).toBe(1);
+      expect(staleScene.parent).toBeNull();
+    } finally {
+      avatar.dispose();
+      GLTFLoader.prototype.parseAsync=originalParse;
+      if(originalDescriptor)Object.defineProperty(globalThis,"ImageBitmap",originalDescriptor);
+      else Reflect.deleteProperty(globalThis,"ImageBitmap");
+    }
+  });
+
+  test("models are prepared for upload before they attach and stale preparations are released",async()=>{
+    const originalParse=GLTFLoader.prototype.parseAsync;
+    GLTFLoader.prototype.parseAsync=async function() {
+      const scene=new THREE.Group();
+      scene.add(new THREE.Mesh(new THREE.BoxGeometry(),new THREE.MeshBasicMaterial()));
+      return {scene,animations:[]} as unknown as Awaited<ReturnType<GLTFLoader["parseAsync"]>>;
+    };
+    globalThis.fetch=async()=>new Response("");
+    const prepared:THREE.Object3D[]=[];
+    let finishFirst=()=>{};
+    const scene=new THREE.Scene(),controller=new AbortController();
+    const avatar=createTrainAvatar(scene,controller.signal,()=>{},model=>{
+      prepared.push(model);
+      expect(model.parent).toBeNull();
+      if(prepared.length===1)return new Promise<void>(resolve=>{finishFirst=resolve;});
+    });
+    try {
+      const first=avatar.select("sniqr");
+      while(prepared.length<1)await new Promise(resolve=>setTimeout(resolve,0));
+      const second=avatar.select("private");
+      expect(await second).toBe(true);
+      finishFirst();
+      expect(await first).toBe(false);
+      expect(prepared).toHaveLength(2);
+      expect(avatar.group.children).toEqual([prepared[1]]);
+      expect(prepared[0].parent).toBeNull();
     } finally {
       avatar.dispose();
       GLTFLoader.prototype.parseAsync=originalParse;

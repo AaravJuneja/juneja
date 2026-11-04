@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 
 export function terrainHeight(x:number,z:number,period:number) {
   const bank=Math.min(1,Math.max(0,(Math.abs(x)-4)/30));
@@ -55,33 +56,39 @@ export function createTrainEnvironment(scene:THREE.Scene,period:number) {
   }
   geometry.setAttribute("color",new THREE.BufferAttribute(colors,3));
   geometries.push(geometry);
-  const terrain=new THREE.InstancedMesh(geometry,material("#ffffff",true),5);
-  terrain.frustumCulled=false;scene.add(terrain);instances.push(terrain);
+  const tiled=(geo:THREE.BufferGeometry,mat:THREE.MeshBasicMaterial)=>{
+    const mesh=new THREE.InstancedMesh(geo,mat,5);
+    for(let copy=0;copy<5;copy++)mesh.setMatrixAt(copy,matrix.makeTranslation(0,0,(copy-2)*period));
+    mesh.frustumCulled=false;mesh.matrixAutoUpdate=false;scene.add(mesh);instances.push(mesh);
+    return mesh;
+  };
+  tiled(geometry,material("#ffffff",true));
   const solidBox=(size:[number,number,number],position:[number,number,number],tint:string)=>{
     const geo=new THREE.BoxGeometry(...size);geometries.push(geo);
-    const mesh=new THREE.Mesh(geo,material(tint));mesh.position.set(...position);scene.add(mesh);objects.push(mesh);
+    const mesh=new THREE.Mesh(geo,material(tint));mesh.position.set(...position);mesh.updateMatrix();mesh.matrixAutoUpdate=false;scene.add(mesh);objects.push(mesh);
   };
   solidBox([3.5,.8,period*5],[0,-1.5,0],"#494347");
   for(const x of [-.72,.72])solidBox([.095,.14,period*5],[x,-.99,0],"#77727c");
   const tiesPerTile=Math.ceil(period/.85);
   const tieSpacing=period/tiesPerTile;
-  const tieGeo=new THREE.BoxGeometry(2.2,.13,.19);geometries.push(tieGeo);
-  const ties=new THREE.InstancedMesh(tieGeo,material("#45302d"),tiesPerTile*5);
-  ties.frustumCulled=false;scene.add(ties);instances.push(ties);
+  const tie=new THREE.BoxGeometry(2.2,.13,.19).deleteAttribute("normal").deleteAttribute("uv");
+  const tieGeo=mergeGeometries(Array.from({length:tiesPerTile},(_,i)=>tie.clone().translate(0,-1.09,(i+.5)*tieSpacing-period/2)))!;
+  tie.dispose();tieGeo.name="ties";geometries.push(tieGeo);
+  const ties=tiled(tieGeo,material("#45302d"));
   const baseColors=materials.map(mat=>mat.color.clone());
+  let current=Number.NaN;
   const update=(distance:number)=>{
-    for(let copy=0;copy<5;copy++) {
-      const offset=((copy*period+distance+period*2.5)%(period*5))-period*2.5;
-      terrain.setMatrixAt(copy,matrix.makeTranslation(0,0,offset));
-      for(let i=0;i<tiesPerTile;i++)ties.setMatrixAt(copy*tiesPerTile+i,matrix.makeTranslation(0,-1.09,(i+.5)*tieSpacing-period/2+offset));
-    }
-    terrain.instanceMatrix.needsUpdate=true;ties.instanceMatrix.needsUpdate=true;
+    const offset=((distance%period)+period*1.5)%period-period/2;
+    if(offset===current)return;
+    current=offset;
+    for(const mesh of instances) {mesh.position.z=offset;mesh.updateMatrix();mesh.updateMatrixWorld();}
   };
   update(0);
   return {
     update,
     patchMaterials(patch:(material:THREE.MeshBasicMaterial)=>void){for(const mat of new Set(materials))patch(mat);},
     getOccluders():THREE.Object3D[]{return [...instances,...objects];},
+    getShadowCasters():THREE.Object3D[]{return [ties,...objects];},
     setDay(morning:boolean){materials.forEach((mat,i)=>mat.color.copy(baseColors[i]).multiplyScalar(morning?1.65:.8));},
     dispose(){for(const mesh of instances){scene.remove(mesh);mesh.dispose();}for(const object of objects)scene.remove(object);for(const geo of geometries)geo.dispose();for(const mat of materials)mat.dispose();},
   };
