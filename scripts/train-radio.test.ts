@@ -36,10 +36,16 @@ test("the radio panel shares commands with the persistent player and exposes acc
   expect(view).toContain('window.addEventListener("music:state"');
   expect(view).toContain('openDialog(radioDialog)');
   const player=readFileSync(new URL("../src/components/react/SpotifyPlayer.tsx",import.meta.url),"utf8");
-  expect(player).toContain('<audio ref={liveRef} preload="none"');
+  expect(player).toContain('<audio ref={liveRef} crossOrigin="anonymous" preload="none"');
   expect(player).toContain('live.removeAttribute("src");live.load();');
   expect(player).toContain('gain*volumeRef.current');
   expect(player).toContain('live.getAttribute("src")!==station.url||live.error');
   expect(player).not.toContain('addEventListener("stalled",waiting)');
   expect(player).toContain('generation!==playlistGeneration.current');
+  expect(player).not.toContain('aria-label="Music source"');
+  expect(player).toContain('document.addEventListener("astro:after-swap",leaveCarriage)');
+  expect(view).not.toContain("radio-indicator");
+  expect(view).toContain('.train-dialog:focus,.train-panel h2:focus { outline:none; }');
+  expect(view).toContain(':global(canvas:focus) { outline:none; }');
+  expect(view).toContain('button:focus-visible, summary:focus-visible, a:focus-visible');
 });

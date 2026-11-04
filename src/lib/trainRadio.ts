@@ -5,8 +5,8 @@ export const RADIO_STATIONS=[
 ] as const;
 
 export type RadioSource="playlist"|typeof RADIO_STATIONS[number]["id"];
-export interface RadioState {playing:boolean;error:boolean;loading:boolean;volume:number;volumeSupported:boolean;source:RadioSource;title:string;}
-export interface RadioCommand {action?:"toggle"|"next";volume?:number;source?:RadioSource;}
+export interface RadioState {playing:boolean;error:boolean;loading:boolean;volume:number;volumeSupported:boolean;source:RadioSource;title:string;spatialEnabled:boolean;spatialSupported:boolean;}
+export interface RadioCommand {action?:"toggle"|"next";volume?:number;source?:RadioSource;spatial?:boolean;}
 export function radioStation(source:string) {return RADIO_STATIONS.find(station=>station.id===source);}
 export function radioVolume(value:number) {return Number.isFinite(value)?Math.min(1,Math.max(0,value)):1;}
 export function defaultRadioSource(morning:boolean):RadioSource {return morning?"jazz24":"mellow";}

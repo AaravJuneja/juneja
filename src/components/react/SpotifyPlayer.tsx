@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import {RADIO_STATIONS,radioStation,radioVolume,type RadioSource} from "../../lib/trainRadio";
+import {radioStation,radioVolume,type RadioSource} from "../../lib/trainRadio";
+import {createRadioSpatialAudio} from "../../lib/radioSpatialAudio";
 
 type Props = {
   covers: {
@@ -78,6 +79,9 @@ export default function SpotifyPlayer({ covers }: Props) {
   const [liveLoading,setLiveLoading]=useState(false);
   const [liveError,setLiveError]=useState(false);
   const [volumeSupported,setVolumeSupported]=useState(true);
+  const [spatialEnabled,setSpatialEnabled]=useState(true);
+  const [spatialSupported,setSpatialSupported]=useState(true);
+  const spatialAudio=useRef<ReturnType<typeof createRadioSpatialAudio>|null>(null);
   const sourceRef=useRef<RadioSource>("playlist");
   const volumeRef=useRef(1);
   const liveRef=useRef<HTMLAudioElement|null>(null);
@@ -144,6 +148,7 @@ export default function SpotifyPlayer({ covers }: Props) {
     const live=liveRef.current;
     const station=radioStation(sourceRef.current);
     if(!live||!station)return;
+    spatialAudio.current?.unlock();
     const generation=++sourceGeneration.current;
     liveWanted.current=true;
     setLiveError(false);setLiveLoading(true);
@@ -169,6 +174,7 @@ export default function SpotifyPlayer({ covers }: Props) {
     setLivePlaying(false);setLiveLoading(false);
   };
   const changeSource=(next:RadioSource)=>{
+    if(next!=="playlist"&&!document.querySelector("[data-train]"))return;
     if(next===sourceRef.current||next!=="playlist"&&!radioStation(next))return;
     if(isClaimed()&&next!=="playlist")portraitRadioStash.current=null;
     const resume=sourceRef.current==="playlist"?playRef.current:liveWanted.current;
@@ -180,6 +186,7 @@ export default function SpotifyPlayer({ covers }: Props) {
     }
   };
   const playPlaylist=(deck:HTMLAudioElement,started?:()=>void)=>{
+    spatialAudio.current?.unlock();
     const generation=++playlistGeneration.current;
     void deck.play().then(()=>{
       if(generation===playlistGeneration.current&&playRef.current&&deck===activeDeck()&&sourceRef.current==="playlist")started?.();
@@ -429,23 +436,46 @@ export default function SpotifyPlayer({ covers }: Props) {
   useEffect(() => {
     window.addEventListener("music:toggle", toggle);
     const command=(event:WindowEventMap["music:command"])=>{
-      const {source,volume,action}=event.detail;
-      if(source)changeSource(source);
+      const {source,volume,action,spatial}=event.detail;
+      if(source&&(source==="playlist"||document.querySelector("[data-train]")))changeSource(source);
       if(typeof volume==="number")changeVolume(volume);
+      if(typeof spatial==="boolean") {
+        setSpatialEnabled(spatial);spatialAudio.current?.setEnabled(spatial);
+        try {sessionStorage.setItem("radio-spatial",spatial?"on":"off");} catch {}
+      }
       if(action==="toggle")toggle();
       if(action==="next"&&sourceRef.current==="playlist")advanceFrom(idxRef.current);
     };
+    const leaveCarriage=()=>{if(!document.querySelector("[data-train]")) {portraitRadioStash.current=null;spatialAudio.current?.setFrame(null);changeSource("playlist");}};
     window.addEventListener("music:command",command);
-    return () => {window.removeEventListener("music:toggle", toggle);window.removeEventListener("music:command",command);};
+    document.addEventListener("astro:after-swap",leaveCarriage);
+    return () => {window.removeEventListener("music:toggle", toggle);window.removeEventListener("music:command",command);document.removeEventListener("astro:after-swap",leaveCarriage);};
   }, [toggle]);
 
   useEffect(() => {
     const live=source!=="playlist";
-    const report = () => window.dispatchEvent(new CustomEvent("music:state",{detail:{playing:live?livePlaying:playing&&!audioError,error:live?liveError:audioError,loading:live&&liveLoading,volume,volumeSupported,source,title:live?radioStation(source)?.name??"Live radio":track.title}}));
+    const report = () => window.dispatchEvent(new CustomEvent("music:state",{detail:{playing:live?livePlaying:playing&&!audioError,error:live?liveError:audioError,loading:live&&liveLoading,volume,volumeSupported,source,title:live?radioStation(source)?.name??"Live radio":track.title,spatialEnabled:spatialEnabled&&spatialSupported,spatialSupported}}));
     window.addEventListener("music:request-state",report);
     report();
     return () => window.removeEventListener("music:request-state",report);
-  },[playing,audioError,trackIdx,source,livePlaying,liveLoading,liveError,volume,volumeSupported]);
+  },[playing,audioError,trackIdx,source,livePlaying,liveLoading,liveError,volume,volumeSupported,spatialEnabled,spatialSupported]);
+
+  useEffect(()=>{
+    const elements=[...deckRef.current,liveRef.current].filter((element):element is HTMLAudioElement=>element!==null);
+    const controller=createRadioSpatialAudio(elements,setSpatialSupported,()=>{
+      playRef.current=false;cancelFade();activeDeck()?.pause();stopLive();
+      setAudioError(true);setLiveError(true);
+    });
+    spatialAudio.current=controller;
+    try {
+      const enabled=sessionStorage.getItem("radio-spatial")!=="off";
+      setSpatialEnabled(enabled);controller.setEnabled(enabled);
+    } catch {}
+    const update=(event:WindowEventMap["music:spatial"])=>controller.setFrame(event.detail);
+    window.addEventListener("music:spatial",update);
+    window.dispatchEvent(new CustomEvent("music:request-spatial"));
+    return ()=>{window.removeEventListener("music:spatial",update);controller.dispose();spatialAudio.current=null;};
+  },[]);
 
   const fmt = (s: number) => {
     if (!isFinite(s) || isNaN(s)) return "0:00";
@@ -910,12 +940,6 @@ export default function SpotifyPlayer({ covers }: Props) {
           <span>{fmt(duration)}</span>
         </div>
         </div>}
-        <label className="flex items-center gap-3 text-sm text-muted-text">Source
-          <select aria-label="Music source" value={source} onChange={event=>changeSource(event.target.value as RadioSource)} className="min-h-11 min-w-0 flex-1 rounded border border-line bg-background px-2 text-text">
-            <option value="playlist">My playlist</option>
-            {RADIO_STATIONS.map(station=><option key={station.id} value={station.id}>{station.name} · live</option>)}
-          </select>
-        </label>
         <label className="flex items-center gap-3 text-sm text-muted-text">Volume
           <input aria-label="Music volume" type="range" min="0" max="100" value={Math.round(volume*100)} disabled={!volumeSupported} onChange={event=>changeVolume(Number(event.target.value)/100)} className="h-11 min-w-0 flex-1 accent-accent" />
           <span className="w-9 text-right tabular-nums">{Math.round(volume*100)}%</span>
@@ -924,9 +948,9 @@ export default function SpotifyPlayer({ covers }: Props) {
         {station&&<a href={station.homepage} target="_blank" rel="noopener noreferrer" className="text-xs text-accent-soft underline">Stream provided by {station.provider}</a>}
         {displayError&&<p role="status" className="text-xs text-muted-text">Could not play. Press play to retry, or choose another source.</p>}
       </div>
-      <audio ref={(el) => { deckRef.current[0] = el; }} preload="metadata" style={{ display: "none" }} />
-      <audio ref={(el) => { deckRef.current[1] = el; }} preload="metadata" style={{ display: "none" }} />
-      <audio ref={liveRef} preload="none" style={{display:"none"}} />
+      <audio ref={(el) => { deckRef.current[0] = el; }} crossOrigin="anonymous" preload="metadata" style={{ display: "none" }} />
+      <audio ref={(el) => { deckRef.current[1] = el; }} crossOrigin="anonymous" preload="metadata" style={{ display: "none" }} />
+      <audio ref={liveRef} crossOrigin="anonymous" preload="none" style={{display:"none"}} />
     </div>
   );
 }

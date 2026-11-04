@@ -15,6 +15,7 @@ import { parseTrainManifest } from "./trainManifest";
 import { createTrainEquipment, type EquipmentEvent } from "./trainEquipment";
 import { STEP_SOUNDS, stepStride, type StrideState, type TrainSound } from "./trainAudio";
 import { createRadioNotes } from "./trainRadioNotes";
+import type { RadioSpatialFrame } from "./radioSpatialAudio";
 
 type Point = [number, number];
 export interface TrainActions {
@@ -23,6 +24,7 @@ export interface TrainActions {
   hover: (object: string | null) => void;
   equipment?: (event:EquipmentEvent)=>void;
   sound?: (sound:TrainSound,options?:{volume?:number;rate?:number})=>void;
+  radioSpatial?: (frame:RadioSpatialFrame|null)=>void;
   stamina?: (energy:number,sprinting:boolean,exhausted:boolean)=>void;
   avatarStatus?: (message:string)=>void;
 }
@@ -112,6 +114,7 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
     disposed = true;
     equipment?.dispose();
     radioNotes?.dispose();
+    actions.radioSpatial?.(null);
     cancelAnimationFrame(frame);
     cancelAnimationFrame(hoverFrame);
     observer?.disconnect();
@@ -374,6 +377,20 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
     patchMaterials();
     const radioMesh=meshes.find(mesh=>mesh.name==="radio");
     if(radioMesh)radioNotes=createRadioNotes(scene,radioMesh);
+    const audioForward=new THREE.Vector3();
+    const audioUp=new THREE.Vector3();
+    const audioPosition=new THREE.Vector3();
+    const audioEmitter=radioMesh?new THREE.Box3().setFromObject(radioMesh).getCenter(new THREE.Vector3()):new THREE.Vector3();
+    const audioView=new THREE.Matrix4();
+    const audioFrame:RadioSpatialFrame={position:audioPosition,forward:audioForward,up:audioUp,emitter:audioEmitter,indoors:true};
+    let lastAudioAt=-Infinity;
+    const updateRadioSpatial=(now:number,force=false)=>{
+      if(!radioMesh||!force&&now-lastAudioAt<50||lastAudioAt!==-Infinity&&audioView.equals(camera.matrixWorld))return;
+      lastAudioAt=now;audioView.copy(camera.matrixWorld);audioPosition.copy(camera.position);
+      camera.getWorldDirection(audioForward);audioUp.set(0,1,0).applyQuaternion(camera.quaternion);
+      audioFrame.indoors=Math.abs(camera.position.x)<1.75&&Math.abs(camera.position.z)<4.5&&camera.position.y<2.8;
+      actions.radioSpatial?.(audioFrame);
+    };
     void createTrainEquipment(scene,signal).then(loaded=>{
       if(disposed) {loaded.dispose();return;}
       equipment=loaded;
@@ -497,6 +514,7 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
         for(const object of outsideCasters)if(outside)object.layers.enable(TORCH_SHADOW_LAYER);else object.layers.disable(TORCH_SHADOW_LAYER);
       }
       camera.updateMatrixWorld();
+      updateRadioSpatial(now);
       const shadowPending=torch.update(camera,avatar.getHandSocket(),perspective==="first",avatarVisible,torchOccluders,now,heading,locked);
       const equipmentAnimating=equipment?.update(now,torch.getBeam(),torchOccluders,reducedMotion.matches)??false;
       const radioAnimating=radioNotes?.update(now,reducedMotion.matches)??false;
@@ -510,6 +528,7 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
       updateHover();
       moving = length > 0 || keys.size > 0 || !player.grounded || sprint.energy<1;
       if (drift || moving || animating || shadowPending || equipmentAnimating || radioAnimating) frame = requestAnimationFrame(render);
+      else updateRadioSpatial(now,true);
     };
     const restart = () => {
       if(disposed||switching||!inView||document.hidden||suspended) {cancelAnimationFrame(frame);frame=0;last=0;return;}
@@ -734,6 +753,7 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
       getPosition(){return {x:player.x,y:player.feet+(player.prone?PRONE_EYE_HEIGHT:EYE_HEIGHT),z:player.z,grounded:player.grounded};},
       getAvatarControls(){return {avatar:avatarId,perspective,cameraMode,shiftLock,prone:!!player.prone};},
       getGraphics(){return graphicsQuality;},
+      getRadioSpatialFrame(){return radioMesh&&lastAudioAt!==-Infinity?audioFrame:null;},
       setRadioPlaying(value:boolean){radioNotes?.setPlaying(value);restart();},
       activateEquipment,
       getEquipmentState(){return equipment?.getState();},
