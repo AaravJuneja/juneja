@@ -55,7 +55,7 @@ describe("carriage movement",()=>{
     for(let i=0;i<24;i++)stepPlayer(p,0,0,1/60,[],bounds,open);
     jumpPlayer(p);let peak=p.feet;
     for(let i=0;i<120;i++) {stepPlayer(p,0,0,1/60,[],bounds,open);peak=Math.max(peak,p.feet);}
-    expect(peak).toBeGreaterThan(5);expect(peak).toBeLessThan(5.2);
+    expect(peak).toBeGreaterThan(4.7);expect(peak).toBeLessThan(4.8);
     expect(p.jumps).toBe(0);expect(p.grounded).toBe(true);expect(jumpPlayer(p)).toBe(true);
   });
   test("walking off an edge grants only one air jump",()=>{
@@ -267,6 +267,30 @@ describe("leaving and reboarding the train",()=>{
       expect(jumpPlayer(p)).toBe(true);
       for(let i=0;i<fps*2;i++)stepPlayer(p,-WALK_SPEED/fps,0,1/fps,shell,outside,movement);
       expect(p.x).toBeLessThan(-1.74);expect(p.feet).toBeCloseTo(-1.9);expect(p.grounded).toBe(true);
+    }
+  });
+  test("the rear platform allows relaxed double jump timing onto the roof",()=>{
+    for(const delay of [.15,.3,.4,.55]) {
+      const p=player();p.z=5.1;
+      const movement:MovementWorld={...world,ceilingHeight:(x,z)=>Math.abs(x)<1.58&&Math.abs(z)<4.3&&p.feet<2.5?2.61:Infinity};
+      expect(jumpPlayer(p)).toBe(true);
+      for(let i=0;i<Math.round(delay*120);i++)stepPlayer(p,0,0,1/120,shell,outside,movement);
+      expect(jumpPlayer(p)).toBe(true);
+      for(let i=0;i<240;i++)stepPlayer(p,0,p.z>3.5?-WALK_SPEED/120:0,1/120,shell,outside,movement);
+      expect(p.z).toBeLessThan(4.3);expect(p.feet).toBeCloseTo(2.78);expect(p.grounded).toBe(true);
+    }
+  });
+  test("off-track double jumps only narrowly clear roof height near the first apex",()=>{
+    for(const delay of [.1,.3,.4,.5,.7]) {
+      const p=player();p.x=3;p.feet=-1.9;
+      const movement:MovementWorld={groundHeight:()=>-1.9,ceilingHeight:()=>Infinity,driftZ:0};
+      jumpPlayer(p);
+      for(let i=0;i<Math.round(delay*120);i++)stepPlayer(p,0,0,1/120,[],outside,movement);
+      jumpPlayer(p);let peak=p.feet;
+      for(let i=0;i<240;i++) {stepPlayer(p,0,0,1/120,[],outside,movement);peak=Math.max(peak,p.feet);}
+      expect(peak).toBeLessThan(2.88);
+      if(delay>=.3&&delay<=.4)expect(peak).toBeGreaterThan(2.78);
+      else expect(peak).toBeLessThan(2.78);
     }
   });
   test("outside terrain does not act as an invisible carriage floor or ceiling",()=>{

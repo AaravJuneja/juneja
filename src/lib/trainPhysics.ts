@@ -154,7 +154,7 @@ export function jumpPlayer(state:PlayerState) {
   if(state.prone)return false;
   if(!state.grounded&&(state.jumps??1)>=2)return false;
   state.jumps=state.grounded?1:2;
-  state.velocityY=state.jumps===2?10:4.8;
+  state.velocityY=state.jumps===2?9.6:4.8;
   state.grounded=false;
   return true;
 }
