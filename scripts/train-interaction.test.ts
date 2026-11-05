@@ -25,10 +25,10 @@ const pick=(origin:number[],target:number[],meshes:THREE.Object3D[],regions=crea
   return {name,hits};
 };
 
-test("all eight windows are clickable through the actual carriage openings",async()=>{
+test("all eight windows remain noninteractive",async()=>{
   const meshes=await loadCarriage();
   for(const side of [-1,1])for(const z of [-3.1,-1.025,1.025,3.1]) {
-    expect(pick([0,1.5,z],[side*1.625,1.5,z],meshes).name).toBe("windows");
+    expect(pick([0,1.5,z],[side*1.625,1.5,z],meshes).name).toBeNull();
   }
 });
 
@@ -51,16 +51,17 @@ test("the desk, original books, luggage racks and front door reuse small interac
 });
 
 test("picking respects solid occlusion, range and hidden objects",()=>{
+  const regions:InteractionRegion[]=[{name:"desk",bounds:new THREE.Box3(new THREE.Vector3(1.55,.94,.04),new THREE.Vector3(1.7,2.21,4.09))}];
   const wall=new THREE.Mesh(new THREE.BoxGeometry(.1,2,2),new THREE.MeshBasicMaterial());
   wall.position.set(1,1,0);wall.updateMatrixWorld();
   expect(pick([0,1.5,0],[2,1.5,0],[wall]).name).toBeNull();
-  expect(pick([-5,1.5,3.1],[-1.6,1.5,3.1],[]).name).toBe("windows");
-  expect(pick([-6,1.5,3.1],[-1.6,1.5,3.1],[]).name).toBeNull();
+  expect(pick([5,1.5,3.1],[1.6,1.5,3.1],[],regions).name).toBe("desk");
+  expect(pick([6,1.5,3.1],[1.6,1.5,3.1],[],regions).name).toBeNull();
   wall.name="equipment:key";wall.visible=false;
   expect(pick([0,1.5,0],[2,1.5,0],[wall]).name).toBeNull();
-  expect(pick([0,1.5,1.025],[2,1.5,1.025],[wall]).name).toBe("windows");
+  expect(pick([0,1.5,1.025],[2,1.5,1.025],[wall],regions).name).toBe("desk");
   const parent=new THREE.Group();parent.visible=false;parent.add(wall);wall.visible=true;
-  expect(pick([0,1.5,1.025],[2,1.5,1.025],[wall]).name).toBe("windows");
+  expect(pick([0,1.5,1.025],[2,1.5,1.025],[wall],regions).name).toBe("desk");
   wall.geometry.dispose();(wall.material as THREE.Material).dispose();
 });
 
