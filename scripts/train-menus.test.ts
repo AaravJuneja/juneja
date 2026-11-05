@@ -7,12 +7,13 @@ const dialog=(id:string)=>template.split(`<dialog id="${id}"`)[1]?.split("</dial
 
 test("the compact toolbar keeps labeled icon controls and persistent state indicators",()=>{
   const menu=template.split('<nav class="train-menu"')[1]?.split("</nav>")[0]??"";
-  expect(menu.match(/train-icon-button/g)).toHaveLength(5);
-  expect(menu.match(/<svg /g)).toHaveLength(6);
-  for(const label of ["Switch to high graphics","Sound","Simulation","Settings","Keyboard controls"])expect(menu).toContain(`aria-label="${label}"`);
+  expect(menu.match(/train-icon-button/g)).toHaveLength(4);
+  expect(menu.match(/<svg /g)).toHaveLength(5);
+  for(const label of ["Graphics: Low. Switch to High","Sound","Simulation","Settings","Keyboard controls"])expect(menu).toContain(`aria-label="${label}"`);
+  expect(menu).toContain(">Graphics: Low</button>");
   expect(menu).toContain(">Catalog</button>");
   expect(template).not.toContain("soundButton.textContent");
-  expect(template).not.toContain("graphicsButton.textContent");
+  expect(template).toContain("graphicsButton.textContent=label");
   expect(template).toContain('soundButton.setAttribute("aria-pressed",String(on))');
   expect(template).toContain('.train-menu .train-icon-button[hidden] { display:none; }');
 });
@@ -136,7 +137,7 @@ test("private entry has no visible unlock dialog or public instructions",()=>{
 
 test("graphics start low and can be switched without adding gameplay controls",()=>{
   expect(template).toContain('data-train-graphics type="button"');
-  expect(template).toContain('aria-label="Switch to high graphics"');
+  expect(template).toContain('aria-label="Graphics: Low. Switch to High"');
   expect(template).toContain('aria-pressed="false" disabled');
   expect(scene).toContain('initialQuality:TrainGraphicsQuality="low"');
   expect(template).toContain("}, graphicsQuality);");

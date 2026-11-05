@@ -29,9 +29,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     <div class="train-sprint" data-train-stamina role="progressbar" aria-label="Sprint stamina" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" hidden><div data-train-stamina-fill></div></div>
     <nav class="train-menu" aria-label="Train menus">
       <button class="train-menu-button" data-train-catalog type="button" aria-haspopup="dialog" aria-controls="catalog-panel">Catalog</button>
-      <button class="train-menu-button train-icon-button" data-train-graphics type="button" title="Switch to high graphics" aria-label="Switch to high graphics" aria-pressed="false" disabled>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="14" x="2" y="3" rx="2" /><line x1="8" x2="16" y1="21" y2="21" /><line x1="12" x2="12" y1="17" y2="21" /></svg>
-      </button>
+      <button class="train-menu-button" data-train-graphics type="button" title="High: sharper graphics and torch shadows, more GPU use" aria-label="Graphics: Low. Switch to High" aria-pressed="false" disabled>Graphics: Low</button>
       <button class="train-menu-button train-icon-button" data-train-sound type="button" title="Sound on" aria-label="Sound" aria-pressed="true">
         <svg class="train-sound-waves" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" /><path d="M16 9a5 5 0 0 1 0 6" /><path d="M19.364 18.364a9 9 0 0 0 0-12.728" /></svg>
         <svg class="train-sound-muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4.702a.7.7 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.7.7 0 0 0 11 19.298z" /><path d="m16.5 14.5 5-5" /><path d="m16.5 9.5 5 5" /></svg>
@@ -257,9 +255,11 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     try {graphicsQuality=readGraphicsPreference(sessionStorage);} catch {}
     const syncGraphicsButton=()=>{
       const next=graphicsQuality==="low"?"high":"low";
-      graphicsButton.title=`Switch to ${next} graphics`;
+      const label=`Graphics: ${graphicsQuality==="low"?"Low":"High"}`;
+      graphicsButton.textContent=label;
+      graphicsButton.title="High: sharper graphics and torch shadows, more GPU use";
       graphicsButton.removeAttribute("aria-busy");
-      graphicsButton.setAttribute("aria-label",`Switch to ${next} graphics`);
+      graphicsButton.setAttribute("aria-label",`${label}. Switch to ${next==="low"?"Low":"High"}`);
       graphicsButton.setAttribute("aria-pressed",String(graphicsQuality==="high"));
     };
     syncGraphicsButton();
