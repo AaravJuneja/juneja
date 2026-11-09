@@ -147,6 +147,13 @@ test("graphics start low and can be switched without adding gameplay controls",(
   expect(scene).toMatch(/const swapped=await swapRenderer\(value\);[\s\S]{0,80}if\(!swapped\) \{\s*desired\.quality=previous;/);
 });
 
+test("the train fallback reports the underlying error",()=>{
+  expect(template).toContain('const fallback = (error:unknown) =>');
+  expect(template).toContain('error instanceof Error?error.message:String(error)');
+  expect(template).toContain('else fallback(error);');
+  expect(scene).toContain('actions.failed(new Error("WebGL context was lost"))');
+});
+
 test("carriage objects have a visually hidden button list that shares the interaction path and shows on keyboard focus",()=>{
   const list=template.split("<ul ")[1]?.split("</ul>")[0]??"";
   expect(list).toStartWith('class="sr-only train-objects" aria-label="Carriage objects" data-train-objects>');

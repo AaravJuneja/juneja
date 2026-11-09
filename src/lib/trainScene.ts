@@ -23,7 +23,7 @@ import {createTrainMedia} from "./trainMedia";
 
 type Point = [number, number];
 export interface TrainActions {
-  failed: () => void;
+  failed: (error:unknown) => void;
   activate: (object: string) => void;
   hover: (object: string | null) => void;
   equipment?: (event:EquipmentEvent)=>void;
@@ -730,7 +730,7 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
         if (event.code === "Escape") { clearInput();setShiftLock(false); }
         restart();
       }, options);
-      canvas.addEventListener("webglcontextlost", event => { event.preventDefault(); if (!disposed) actions.failed(); }, options);
+      canvas.addEventListener("webglcontextlost", event => { event.preventDefault(); if (!disposed) actions.failed(new Error("WebGL context was lost")); }, options);
       return controller;
     };
     canvasEvents=bindCanvas();

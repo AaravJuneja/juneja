@@ -527,9 +527,10 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       jumpButton.disabled=true;
       syncGraphicsButton();
     };
-    const fallback = () => {
+    const fallback = (error:unknown) => {
       stop();
-      status.textContent = "3D didn’t load, so this is a still image. Press Retry 3D to try again";
+      const detail=(error instanceof Error?error.message:String(error)).replace(/\s+/g," ").replace(/[.!?]+$/g,"");
+      status.textContent = `${detail||"Unknown error"}. Press Retry 3D to try again`;
       retry.hidden = false;
       retry.disabled = false;
       message.hidden = false;
@@ -584,14 +585,14 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
         root.dataset.live = "true";
         syncAmbience();
         message.hidden = true;
-      } catch {
+      } catch (error) {
         if (!pending.signal.aborted) {
           if(graphicsQuality==="high") {
             graphicsQuality="low";
             try {saveGraphicsPreference(sessionStorage,"low");} catch {}
             syncGraphicsButton();
             void start();
-          } else fallback();
+          } else fallback(error);
         }
       }
     };
