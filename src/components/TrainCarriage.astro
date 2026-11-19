@@ -99,7 +99,6 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
         <aside class="train-catalog-detail" aria-label="Selected item">
           <div class="train-skin-card train-detail-preview" data-train-detail-preview aria-hidden="true"><span class="train-skin-swatch"></span></div>
           <h3 data-train-detail-title>Yellow</h3>
-          <p data-train-detail-description>Select a finish to equip it</p>
         </aside>
         </div>
         <p class="train-catalog-status" data-train-catalog-status role="status" aria-live="polite" hidden></p>
@@ -112,7 +111,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       <div class="train-panel">
         <button class="train-close" data-close type="button" aria-label="Close simulation controls">×</button>
         <h2 id="simulation-title" tabindex="-1">Simulation</h2>
-        <p class="train-lede">Speed up or slow down the train, movement, jumps and stamina. Music stays at normal speed</p>
+        <p class="train-lede">Speed up or slow down the train, movement, jumps and stamina</p>
         <label>World speed<select data-train-world-speed><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1× (normal)</option><option value="1.5">1.5×</option><option value="2">2×</option><option value="3">3×</option></select></label>
         <label><input data-train-hitboxes type="checkbox" /> Show hitboxes</label>
         <p class="train-lede">Amber: solid collisions. Cyan: clickable areas. Pink: your body</p>
@@ -155,9 +154,8 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
         <label>Listen to<select data-train-radio-mode disabled><option value="playlist">My playlist</option><option value="live">Live radio</option></select></label>
         <label data-train-radio-station-row hidden>Station<select data-train-radio-station>{RADIO_STATIONS.map(station=><option value={station.id}>{station.name}</option>)}</select></label>
         <label class="radio-spatial"><input data-train-radio-spatial type="checkbox" checked /> 3D sound</label>
-        <p class="train-lede radio-help" data-train-radio-spatial-help>Sound comes from the radio and echoes around the carriage. Best with headphones</p>
+        <p class="train-lede radio-help" data-train-radio-spatial-unavailable hidden>3D sound is unavailable in this browser</p>
         <p class="train-lede radio-help" data-train-radio-volume-help hidden>Use your device volume buttons</p>
-        <p class="train-lede radio-help" data-train-radio-info></p>
         <a data-train-radio-link target="_blank" rel="noopener noreferrer" hidden>Visit station</a>
       </div>
     </dialog>
@@ -206,19 +204,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     const lampColor = get<HTMLSelectElement>("lamp-color");
     const catalogStatus = get<HTMLElement>("catalog-status");
     const detailTitle=get<HTMLElement>("detail-title");
-    const detailDescription=get<HTMLElement>("detail-description");
     const detailPreview=get<HTMLElement>("detail-preview");
-    const showDetail=(label:string,description:string,skinId?:string)=>{
-      detailTitle.textContent=label;
-      detailDescription.textContent=description;
-      const skin=skins.find(item=>item.id===skinId);
-      detailPreview.hidden=!skin;
-      if(skin) {
-        detailPreview.dataset.pattern="pattern" in skin?skin.pattern:"solid";
-        detailPreview.style.setProperty("--skin-a",skin.colors[0]);
-        detailPreview.style.setProperty("--skin-b",skin.colors[1]);
-      }
-    };
     const dialogs = [caseDialog,lampDialog,notebookDialog,catalogDialog,keysDialog,simulationDialog,scareDialog,radioDialog];
     const lamps = new Map<string,{enabled:boolean;color:string}>();
     let session: Awaited<ReturnType<typeof import("../lib/trainScene").mountTrainScene>> | undefined;
@@ -246,7 +232,10 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
         button.setAttribute("aria-pressed", String(equipment?.skin === button.dataset.trainSkin));
       }
       const skin=skins.find(item=>item.id===equipment?.skin)??skins.find(item=>item.id==="yellow")!;
-      showDetail(skin.label,"Select a finish to equip it",skin.id);
+      detailTitle.textContent=skin.label;
+      detailPreview.dataset.pattern="pattern" in skin?skin.pattern:"solid";
+      detailPreview.style.setProperty("--skin-a",skin.colors[0]);
+      detailPreview.style.setProperty("--skin-b",skin.colors[1]);
     };
     const events = new AbortController();
     let radioState:RadioState|undefined;
@@ -280,10 +269,9 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       radioVolume.value=String(Math.round(state.volume*100));
       radioSpatial.checked=state.spatialEnabled;
       radioSpatial.disabled=!state.spatialSupported;
-      get("radio-spatial-help").textContent=state.spatialSupported?"Sound comes from the radio and echoes around the carriage. Best with headphones":"This browser cannot place sound in 3D. Music still plays in stereo";
+      get("radio-spatial-unavailable").hidden=state.spatialSupported;
       get("radio-volume-value").textContent=`${Math.round(state.volume*100)}%`;
       get("radio-volume-help").hidden=state.volumeSupported;
-      get("radio-info").textContent=station?"Live radio only plays in this carriage. Your playlist comes back when you leave":"Your playlist keeps playing on other pages";
       const link=get<HTMLAnchorElement>("radio-link");link.hidden=!station;
       if(station) {link.href=station.homepage;link.textContent=`Stream provided by ${station.provider}`;}
       session?.setRadioPlaying(state.playing&&!state.error&&state.volume>0);
@@ -568,7 +556,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
   .train-dialog { margin:auto;padding:0;width:min(560px,calc(100vw - 24px));max-height:calc(100dvh - 48px);border:1px solid var(--train-edge);border-radius:6px;background:var(--train-surface);color:var(--train-text);overflow:auto; }
   .train-dialog { user-select:none;-webkit-user-select:none; }
   .train-dialog:focus,.train-panel h2:focus { outline:none; }
-  .train-interest p,.train-repository p,.train-repository a,.radio-track,[data-train-radio-info] { user-select:text;-webkit-user-select:text; }
+  .train-interest p,.train-repository p,.train-repository a,.radio-track { user-select:text;-webkit-user-select:text; }
   .train-panel select:focus-visible,.train-panel input:focus-visible { outline:2px solid var(--train-accent);outline-offset:2px; }
   .train-dialog::backdrop { background:rgb(8 5 14 / 70%); }
   .train-scare-dialog { position:fixed;inset:0;margin:0;padding:0;width:100vw;height:100dvh;max-width:none;max-height:none;border:0;background:#000;overflow:hidden; }
@@ -649,8 +637,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
   .train-catalog-layout { display:grid;grid-template-columns:minmax(0,1fr) 170px;gap:18px;align-items:start; }
   .train-catalog-content { grid-column:1;grid-row:1; }
   .train-catalog-detail { grid-column:2;grid-row:1;padding-top:16px;position:sticky;top:12px; }
-  .train-catalog-detail h3 { margin:14px 0 8px;font-size:18px;font-weight:500;line-height:1.3; }
-  .train-catalog-detail p { color:var(--train-muted);font-size:13px;line-height:1.5; }
+  .train-catalog-detail h3 { margin:14px 0 0;font-size:18px;font-weight:500;line-height:1.3; }
   .train-catalog-detail .train-detail-preview { display:block;padding:0;border:0; }
   .train-detail-preview .train-skin-swatch { display:block;width:100%;height:130px; }
   .train-skin-grid { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px; }
@@ -706,10 +693,9 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
   @media (max-width: 560px) {
     .train-catalog-layout { display:flex;flex-direction:column; }
     .train-catalog-content { width:100%; }
-    .train-catalog-detail { order:-1;position:static;width:100%;display:grid;grid-template-columns:70px 1fr;gap:4px 14px; }
-    .train-detail-preview { grid-row:span 2; }
+    .train-catalog-detail { order:-1;position:static;width:100%;display:grid;grid-template-columns:70px 1fr;align-items:center;gap:14px; }
     .train-detail-preview .train-skin-swatch { height:70px; }
-    .train-catalog-detail h3,.train-catalog-detail p { margin:0; }
+    .train-catalog-detail h3 { margin:0; }
     .train-skin-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
   }
 </style>

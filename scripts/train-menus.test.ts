@@ -56,7 +56,10 @@ test("radio controls distinguish playlist playback from live broadcasts",()=>{
   expect(template).toContain('live?"Live":"Playing"');
   expect(template).toContain('live?"Off":"Paused"');
   expect(template).toContain('if(statusElement.textContent!==status)statusElement.textContent=status');
-  expect(template).toContain("Live radio only plays in this carriage.");
+  expect(template).not.toContain("data-train-radio-info");
+  expect(template).not.toContain("Best with headphones");
+  expect(dialog("radio-panel")).toContain("data-train-radio-spatial-unavailable hidden");
+  expect(template).toContain('get("radio-spatial-unavailable").hidden=state.spatialSupported');
   expect(template).toContain("Stream provided by ${station.provider}");
   expect(template).not.toContain("Live audio uses your internet connection");
   expect(dialog("radio-panel")).not.toContain("<span>88</span>");
@@ -65,6 +68,8 @@ test("radio controls distinguish playlist playback from live broadcasts",()=>{
 test("the catalog contains skins without gameplay or avatar controls",()=>{
   const catalog=dialog("catalog-panel");
   expect(catalog).toContain("data-train-skins");
+  expect(catalog).toContain("Choose your torch finish");
+  expect(template).not.toContain("Select a finish to equip it");
   expect(catalog).not.toMatch(/<(?:input|select|details)\b/);
   expect(catalog).not.toMatch(/data-train-(?:power|tool|posture|torch|shift-lock|avatar|perspective|camera)\b/);
   expect(catalog).not.toContain('role="tab"');
@@ -115,7 +120,8 @@ test("simulation controls expose world speed and hitboxes",()=>{
   expect(panel).toContain("World speed");expect(panel).toContain("Show hitboxes");
   expect(panel).toContain('value="1" selected');
   expect(panel).toContain('value="0.25"');expect(panel).toContain('value="3"');
-  expect(panel).toContain("Music stays at normal speed");
+  expect(panel).toContain("Speed up or slow down the train, movement, jumps and stamina");
+  expect(panel).not.toContain("Music stays at normal speed");
   expect(template).toContain('worldSpeed.addEventListener("change",()=>session?.setWorldSpeed(Number(worldSpeed.value))');
   expect(template).toContain('hitboxes.addEventListener("change",()=>session?.setHitboxes(hitboxes.checked)');
   expect(scene).toContain("if(value&&!hitboxes)hitboxes=createTrainHitboxes");
