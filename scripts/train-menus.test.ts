@@ -114,15 +114,19 @@ test("touch screens have a dedicated jump button without changing keyboard contr
   expect(template).toContain('jumpButton.disabled=false');
 });
 
-test("simulation controls expose world speed and hitboxes",()=>{
+test("simulation controls expose a continuous world speed slider and hitboxes",()=>{
   const panel=dialog("simulation-panel");
   expect(template).toContain('data-train-simulation type="button"');
   expect(panel).toContain("World speed");expect(panel).toContain("Show hitboxes");
-  expect(panel).toContain('value="1" selected');
-  expect(panel).toContain('value="0.25"');expect(panel).toContain('value="3"');
+  expect(panel).toContain('data-train-world-speed type="range" min="0.25" max="3" step="any" value="1" aria-valuetext="1×"');
+  expect(panel).toContain('data-train-world-speed-value aria-hidden="true">1×');
   expect(panel).toContain("Speed up or slow down the train, movement, jumps and stamina");
   expect(panel).not.toContain("Music stays at normal speed");
-  expect(template).toContain('worldSpeed.addEventListener("change",()=>session?.setWorldSpeed(Number(worldSpeed.value))');
+  expect(template).toContain('worldSpeed.addEventListener("input",syncWorldSpeed');
+  expect(template).toContain('const label=`${Number(value.toFixed(2))}×`');
+  expect(template).toContain('worldSpeedValue.textContent=label');
+  expect(template).toContain('worldSpeed.setAttribute("aria-valuetext",label)');
+  expect(template).toContain('session?.setWorldSpeed(value)');
   expect(template).toContain('hitboxes.addEventListener("change",()=>session?.setHitboxes(hitboxes.checked)');
   expect(scene).toContain("if(value&&!hitboxes)hitboxes=createTrainHitboxes");
 });

@@ -7,6 +7,7 @@ import {stepSprint,type SprintState} from "../src/lib/trainSprint";
 const clock=():TrainTimingState=>({lastAt:NaN,remainder:0});
 
 describe("active train simulation timing",()=>{
+  const worldSpeeds=Array.from({length:12},(_,i)=>(i+1)/4);
   test("retains fractional steps and treats timestamp zero as an initialized clock",()=>{
     const state=clock();
     expect(advanceTrainTiming(state,0)).toBe(0);
@@ -96,7 +97,7 @@ describe("active train simulation timing",()=>{
   });
 
   test("world speed scales all movement and stamina without changing physics steps or graphics pacing",()=>{
-    for(const worldSpeed of [.25,.5,1,1.5,2,3])for(const fps of [5,30,60,144])for(const quality of ["low","high"] as const) {
+    for(const worldSpeed of worldSpeeds)for(const fps of [5,30,60,144])for(const quality of ["low","high"] as const) {
       for(const speed of [WALK_SPEED,SPRINT_SPEED,CRAWL_SPEED]) {
         const result=simulate(fps,quality,speed,false,worldSpeed);
         expect(result.steps).toBe(120*worldSpeed);
@@ -105,6 +106,14 @@ describe("active train simulation timing",()=>{
         expect(result.energy).toBeCloseTo(speed===SPRINT_SPEED?1-worldSpeed/4.5:1,9);
       }
     }
+  });
+
+  test("fractional world speeds are not rounded to slider presets",()=>{
+    const timing=clock();
+    let steps=0;
+    for(let frame=0;frame<=300;frame++)steps+=advanceTrainTiming(timing,frame*1000/60,.83);
+    expect(steps).toBe(498);
+    expect(timing.remainder).toBeCloseTo(0,10);
   });
 
   test("world speed is bounded and long frames remain bounded at maximum speed",()=>{
@@ -117,7 +126,7 @@ describe("active train simulation timing",()=>{
 
   test("faster worlds preserve jump height and collision accuracy while scaling train travel",()=>{
     let referencePeak=0;
-    for(const worldSpeed of [.25,.5,1,1.5,2,3]) {
+    for(const worldSpeed of worldSpeeds) {
       const timing=clock(),player:PlayerState={x:0,z:0,feet:0,velocityY:0,grounded:true};
       const bounds={min:[-10,-10] as [number,number],max:[10,10] as [number,number]};
       const world={groundHeight:()=>0,ceilingHeight:()=>Infinity,driftZ:0};

@@ -112,7 +112,11 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
         <button class="train-close" data-close type="button" aria-label="Close simulation controls">×</button>
         <h2 id="simulation-title" tabindex="-1">Simulation</h2>
         <p class="train-lede">Speed up or slow down the train, movement, jumps and stamina</p>
-        <label>World speed<select data-train-world-speed><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1× (normal)</option><option value="1.5">1.5×</option><option value="2">2×</option><option value="3">3×</option></select></label>
+        <label class="train-world-speed">
+          World speed
+          <input data-train-world-speed type="range" min="0.25" max="3" step="any" value="1" aria-valuetext="1×" />
+          <span data-train-world-speed-value aria-hidden="true">1×</span>
+        </label>
         <label><input data-train-hitboxes type="checkbox" /> Show hitboxes</label>
         <p class="train-lede">Amber: solid collisions. Cyan: clickable areas. Pink: your body</p>
       </div>
@@ -186,7 +190,8 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     const keysButton=get<HTMLButtonElement>("keys");
     const simulationButton=get<HTMLButtonElement>("simulation");
     const jumpButton=get<HTMLButtonElement>("jump");
-    const worldSpeed=get<HTMLSelectElement>("world-speed");
+    const worldSpeed=get<HTMLInputElement>("world-speed");
+    const worldSpeedValue=get<HTMLElement>("world-speed-value");
     const hitboxes=get<HTMLInputElement>("hitboxes");
     const stamina = get<HTMLElement>("stamina");
     const staminaFill = get<HTMLElement>("stamina-fill");
@@ -208,6 +213,13 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     const dialogs = [caseDialog,lampDialog,notebookDialog,catalogDialog,keysDialog,simulationDialog,scareDialog,radioDialog];
     const lamps = new Map<string,{enabled:boolean;color:string}>();
     let session: Awaited<ReturnType<typeof import("../lib/trainScene").mountTrainScene>> | undefined;
+    const syncWorldSpeed=()=>{
+      const value=worldSpeed.valueAsNumber;
+      const label=`${Number(value.toFixed(2))}×`;
+      worldSpeedValue.textContent=label;
+      worldSpeed.setAttribute("aria-valuetext",label);
+      session?.setWorldSpeed(value);
+    };
     let request: AbortController | undefined;
     let opener: HTMLElement | null = null;
     let graphicsQuality:"low"|"high"="low";
@@ -439,7 +451,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
         graphicsButton.disabled=false;
         simulationButton.disabled=false;
         jumpButton.disabled=false;
-        session.setWorldSpeed(Number(worldSpeed.value));
+        syncWorldSpeed();
         session.setHitboxes(hitboxes.checked);
         session.setDay(morning);
         syncMotion();
@@ -492,7 +504,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       event.preventDefault();session?.jump();
     },{signal:events.signal});
     jumpButton.addEventListener("click",event=>{if(event.detail===0)session?.jump();},{signal:events.signal});
-    worldSpeed.addEventListener("change",()=>session?.setWorldSpeed(Number(worldSpeed.value)),{signal:events.signal});
+    worldSpeed.addEventListener("input",syncWorldSpeed,{signal:events.signal});
     hitboxes.addEventListener("change",()=>session?.setHitboxes(hitboxes.checked),{signal:events.signal});
     root.querySelector<HTMLElement>("[data-train-skins]")!.addEventListener("click",event=>{
       const button = event.target instanceof Element ? event.target.closest<HTMLButtonElement>("[data-train-skin]") : null;
@@ -561,9 +573,9 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
   .train-dialog::backdrop { background:rgb(8 5 14 / 70%); }
   .train-scare-dialog { position:fixed;inset:0;margin:0;padding:0;width:100vw;height:100dvh;max-width:none;max-height:none;border:0;background:#000;overflow:hidden; }
   .train-scare-dialog::backdrop { background:#000; }
-  .train-scare-dialog video { position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:50% 50%; }
+  .train-scare-dialog video { position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transform-origin:50% 50%; }
   .train-scare-dialog[open] video { animation:charm-scare-in 900ms linear both; }
-  @keyframes charm-scare-in { 0% { opacity:0;transform:scale(0); } 9% { opacity:1;transform:scale(1.04); } 16%,100% { opacity:1;transform:scale(1); } }
+  @keyframes charm-scare-in { 0% { opacity:0;transform:scale(0); } 9% { opacity:1;transform:scale(.96); } 16%,100% { opacity:1;transform:scale(1); } }
   @media (prefers-reduced-motion:reduce) {
     .train-scare-dialog[open] video { animation:charm-scare-fade 900ms linear both; }
     @keyframes charm-scare-fade { 0% { opacity:0; } 12%,100% { opacity:1; } }
@@ -598,6 +610,9 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
   .train-lamp-row { display:flex;align-items:center;gap:10px;margin-block:20px 16px; }
   .train-lamp-row label { flex:1;min-width:0;margin:0; }
   .train-simulation-dialog { width:min(440px,calc(100vw - 24px)); }
+  .train-panel .train-world-speed { grid-template-columns:minmax(0,1fr) auto;row-gap:0; }
+  .train-world-speed input { grid-row:2;grid-column:1/-1;width:100%;min-width:0;height:44px; }
+  [data-train-world-speed-value] { grid-area:1/2;font-size:14px;font-variant-numeric:tabular-nums; }
   .train-menu { position:absolute;z-index:2;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px;max-width:calc(100% - 24px); }
   .train-menu-button { min-width:0;min-height:44px;padding:8px 12px;border:1px solid var(--train-edge);background:var(--train-surface);font:600 12px/1.2 Outfit,sans-serif;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap; }
   .train-menu-button:disabled { cursor:wait;opacity:.68; }

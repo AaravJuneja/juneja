@@ -76,6 +76,8 @@ test("the charm surprise loads on drawer intent and has motion-safe dismissal an
   expect(template).toContain('scareVideo.addEventListener("animationend",()=>{if(scareDialog.open)closeDialog(scareDialog)');
   expect(template).toContain('animation:charm-scare-in 900ms');
   expect(template).toContain('transform:scale(0)');expect(template).toContain('transform-origin:50% 50%');
+  expect(template).toMatch(/\.train-scare-dialog video \{[^}]*object-fit:contain/);
+  expect(template).toContain('9% { opacity:1;transform:scale(.96); }');
   expect(template).toContain('animation:charm-scare-fade 900ms');
   const scare=template.split('<dialog id="charm-scare"')[1].split('</dialog>')[0];
   expect(scare).not.toContain('<button');
