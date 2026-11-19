@@ -18,8 +18,8 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/sitemap": "^3.7.4",
-    "astro": "^7.4.8",
+    "@astrojs/sitemap": "^3.7.6",
+    "astro": "^7.4.13",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "three": "^0.187.0",
@@ -27,13 +27,13 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
-    "@astrojs/react": "^7.1.5",
+    "@astrojs/react": "^7.1.9",
     "@tailwindcss/vite": "^4.3.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@types/three": "^0.187.0",
     "tailwindcss": "^4.3.5",
     "typescript": "^6.0.3",
-    "wrangler": "^4.159.0"
+    "wrangler": "^4.165.0"
   }
 }
