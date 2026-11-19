@@ -4,7 +4,6 @@ import { BODY_HEIGHT, type PlayerState } from "./trainPhysics";
 import type { TrainGraphicsQuality } from "./trainGraphics";
 import { fetchTrainModel } from "./trainAsset";
 
-export type AvatarId="sniqr"|"private";
 export type AvatarClip="Idle"|"Walk"|"Run"|"Jump"|"Fall"|"Prone"|"Crawl";
 
 const TRANSITION_DURATION=.16;
@@ -78,7 +77,6 @@ export function createTrainAvatar(scene:THREE.Scene,signal:AbortSignal,status:(m
   scene.add(group);
   let model:THREE.Group|undefined;
   let hand:THREE.Object3D|undefined;
-  let currentId:AvatarId|undefined;
   let mixer:THREE.AnimationMixer|undefined;
   let clips=new Map<string,THREE.AnimationAction>();
   let active:THREE.AnimationAction|undefined;
@@ -90,7 +88,7 @@ export function createTrainAvatar(scene:THREE.Scene,signal:AbortSignal,status:(m
     mixer?.stopAllAction();
     fadingOut.clear();
     if(model) {mixer?.uncacheRoot(model);group.remove(model);release(model);}
-    model=undefined;hand=undefined;currentId=undefined;mixer=undefined;active=undefined;clips.clear();
+    model=undefined;hand=undefined;mixer=undefined;active=undefined;clips.clear();
   };
   const dispose=()=>{
     if(disposed)return;
@@ -101,11 +99,10 @@ export function createTrainAvatar(scene:THREE.Scene,signal:AbortSignal,status:(m
   return {
     group,
     dispose,
-    getCurrentId(){return currentId;},
     getHandSocket():THREE.Object3D|undefined {
       return hand;
     },
-    async select(id:AvatarId,quality:TrainGraphicsQuality="high") {
+    async load(quality:TrainGraphicsQuality="high") {
       if(disposed||signal.aborted)return false;
       const token=++request;
       pending?.abort();
@@ -113,31 +110,27 @@ export function createTrainAvatar(scene:THREE.Scene,signal:AbortSignal,status:(m
       pending=controller;
       try {
         status("Loading avatar…");
-        const source=id==="private"
-          ?quality==="low"?"/api/train/avatar?quality=low":"/api/train/avatar"
-          :quality==="low"?"/train/avatars/sniqr-low.glb.gz":"/train/avatars/sniqr.glb.gz";
-        const basePath=id==="private"?"/api/train/":"/train/avatars/";
+        const source=quality==="low"?"/train/avatars/sniqr-low.glb.gz":"/train/avatars/sniqr.glb.gz";
         const data=await fetchTrainModel(source,controller.signal,"Avatar download failed");
-         if(disposed||signal.aborted||controller.signal.aborted||token!==request)return false;
-        const gltf=await new GLTFLoader().parseAsync(data,basePath);
+        if(disposed||signal.aborted||controller.signal.aborted||token!==request)return false;
+        const gltf=await new GLTFLoader().parseAsync(data,"/train/avatars/");
         retain(gltf.scene);
-         if(disposed||signal.aborted||controller.signal.aborted||token!==request) {release(gltf.scene);return false;}
+        if(disposed||signal.aborted||controller.signal.aborted||token!==request) {release(gltf.scene);return false;}
         gltf.scene.scale.setScalar(BODY_HEIGHT/1.85);
         gltf.scene.traverse(object=>{if(object instanceof THREE.Mesh)object.frustumCulled=false;});
         try {await prepare?.(gltf.scene);} catch {}
-         if(disposed||signal.aborted||controller.signal.aborted||token!==request) {release(gltf.scene);return false;}
+        if(disposed||signal.aborted||controller.signal.aborted||token!==request) {release(gltf.scene);return false;}
         clear();
-         model=gltf.scene;
-         currentId=id;
+        model=gltf.scene;
         hand=model.getObjectByName("Hand.R")??model.getObjectByName("HandR");
         group.add(model);
         mixer=new THREE.AnimationMixer(model);
         clips=new Map(gltf.animations.map(clip=>[clip.name,mixer!.clipAction(clip)]));
-         status("");
-         return true;
+        status("");
+        return true;
       } catch(error) {
-         if(!disposed&&!signal.aborted&&token===request&&!controller.signal.aborted)status(error instanceof Error?"Avatar unavailable. Select an avatar to retry":"Avatar unavailable");
-         return false;
+        if(!disposed&&!signal.aborted&&token===request&&!controller.signal.aborted)status(error instanceof Error?`${error.message}. Reload the page to try again`:"Avatar unavailable. Reload the page to try again");
+        return false;
       } finally {
         if(pending===controller)pending=undefined;
       }

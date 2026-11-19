@@ -8,8 +8,8 @@
   },
   "scripts": {
     "dev": "astro dev --host 0.0.0.0 --port 4321",
-    "build": "bun run sync:repos && astro build && bun run verify:private",
-    "verify:private": "bun test scripts/private-config.test.mjs scripts/train-model-assets.test.mjs",
+    "build": "bun run sync:repos && astro build && bun run verify:assets",
+    "verify:assets": "bun test scripts/site-config.test.ts scripts/train-model-assets.test.mjs scripts/favicon.test.ts",
     "sync:repos": "bun scripts/sync-repositories.mjs",
     "preview": "astro preview --host 0.0.0.0 --port 4321",
     "deploy": "wrangler deploy",

@@ -37,9 +37,6 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       <button class="train-menu-button train-icon-button" data-train-simulation type="button" title="Simulation" aria-label="Simulation" aria-haspopup="dialog" aria-controls="simulation-panel" disabled>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H3" /><path d="M12 19H3" /><path d="M14 3v4" /><path d="M16 17v4" /><path d="M21 12h-9" /><path d="M21 19h-5" /><path d="M21 5h-7" /><path d="M8 10v4" /><path d="M8 12H3" /></svg>
       </button>
-      <button class="train-menu-button train-icon-button" data-train-settings type="button" title="Settings" aria-label="Settings" aria-haspopup="dialog" aria-controls="settings-panel" hidden>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /><circle cx="12" cy="12" r="3" /></svg>
-      </button>
       <button class="train-menu-button train-icon-button" data-train-keys type="button" title="Keyboard controls" aria-label="Keyboard controls" aria-haspopup="dialog" aria-controls="keys-panel">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 8h.01" /><path d="M12 12h.01" /><path d="M14 8h.01" /><path d="M16 12h.01" /><path d="M18 8h.01" /><path d="M6 8h.01" /><path d="M7 16h10" /><path d="M8 12h.01" /><rect width="20" height="16" x="2" y="4" rx="2" /></svg>
       </button>
@@ -108,15 +105,6 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
         <p class="train-catalog-status" data-train-catalog-status role="status" aria-live="polite" hidden></p>
       </div>
     </dialog>
-    <dialog id="settings-panel" class="train-dialog train-settings-dialog" aria-labelledby="settings-title">
-      <div class="train-panel">
-        <button class="train-close" data-close type="button" aria-label="Close settings">×</button>
-        <h2 id="settings-title" tabindex="-1">Settings</h2>
-        <p class="train-lede">Your character for this trip</p>
-        <label class="train-avatar-setting">Avatar<select data-train-avatar><option value="sniqr">Sniqr</option></select></label>
-        <p class="train-avatar-status-inline" data-train-avatar-status-inline role="status" aria-live="polite" hidden></p>
-      </div>
-    </dialog>
     <dialog id="charm-scare" class="train-scare-dialog" aria-label="Charm surprise" tabindex="-1">
       <video data-train-scare-video muted playsinline preload="none" aria-hidden="true"></video>
     </dialog>
@@ -173,7 +161,6 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
         <a data-train-radio-link target="_blank" rel="noopener noreferrer" hidden>Visit station</a>
       </div>
     </dialog>
-    <input class="train-private-input" data-train-private-input type="password" aria-label="Input" tabindex="-1" maxlength="512" autocomplete="off" autocapitalize="off" spellcheck="false" />
   </section>
 
 <script>
@@ -198,7 +185,6 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     const reticle=root.querySelector<HTMLElement>(".train-reticle")!;
     const catalogButton = get<HTMLButtonElement>("catalog");
     const graphicsButton=get<HTMLButtonElement>("graphics");
-    const settingsButton=get<HTMLButtonElement>("settings");
     const keysButton=get<HTMLButtonElement>("keys");
     const simulationButton=get<HTMLButtonElement>("simulation");
     const jumpButton=get<HTMLButtonElement>("jump");
@@ -210,7 +196,6 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     const lampDialog = root.querySelector<HTMLDialogElement>("#lamp-panel")!;
     const notebookDialog = root.querySelector<HTMLDialogElement>("#notebook-panel")!;
     const catalogDialog = root.querySelector<HTMLDialogElement>("#catalog-panel")!;
-    const settingsDialog=root.querySelector<HTMLDialogElement>("#settings-panel")!;
     const keysDialog=root.querySelector<HTMLDialogElement>("#keys-panel")!;
     const simulationDialog=root.querySelector<HTMLDialogElement>("#simulation-panel")!;
     const scareDialog=root.querySelector<HTMLDialogElement>("#charm-scare")!;
@@ -219,9 +204,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     const lamp = get<HTMLSelectElement>("lamp");
     const lampOn = get<HTMLButtonElement>("lamp-on");
     const lampColor = get<HTMLSelectElement>("lamp-color");
-    const avatarSelect = get<HTMLSelectElement>("avatar");
     const catalogStatus = get<HTMLElement>("catalog-status");
-    const avatarStatus = get<HTMLElement>("avatar-status-inline");
     const detailTitle=get<HTMLElement>("detail-title");
     const detailDescription=get<HTMLElement>("detail-description");
     const detailPreview=get<HTMLElement>("detail-preview");
@@ -236,21 +219,11 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
         detailPreview.style.setProperty("--skin-b",skin.colors[1]);
       }
     };
-    const privateInput=get<HTMLInputElement>("private-input");
-    const dialogs = [caseDialog,lampDialog,notebookDialog,catalogDialog,settingsDialog,keysDialog,simulationDialog,scareDialog,radioDialog];
+    const dialogs = [caseDialog,lampDialog,notebookDialog,catalogDialog,keysDialog,simulationDialog,scareDialog,radioDialog];
     const lamps = new Map<string,{enabled:boolean;color:string}>();
     let session: Awaited<ReturnType<typeof import("../lib/trainScene").mountTrainScene>> | undefined;
     let request: AbortController | undefined;
-    let avatarStatusMessage = "";
-    let accessCheck = 0;
     let opener: HTMLElement | null = null;
-    let holdTimer: number | undefined;
-    let holdPointer: { id: number; x: number; y: number } | undefined;
-    let suppressCatalogClickUntil = 0;
-    let blindActive=false;
-    let blindTimer:number|undefined;
-    let blindOpener:HTMLElement|null=null;
-    let blindRequest:AbortController|undefined;
     let graphicsQuality:"low"|"high"="low";
     try {graphicsQuality=readGraphicsPreference(sessionStorage);} catch {}
     const syncGraphicsButton=()=>{
@@ -267,10 +240,6 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       catalogStatus.textContent = value;
       catalogStatus.hidden = !value;
     };
-    const syncAvatarStatus = () => {
-      avatarStatus.textContent = avatarStatusMessage;
-      avatarStatus.hidden = !avatarStatusMessage || !settingsDialog.open;
-    };
     const syncCatalog = () => {
       const equipment = session?.getEquipment();
       for (const button of root.querySelectorAll<HTMLButtonElement>("[data-train-skin]")) {
@@ -278,26 +247,6 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       }
       const skin=skins.find(item=>item.id===equipment?.skin)??skins.find(item=>item.id==="yellow")!;
       showDetail(skin.label,"Select a finish to equip it",skin.id);
-    };
-    const syncSettings=()=>{
-      avatarSelect.value=session?.getAvatarControls().avatar??"sniqr";
-      syncAvatarStatus();
-    };
-    const applyAvatarAccess = (unlocked: boolean,label?:unknown) => {
-      settingsButton.hidden=!unlocked;
-      const option = avatarSelect.querySelector<HTMLOptionElement>('option[value="private"]');
-      const displayName=typeof label==="string"&&label.trim()?label.trim().slice(0,80):"Unlocked avatar";
-      if (unlocked && !option) avatarSelect.add(new Option(displayName,"private"));
-      else if(unlocked&&option)option.textContent=displayName;
-      if (!unlocked) {
-        option?.remove();
-        if (avatarSelect.value === "private" || session?.getAvatarControls().avatar === "private") {
-          avatarSelect.value = "sniqr";
-          if (session) void session.setAvatar("sniqr");
-        }
-        if(settingsDialog.open)closeDialog(settingsDialog);
-      }
-      syncSettings();
     };
     const events = new AbortController();
     let radioState:RadioState|undefined;
@@ -367,7 +316,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     root.addEventListener("pointerdown",()=>audio.unlock(),{capture:true,signal:events.signal});
     root.addEventListener("keydown",()=>audio.unlock(),{capture:true,signal:events.signal});
     root.querySelector(".train-menu")!.addEventListener("click",event=>{
-      if(performance.now()>=suppressCatalogClickUntil&&event.target instanceof Element&&event.target.closest("button"))audio.play("tick");
+      if(event.target instanceof Element&&event.target.closest("button"))audio.play("tick");
     },{signal:events.signal});
     soundButton.addEventListener("click",()=>{
       audio.setEnabled(!audio.isEnabled());
@@ -375,23 +324,6 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       syncAmbience();
     },{signal:events.signal});
     document.addEventListener("visibilitychange",syncAmbience,{signal:events.signal});
-    const refreshAccess = async (): Promise<boolean | undefined> => {
-      const token = ++accessCheck;
-      try {
-        const response = await fetch("/api/train/access", { credentials: "same-origin", cache: "no-store", signal: events.signal });
-        if (token !== accessCheck) return undefined;
-        if (response.status === 401 || response.status === 403) { applyAvatarAccess(false); return false; }
-        if (!response.ok) return undefined;
-        const result = await response.json() as { unlocked?: unknown;avatar?:{label?:unknown} } | null;
-        if (token === accessCheck && typeof result?.unlocked === "boolean") {
-          applyAvatarAccess(result.unlocked,result.avatar?.label);
-          return result.unlocked;
-        }
-        return undefined;
-      } catch {
-        return undefined;
-      }
-    };
     const closeDialog = (dialog:HTMLDialogElement) => {
       if (dialog.open) dialog.close();
       session?.setSuspended(dialogs.some(panel=>panel.open));
@@ -399,17 +331,15 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       opener = null;
       if(target&&target.getClientRects().length)target.focus({preventScroll:true});
       else catalogButton.focus({preventScroll:true});
-      syncAvatarStatus();
     };
     const openDialog = (dialog: HTMLDialogElement) => {
-      if (blindActive||dialogs.some(panel=>panel.open)) return;
+      if (dialogs.some(panel=>panel.open)) return;
       opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       if (document.pointerLockElement) document.exitPointerLock();
       session?.setSuspended(true);
       dialog.showModal();
       dialog.querySelector<HTMLElement>("h2")?.focus();
       if(dialog===catalogDialog)syncCatalog();
-      if(dialog===settingsDialog) {syncSettings();void refreshAccess();}
     };
     const prepareScare=()=>{
       if(scareVideo.getAttribute("src"))return;
@@ -418,7 +348,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       scareVideo.preload="auto";scareVideo.load();
     };
     const showScare=()=>{
-      if(blindActive||scareDialog.open||dialogs.some(panel=>panel.open))return;
+      if(scareDialog.open||dialogs.some(panel=>panel.open))return;
       prepareScare();scareVideo.currentTime=0;scareVideo.muted=true;scareVideo.controls=false;
       openDialog(scareDialog);
       void scareVideo.play().catch(()=>{});
@@ -428,55 +358,6 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     scareVideo.addEventListener("error",()=>{if(scareDialog.open)closeDialog(scareDialog);},{signal:events.signal});
     scareDialog.addEventListener("close",()=>{scareVideo.pause();scareVideo.currentTime=0;},{signal:events.signal});
     scareDialog.addEventListener("click",event=>{if(event.target===scareVideo)closeDialog(scareDialog);},{signal:events.signal});
-    const endBlindInput=()=>{
-      if(blindTimer!==undefined)window.clearTimeout(blindTimer);
-      blindTimer=undefined;
-      privateInput.value="";
-      if(!blindActive)return;
-      blindActive=false;
-      privateInput.blur();
-      session?.setSuspended(dialogs.some(panel=>panel.open));
-      const target=blindOpener;
-      blindOpener=null;
-      if(target?.isConnected&&target.getClientRects().length)target.focus({preventScroll:true});
-    };
-    const resetBlindTimer=()=>{
-      if(blindTimer!==undefined)window.clearTimeout(blindTimer);
-      blindTimer=window.setTimeout(endBlindInput,20000);
-    };
-    const beginBlindInput=()=>{
-      if(blindActive||blindRequest||dialogs.some(panel=>panel.open))return;
-      blindOpener=document.activeElement instanceof HTMLElement?document.activeElement:null;
-      blindActive=true;
-      privateInput.value="";
-      session?.setSuspended(true);
-      privateInput.focus({preventScroll:true});
-      resetBlindTimer();
-    };
-    const verifyBlindInput=async()=>{
-      const code=privateInput.value;
-      endBlindInput();
-      if(!code||blindRequest)return;
-      const pending=new AbortController();
-      blindRequest=pending;
-      const abort=()=>pending.abort();
-      events.signal.addEventListener("abort",abort,{once:true});
-      try {
-        const response=await fetch("/api/train/unlock",{
-          method:"POST",credentials:"same-origin",cache:"no-store",headers:{"Content-Type":"application/json"},body:JSON.stringify({code}),signal:pending.signal,
-        });
-        if(!response.ok||pending.signal.aborted||events.signal.aborted||document.hidden||!root.isConnected)return;
-        const result=await response.json() as {unlocked?:unknown;avatar?:{label?:unknown}}|null;
-        if(result?.unlocked===true&&!pending.signal.aborted) {
-          accessCheck++;
-          applyAvatarAccess(true,result.avatar?.label);
-          openDialog(settingsDialog);
-        }
-      } catch {} finally {
-        events.signal.removeEventListener("abort",abort);
-        if(blindRequest===pending)blindRequest=undefined;
-      }
-    };
     const refreshLamp = () => {
       const state = lamps.get(lamp.value) ?? {enabled:true,color:"#ffffff"};
       lampOn.setAttribute("aria-pressed",String(state.enabled));
@@ -514,8 +395,6 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       scareVideo.pause();
       if(scareDialog.open)scareDialog.close();
       scareVideo.removeAttribute("src");scareVideo.removeAttribute("poster");scareVideo.load();
-      blindRequest?.abort();
-      endBlindInput();
       request?.abort();
       request = undefined;
       session?.dispose();
@@ -562,10 +441,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
             stamina.dataset.exhausted=String(exhausted);
             staminaFill.style.transform=`scaleX(${energy})`;
           },
-          avatarStatus(value) {
-            avatarStatusMessage = value;
-            syncAvatarStatus();
-          },
+          avatarStatus:setCatalogStatus,
         }, graphicsQuality);
         if (pending.signal.aborted) { mounted.dispose(); return; }
         session = mounted;
@@ -580,7 +456,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
         session.setDay(morning);
         syncMotion();
         for (const [name,state] of lamps) session.setLamp(name,state.enabled,state.color);
-        if (blindActive||dialogs.some(dialog=>dialog.open)) session.setSuspended(true);
+        if (dialogs.some(dialog=>dialog.open)) session.setSuspended(true);
         syncCatalog();
         root.dataset.live = "true";
         syncAmbience();
@@ -597,10 +473,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       }
     };
     retry.addEventListener("click", start, { signal: events.signal });
-    catalogButton.addEventListener("click",event=>{
-      if (performance.now() < suppressCatalogClickUntil) { event.preventDefault(); return; }
-      openDialog(catalogDialog);
-    },{signal:events.signal});
+    catalogButton.addEventListener("click",()=>openDialog(catalogDialog),{signal:events.signal});
     graphicsButton.addEventListener("click",()=>{
       if(!session||graphicsButton.disabled)return;
       const target=session;
@@ -620,7 +493,6 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
         syncGraphicsButton();
       });
     },{signal:events.signal});
-    settingsButton.addEventListener("click",()=>openDialog(settingsDialog),{signal:events.signal});
     get<HTMLElement>("objects").addEventListener("click",event=>{
       const button=event.target instanceof Element?event.target.closest<HTMLButtonElement>("[data-train-object]"):null;
       if(button?.dataset.trainObject)activate(button.dataset.trainObject);
@@ -634,35 +506,6 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
     jumpButton.addEventListener("click",event=>{if(event.detail===0)session?.jump();},{signal:events.signal});
     worldSpeed.addEventListener("change",()=>session?.setWorldSpeed(Number(worldSpeed.value)),{signal:events.signal});
     hitboxes.addEventListener("change",()=>session?.setHitboxes(hitboxes.checked),{signal:events.signal});
-    const clearHold = () => {
-      if (holdTimer !== undefined) window.clearTimeout(holdTimer);
-      holdTimer = undefined;
-      holdPointer = undefined;
-    };
-    catalogButton.addEventListener("pointerdown",event=>{
-      if (event.button !== 0 || !event.isPrimary) return;
-      clearHold();
-      holdPointer = { id: event.pointerId, x: event.clientX, y: event.clientY };
-      try { catalogButton.setPointerCapture(event.pointerId); } catch {}
-      holdTimer = window.setTimeout(()=>{
-        holdTimer = undefined;
-        suppressCatalogClickUntil = performance.now() + 700;
-        beginBlindInput();
-      },1600);
-    },{signal:events.signal});
-    catalogButton.addEventListener("pointermove",event=>{
-      if (!holdPointer || event.pointerId !== holdPointer.id) return;
-      if (Math.hypot(event.clientX-holdPointer.x,event.clientY-holdPointer.y)>14) clearHold();
-    },{signal:events.signal});
-    catalogButton.addEventListener("pointerup",event=>{if(holdPointer?.id===event.pointerId)clearHold();if(blindActive)privateInput.focus({preventScroll:true});},{signal:events.signal});
-    catalogButton.addEventListener("pointercancel",clearHold,{signal:events.signal});
-    catalogButton.addEventListener("lostpointercapture",clearHold,{signal:events.signal});
-    document.addEventListener("keydown",event=>{
-      if (event.ctrlKey && event.altKey && event.code === "KeyU" && !dialogs.some(dialog=>dialog.open)) {
-        event.preventDefault();
-        beginBlindInput();
-      }
-    },{signal:events.signal});
     root.querySelector<HTMLElement>("[data-train-skins]")!.addEventListener("click",event=>{
       const button = event.target instanceof Element ? event.target.closest<HTMLButtonElement>("[data-train-skin]") : null;
       if (!button) return;
@@ -673,50 +516,23 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
       syncCatalog();
       setCatalogStatus(`${skins.find(skin=>skin.id===id)?.label ?? "Skin"} equipped`);
     },{signal:events.signal});
-    avatarSelect.addEventListener("change",()=>{
-      if (!session) { syncSettings();avatarStatusMessage="The 3D controls are not ready yet";syncAvatarStatus();return; }
-      if (avatarSelect.value === "private") {
-        avatarSelect.disabled = true;
-        void refreshAccess().then(allowed=>{
-          avatarSelect.disabled = false;
-          if (allowed !== true || !session) {
-            syncSettings();
-            avatarStatusMessage=allowed === false ? "Access expired. Unlock again to use this avatar" : "Could not verify access. Try again";
-            syncAvatarStatus();
-            return;
-          }
-          void session.setAvatar("private").then(syncSettings);
-        });
-        return;
-      }
-      void session.setAvatar("sniqr").then(syncSettings);
-    },{signal:events.signal});
     lamp.addEventListener("change",refreshLamp,{signal:events.signal});
     lampOn.addEventListener("click",()=>{
       lampOn.setAttribute("aria-pressed",String(lampOn.getAttribute("aria-pressed")!=="true"));
       changeLamp();refreshLamp();
     },{signal:events.signal});
     lampColor.addEventListener("change",changeLamp,{signal:events.signal});
-    privateInput.addEventListener("keydown",event=>{
-      event.stopPropagation();
-      if(event.key==="Escape") {event.preventDefault();endBlindInput();}
-      else if(event.key==="Enter") {event.preventDefault();void verifyBlindInput();}
-    },{signal:events.signal});
-    privateInput.addEventListener("input",()=>{if(blindActive)resetBlindTimer();},{signal:events.signal});
-    privateInput.addEventListener("blur",endBlindInput,{signal:events.signal});
-    window.addEventListener("blur",()=>{endBlindInput();blindRequest?.abort();},{signal:events.signal});
-    document.addEventListener("visibilitychange",()=>{if(document.hidden){endBlindInput();blindRequest?.abort();if(scareDialog.open)closeDialog(scareDialog);}},{signal:events.signal});
+    document.addEventListener("visibilitychange",()=>{if(document.hidden&&scareDialog.open)closeDialog(scareDialog);},{signal:events.signal});
     for (const dialog of dialogs) {
       dialog.querySelector("[data-close]")?.addEventListener("click",()=>closeDialog(dialog),{signal:events.signal});
       dialog.addEventListener("click",event=>{if(event.target===dialog)closeDialog(dialog);},{signal:events.signal});
       dialog.addEventListener("cancel",event=>{event.preventDefault();closeDialog(dialog);},{signal:events.signal});
-      dialog.addEventListener("close",()=>{session?.setSuspended(blindActive||dialogs.some(panel=>panel.open));syncAvatarStatus();},{signal:events.signal});
+      dialog.addEventListener("close",()=>session?.setSuspended(dialogs.some(panel=>panel.open)),{signal:events.signal});
     }
-    void refreshAccess();
     matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", (event) => { paused = event.matches; syncMotion(); }, { signal: events.signal });
-    document.addEventListener("astro:before-swap", () => { clearHold(); stop(); events.abort(); }, { once: true, signal: events.signal });
+    document.addEventListener("astro:before-swap", () => { stop(); events.abort(); }, { once: true, signal: events.signal });
     window.addEventListener("pagehide", stop, { signal: events.signal });
-    window.addEventListener("pageshow", (event) => { void refreshAccess(); if (event.persisted) void start(); }, { signal: events.signal });
+    window.addEventListener("pageshow", (event) => { if (event.persisted) void start(); }, { signal: events.signal });
     syncMotion();
     void start();
   }
@@ -821,9 +637,6 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
   .train-key-hints kbd { box-sizing:border-box;display:grid;place-items:center;width:42px;height:42px;border:2px solid var(--train-edge);border-bottom-width:5px;border-radius:4px;background:var(--train-surface);font:600 15px/1 Outfit,sans-serif; }
   .train-catalog-dialog { width:min(760px,calc(100vw - 24px));max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px); }
   .train-catalog-dialog .train-panel { padding:clamp(16px,4vw,30px); }
-  .train-settings-dialog { width:min(380px,calc(100vw - 24px)); }
-  .train-panel .train-avatar-setting { padding-block:16px;border-block:1px solid var(--train-line);color:var(--train-muted); }
-  .train-avatar-setting select { width:100%; }
   .train-keys-dialog { width:min(500px,calc(100vw - 24px)); }
   .train-key-list { margin:0; }
   .train-key-list > div { display:grid;grid-template-columns:76px minmax(0,1fr);gap:12px;align-items:center;min-height:44px;padding-block:8px;border-bottom:1px solid var(--train-line); }
@@ -831,7 +644,7 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
   .train-key-list dd { margin:0;color:var(--train-muted);font-size:14px;line-height:1.5; }
   .train-key-list kbd { box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;min-width:25px;min-height:28px;padding:4px 6px;border:1px solid var(--train-edge);border-bottom-width:3px;border-radius:4px;background:var(--train-background);color:var(--train-text);font:500 12px/1 Outfit,sans-serif; }
   .train-touch-help { color:var(--train-muted);font-size:14px;line-height:1.7; }
-  .train-avatar-status-inline,.train-catalog-status { margin:12px 0 0;color:var(--train-muted);font-size:13px;line-height:1.5; }
+  .train-catalog-status { margin:12px 0 0;color:var(--train-muted);font-size:13px;line-height:1.5; }
   .train-catalog-content { padding-top:16px; }
   .train-catalog-layout { display:grid;grid-template-columns:minmax(0,1fr) 170px;gap:18px;align-items:start; }
   .train-catalog-content { grid-column:1;grid-row:1; }
@@ -859,7 +672,6 @@ const commitDate = new Intl.DateTimeFormat("en",{dateStyle:"medium",timeZone:"UT
   .train-skin-card[data-pattern="animal"] .train-skin-swatch { background:radial-gradient(ellipse,var(--skin-b) 0 20%,transparent 23%) 0 0/14px 13px,var(--skin-a); }
   .train-skin-card[data-pattern="foil"] .train-skin-swatch { background:repeating-conic-gradient(from 20deg,var(--skin-a),var(--skin-b) 18%,#f5dcff 28%,var(--skin-a) 38%); }
   .train-skin-card[data-pattern="gradient"] .train-skin-swatch { background:linear-gradient(120deg,var(--skin-a),var(--skin-b),var(--skin-a)); }
-  .train-private-input { position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none;padding:0;border:0; }
   .train-radio-dialog { width:min(460px,calc(100vw - 24px)); }
   .radio-display { position:relative;padding:18px;border:2px solid var(--train-edge);border-radius:4px;background:#161611;color:#ead9a4;box-shadow:inset 0 2px 10px #0008; }
   .radio-track { margin:0 20px 6px 0;font-size:20px;font-weight:600;overflow-wrap:anywhere; }

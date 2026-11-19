@@ -104,26 +104,6 @@
 :root[data-portrait] img.theme-icon {
   filter: sepia(1) saturate(2);
 }
-@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  :root[data-portrait],
-  :root[data-portrait] body,
-  :root[data-portrait] body * {
-    cursor: url("/cursors/cursor-brass.svg") 0 0, auto;
-  }
-  :root[data-portrait] body a,
-  :root[data-portrait] body a *,
-  :root[data-portrait] body button,
-  :root[data-portrait] body button *,
-  :root[data-portrait] body [role="button"],
-  :root[data-portrait] body [role="button"] * {
-    cursor: url("/cursors/cursor-brass.svg") 0 0, pointer;
-  }
-}
-:root[data-portrait] body input,
-:root[data-portrait] body textarea,
-:root[data-portrait] body select {
-  cursor: auto;
-}
 
 :root[data-portrait] {
   --color-accent: #c9a227;
@@ -285,6 +265,12 @@ summary {
   -webkit-user-select: none;
 }
 
+button:not(:disabled),
+summary,
+[role="button"] {
+  cursor: pointer;
+}
+
 .font-dm.font-bold {
   font-weight: 600;
 }
@@ -347,30 +333,6 @@ video {
 html {
   scrollbar-width: none;
   scrollbar-color: var(--accent) var(--background);
-}
-
-html,
-html * {
-  cursor: auto;
-}
-@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  html,
-  html * {
-    cursor: url("/cursors/cursor-pixel.svg") 0 0, auto;
-  }
-  a,
-  a *,
-  button,
-  button *,
-  [role="button"],
-  [role="button"] * {
-    cursor: url("/cursors/cursor-pixel.svg") 0 0, pointer;
-  }
-}
-input,
-textarea,
-select {
-  cursor: auto;
 }
 
 /* Reveal */

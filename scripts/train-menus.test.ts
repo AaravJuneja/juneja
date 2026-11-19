@@ -7,9 +7,9 @@ const dialog=(id:string)=>template.split(`<dialog id="${id}"`)[1]?.split("</dial
 
 test("the compact toolbar keeps labeled icon controls and persistent state indicators",()=>{
   const menu=template.split('<nav class="train-menu"')[1]?.split("</nav>")[0]??"";
-  expect(menu.match(/train-icon-button/g)).toHaveLength(4);
-  expect(menu.match(/<svg /g)).toHaveLength(5);
-  for(const label of ["Graphics: Low. Switch to High","Sound","Simulation","Settings","Keyboard controls"])expect(menu).toContain(`aria-label="${label}"`);
+  expect(menu.match(/train-icon-button/g)).toHaveLength(3);
+  expect(menu.match(/<svg /g)).toHaveLength(4);
+  for(const label of ["Graphics: Low. Switch to High","Sound","Simulation","Keyboard controls"])expect(menu).toContain(`aria-label="${label}"`);
   expect(menu).toContain(">Graphics: Low</button>");
   expect(menu).toContain(">Catalog</button>");
   expect(template).not.toContain("soundButton.textContent");
@@ -70,12 +70,10 @@ test("the catalog contains skins without gameplay or avatar controls",()=>{
   expect(catalog).not.toContain('role="tab"');
 });
 
-test("avatar selection has its own settings menu",()=>{
-  const settings=dialog("settings-panel");
-  expect(settings).toContain("data-train-avatar");
-  expect(settings).not.toContain("data-train-skins");
-  expect(settings).not.toMatch(/<input\b/);
-  expect(template).toContain("data-train-settings");
+test("the train has one character without a redundant selection menu",()=>{
+  expect(template).not.toContain("data-train-avatar");
+  expect(template).not.toContain("data-train-settings");
+  expect(scene).not.toContain("setAvatar(");
 });
 
 test("the keyboard guide keeps less obvious controls without repeating the on-screen hints",()=>{
@@ -98,8 +96,6 @@ test("quick controls are non-interactive main-screen hints",()=>{
   const hints=template.split('<dl class="train-key-hints"')[1]?.split("</dl>")[0]??"";
   for(const key of ["C","Ctrl","Q"])expect(hints).toContain(`<kbd>${key}</kbd>`);
   expect(hints).not.toMatch(/<(?:button|input|a)\b/);
-  expect(template).toMatch(/data-train-settings[^>]*\bhidden>/);
-  expect(template).toContain("settingsButton.hidden=!unlocked");
 });
 
 test("touch screens have a dedicated jump button without changing keyboard controls",()=>{
@@ -113,7 +109,7 @@ test("touch screens have a dedicated jump button without changing keyboard contr
   expect(template).toContain('jumpButton.disabled=false');
 });
 
-test("public simulation controls expose world speed and hitboxes without unlocking avatar settings",()=>{
+test("simulation controls expose world speed and hitboxes",()=>{
   const panel=dialog("simulation-panel");
   expect(template).toContain('data-train-simulation type="button"');
   expect(panel).toContain("World speed");expect(panel).toContain("Show hitboxes");
@@ -125,14 +121,12 @@ test("public simulation controls expose world speed and hitboxes without unlocki
   expect(scene).toContain("if(value&&!hitboxes)hitboxes=createTrainHitboxes");
 });
 
-test("private entry has no visible unlock dialog or public instructions",()=>{
-  expect(template).not.toContain('id="unlock-panel"');
-  expect(template).not.toContain("Unlock avatar");
-  expect(template).not.toContain("Verify code");
-  expect(template).toContain("data-train-private-input");
-  expect(dialog("keys-panel")).not.toContain("KeyU");
-  expect(template).toContain('event.key==="Enter"');
-  expect(template).toContain('event.key==="Escape"');
+test("catalog activation uses a normal click without hidden input or network checks",()=>{
+  expect(template).toContain('catalogButton.addEventListener("click",()=>openDialog(catalogDialog)');
+  expect(template).not.toContain('type="password"');
+  expect(template).not.toContain("KeyU");
+  expect(template).not.toContain("holdTimer");
+  expect(template).not.toContain('fetch("/api/');
 });
 
 test("graphics start low and can be switched without adding gameplay controls",()=>{
@@ -144,7 +138,7 @@ test("graphics start low and can be switched without adding gameplay controls",(
   expect(template).toMatch(/const stop = \(\) => \{[^}]*graphicsButton\.disabled=true;/);
   expect(scene).toContain('setGraphics(value:TrainGraphicsQuality)');
   expect(scene).toMatch(/const torch=createTrainTorch\(scene,renderer,signal\);\s*torch\.setQuality\(graphicsQuality\);/);
-  expect(scene).toMatch(/const swapped=await swapRenderer\(value\);[\s\S]{0,80}if\(!swapped\) \{\s*desired\.quality=previous;/);
+  expect(scene).toMatch(/const swapped=await swapRenderer\(value\);[\s\S]{0,80}if\(!swapped\) \{\s*desiredQuality=previous;/);
 });
 
 test("the train fallback reports the underlying error",()=>{

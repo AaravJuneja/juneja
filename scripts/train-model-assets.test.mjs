@@ -5,8 +5,6 @@ import {gunzipSync} from "node:zlib";
 
 const publicAvatar="../public/train/avatars/sniqr.glb.gz";
 const publicAvatarLow="../public/train/avatars/sniqr-low.glb.gz";
-const privateAvatar="../private/train/avatar.glb.gz";
-const privateAvatarLow="../private/train/avatar-low.glb.gz";
 const torch="../public/train/flashlight.glb.gz";
 const publishedAvatars=["sniqr-low.glb.gz","sniqr.glb.gz"];
 
@@ -63,7 +61,7 @@ function embeddedImages(path) {
 }
 
 test("all published model metadata is stripped consistently",()=>{
-  for(const path of ["../public/train/carriage.glb.gz",torch,publicAvatar,publicAvatarLow,privateAvatar,privateAvatarLow]) {
+  for(const path of ["../public/train/carriage.glb.gz",torch,publicAvatar,publicAvatarLow]) {
     const {document,binary}=glb(path);
     assert.equal(document.asset.generator,undefined);
     assert.equal(document.asset.copyright,undefined);
@@ -82,7 +80,7 @@ test("all published model metadata is stripped consistently",()=>{
   }
 });
 
-for(const [name,path] of [["male",publicAvatar],["male low",publicAvatarLow],["private avatar",privateAvatar],["private avatar low",privateAvatarLow]]) {
+for(const [name,path] of [["Sniqr",publicAvatar],["Sniqr low",publicAvatarLow]]) {
   test(`${name} has complete embedded textures and seven skinned animation clips`,()=>{
     const {document}=glb(path);
     assert.equal(document.asset.generator,undefined);
@@ -138,7 +136,7 @@ test("embedded image size parsing covers every supported format",()=>{
   assert.throws(()=>imageSize(Buffer.from("47494638396101000100","hex")));
 });
 
-test("torch is a separate compact model and no private model is in public assets",()=>{
+test("torch is a separate compact model and only one character is published",()=>{
   const {document}=glb(torch);
   assert.ok(document.meshes.length>=10);
   assert.ok(document.materials.some(material=>material.name==="TorchShell"));
@@ -149,7 +147,7 @@ test("torch is a separate compact model and no private model is in public assets
 });
 
 test("low-detail avatar variants downsample embedded textures without changing animation clips",()=>{
-  for(const [highPath,lowPath] of [[publicAvatar,publicAvatarLow],[privateAvatar,privateAvatarLow]]) {
+  for(const [highPath,lowPath] of [[publicAvatar,publicAvatarLow]]) {
     const {document:high}=glb(highPath);
     const {document:low}=glb(lowPath);
     assert.deepEqual(low.animations.map(clip=>clip.name),high.animations.map(clip=>clip.name));

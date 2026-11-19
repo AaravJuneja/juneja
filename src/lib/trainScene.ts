@@ -6,7 +6,7 @@ import { EYE_HEIGHT, PRONE_EYE_HEIGHT, CRAWL_SPEED, WALK_SPEED, SPRINT_SPEED, MA
 import { createTrainEnvironment, terrainSurfaceHeight } from "./trainEnvironment";
 import { canSprint,stepSprint,type SprintState } from "./trainSprint";
 import { createIslandSign,islandGroundLift,islandSignPosition,islandSurfaceHeight,type IslandBounds } from "./trainLandmark";
-import { createTrainAvatar, type AvatarId } from "./trainAvatar";
+import { createTrainAvatar } from "./trainAvatar";
 import { cameraBoomDistance,cameraGroundDistance } from "./trainCamera";
 import { TORCH_SHADOW_LAYER,createTrainTorch } from "./trainTorch";
 import { stepAdaptiveGraphics,trainFrameBudget,trainFrameDue,trainGraphicsProfile,trainPowerPreference,type AdaptiveGraphicsState,type FramePacer,type TrainGraphicsQuality } from "./trainGraphics";
@@ -84,14 +84,13 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
   const torch=createTrainTorch(scene,renderer,signal);
   torch.setQuality(graphicsQuality);
   const pacer:FramePacer={nextAt:NaN};
-  const desired:{avatar:AvatarId;quality:TrainGraphicsQuality}={avatar:"sniqr",quality:graphicsQuality};
-  let avatarId:AvatarId="sniqr";
+  let desiredQuality=graphicsQuality;
   let avatarQuality:TrainGraphicsQuality|undefined;
   let avatarRequest=Promise.resolve(false);
   const syncAvatar=()=>{
-    const target={...desired};
-    const run=avatar.select(target.avatar,target.quality).then(loaded=>{
-      if(loaded) {avatarId=target.avatar;avatarQuality=target.quality;requestRender();}
+    const quality=desiredQuality;
+    const run=avatar.load(quality).then(loaded=>{
+      if(loaded) {avatarQuality=quality;requestRender();}
       return loaded;
     });
     avatarRequest=run;
@@ -791,31 +790,23 @@ export async function mountTrainScene(host: HTMLElement, signal: AbortSignal, ac
     return {
       dispose, jump, use, reset, look,
       getPosition(){return {x:player.x,y:player.feet+(player.prone?PRONE_EYE_HEIGHT:EYE_HEIGHT),z:player.z,grounded:player.grounded};},
-      getAvatarControls(){return {avatar:avatarId,perspective,cameraMode,shiftLock,prone:!!player.prone};},
       getGraphics(){return graphicsQuality;},
       getRadioSpatialFrame(){return radioMesh&&lastAudioAt!==-Infinity?audioFrame:null;},
       setRadioPlaying(value:boolean){radioNotes?.setPlaying(value);restart();},
       activateEquipment,
       getEquipmentState(){return equipment?.getState();},
       setShiftLock,
-      async setAvatar(value:AvatarId){
-        desired.avatar=value;
-        const loaded=await syncAvatar();
-        if(!loaded&&desired.avatar===value)desired.avatar=avatarId;
-        restart();
-        return loaded&&avatarId===value;
-      },
       async setGraphics(value:TrainGraphicsQuality){
-        if(value===graphicsQuality&&desired.quality===value)return true;
+        if(value===graphicsQuality&&desiredQuality===value)return true;
         const previous=graphicsQuality;
-        desired.quality=value;
+        desiredQuality=value;
         const loaded=await syncAvatar();
-        if(disposed||desired.quality!==value)return false;
-        if(!loaded||avatarQuality!==value) {desired.quality=previous;return false;}
+        if(disposed||desiredQuality!==value)return false;
+        if(!loaded||avatarQuality!==value) {desiredQuality=previous;return false;}
         const swapped=await swapRenderer(value);
         if(disposed)return false;
         if(!swapped) {
-          desired.quality=previous;
+          desiredQuality=previous;
           await syncAvatar();
           restart();
           return false;

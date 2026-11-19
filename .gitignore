@@ -14,8 +14,9 @@ bun.lockb
 
 # environment
 .env
-.env.production
+.env.*
 .dev.vars
+.dev.vars.*
 .wrangler/
 wrangler.jsonc.bak
 

@@ -1,7 +1,7 @@
 import {afterEach,describe,expect,test} from "bun:test";
 import * as THREE from "three";
 import {GLTFLoader} from "three/addons/loaders/GLTFLoader.js";
-import {avatarClip,createTrainAvatar,type AvatarId} from "../src/lib/trainAvatar";
+import {avatarClip,createTrainAvatar} from "../src/lib/trainAvatar";
 import {BODY_HEIGHT,canStand,PRONE_HEIGHT,stepPlayer,type CarriageCollider,type PlayerState} from "../src/lib/trainPhysics";
 
 const originalFetch=globalThis.fetch;
@@ -54,13 +54,13 @@ describe("avatar animation state",()=>{
 });
 
 describe("avatar loading lifecycle",()=>{
-  test("uses the authenticated private endpoint",async()=>{
+  test("loads the single character from static assets",async()=>{
     const urls:string[]=[];
     globalThis.fetch=async(input)=>{urls.push(String(input));return gltf();};
     const scene=new THREE.Scene(),controller=new AbortController(),messages:string[]=[];
     const avatar=createTrainAvatar(scene,controller.signal,message=>messages.push(message));
-    await avatar.select("private");
-    expect(urls).toEqual(["/api/train/avatar"]);
+    await avatar.load();
+    expect(urls).toEqual(["/train/avatars/sniqr.glb.gz"]);
     expect(avatar.group.children).toHaveLength(1);
     expect(avatar.getHandSocket()).toBeUndefined();
     expect(avatar.update(player(),0,false,false,true,1/60)).toBe(false);
@@ -69,18 +69,18 @@ describe("avatar loading lifecycle",()=>{
     expect(scene.children).not.toContain(avatar.group);
   });
 
-  test("loads the low-resolution public or authorized private asset on request",async()=>{
+  test("loads the same character at either graphics quality",async()=>{
     const urls:string[]=[];
     globalThis.fetch=async(input)=>{urls.push(String(input));return gltf();};
     const scene=new THREE.Scene(),controller=new AbortController();
     const avatar=createTrainAvatar(scene,controller.signal,()=>{});
-    await avatar.select("sniqr","low");
-    await avatar.select("private","low");
-    expect(urls).toEqual(["/train/avatars/sniqr-low.glb.gz","/api/train/avatar?quality=low"]);
+    await avatar.load("low");
+    await avatar.load("high");
+    expect(urls).toEqual(["/train/avatars/sniqr-low.glb.gz","/train/avatars/sniqr.glb.gz"]);
     avatar.dispose();
   });
 
-  test("keeps the male asset path and allows retry after a failed request",async()=>{
+  test("reports failed downloads and allows retry",async()=>{
     const urls:string[]=[];let attempts=0;
     globalThis.fetch=async(input)=>{
       urls.push(String(input));attempts++;
@@ -88,13 +88,13 @@ describe("avatar loading lifecycle",()=>{
     };
     const scene=new THREE.Scene(),controller=new AbortController(),messages:string[]=[];
     const avatar=createTrainAvatar(scene,controller.signal,message=>messages.push(message));
-    await avatar.select("sniqr");
-    expect(messages.at(-1)).toContain("Select an avatar to retry");
-    expect(avatar.getCurrentId()).toBeUndefined();
-    await avatar.select("sniqr");
+    expect(await avatar.load()).toBe(false);
+    expect(messages.at(-1)).toContain("Avatar download failed");
+    expect(messages.at(-1)).toContain("Reload the page to try again");
+    expect(avatar.group.children).toHaveLength(0);
+    expect(await avatar.load()).toBe(true);
     expect(urls).toEqual(["/train/avatars/sniqr.glb.gz","/train/avatars/sniqr.glb.gz"]);
     expect(avatar.group.children).toHaveLength(1);
-    expect(avatar.getCurrentId()).toBe("sniqr");
     expect(messages.at(-1)).toBe("");
     avatar.dispose();
   });
@@ -104,25 +104,24 @@ describe("avatar loading lifecycle",()=>{
     globalThis.fetch=async()=>++attempts===1?gltf():new Response("",{status:503});
     const scene=new THREE.Scene(),controller=new AbortController();
     const avatar=createTrainAvatar(scene,controller.signal,()=>{});
-    expect(await avatar.select("sniqr")).toBe(true);
+    expect(await avatar.load("low")).toBe(true);
     const displayed=avatar.group.children[0];
-    expect(await avatar.select("private")).toBe(false);
-    expect(avatar.getCurrentId()).toBe("sniqr");
+    expect(await avatar.load("high")).toBe(false);
     expect(avatar.group.children).toEqual([displayed]);
     avatar.dispose();
   });
 
-  test("a late response from a prior selection cannot replace the latest model",async()=>{
-    const pending=new Map<AvatarId,(response:Response)=>void>();
-    globalThis.fetch=(input)=>new Promise(resolve=>pending.set(String(input).includes("api/train")?"private":"sniqr",resolve));
+  test("a late response from a prior quality request cannot replace the latest model",async()=>{
+    const pending=new Map<string,(response:Response)=>void>();
+    globalThis.fetch=(input)=>new Promise(resolve=>pending.set(String(input),resolve));
     const scene=new THREE.Scene(),controller=new AbortController();
     const avatar=createTrainAvatar(scene,controller.signal,()=>{});
-    const first=avatar.select("sniqr");
-    const second=avatar.select("private");
-    pending.get("private")!(gltf());
+    const first=avatar.load("low");
+    const second=avatar.load("high");
+    pending.get("/train/avatars/sniqr.glb.gz")!(gltf());
     await second;
     const selectedModel=avatar.group.children[0];
-    pending.get("sniqr")!(gltf());
+    pending.get("/train/avatars/sniqr-low.glb.gz")!(gltf());
     await first;
     expect(avatar.group.children).toHaveLength(1);
     expect(avatar.group.children[0]).toBe(selectedModel);
@@ -134,7 +133,7 @@ describe("avatar loading lifecycle",()=>{
     globalThis.fetch=()=>new Promise(resolve=>{resolveFetch=resolve;});
     const scene=new THREE.Scene(),controller=new AbortController();
     const avatar=createTrainAvatar(scene,controller.signal,()=>{});
-    const loading=avatar.select("sniqr");
+    const loading=avatar.load();
     avatar.dispose();
     resolveFetch!(gltf());
     await loading;
@@ -142,7 +141,7 @@ describe("avatar loading lifecycle",()=>{
     expect(avatar.group.children).toHaveLength(0);
   });
 
-  test("reselection while parsing releases the stale model instead of attaching it",async()=>{
+  test("quality changes while parsing release the stale model instead of attaching it",async()=>{
     const originalParse=GLTFLoader.prototype.parseAsync;
     const originalDescriptor=Object.getOwnPropertyDescriptor(globalThis,"ImageBitmap");
     let closes=0;
@@ -170,9 +169,9 @@ describe("avatar loading lifecycle",()=>{
     const scene=new THREE.Scene(),controller=new AbortController();
     const avatar=createTrainAvatar(scene,controller.signal,()=>{});
     try {
-      const stale=avatar.select("sniqr");
+      const stale=avatar.load("low");
       await firstParseStarted;
-      const latest=avatar.select("private");
+      const latest=avatar.load("high");
       await latest;
       const selectedModel=avatar.group.children[0];
       resolveFirst!(parsed(staleScene));
@@ -207,9 +206,9 @@ describe("avatar loading lifecycle",()=>{
       if(prepared.length===1)return new Promise<void>(resolve=>{finishFirst=resolve;});
     });
     try {
-      const first=avatar.select("sniqr");
+      const first=avatar.load("low");
       while(prepared.length<1)await new Promise(resolve=>setTimeout(resolve,0));
-      const second=avatar.select("private");
+      const second=avatar.load("high");
       expect(await second).toBe(true);
       finishFirst();
       expect(await first).toBe(false);
@@ -245,7 +244,7 @@ describe("avatar loading lifecycle",()=>{
     const scene=new THREE.Scene(),controller=new AbortController();
     const avatar=createTrainAvatar(scene,controller.signal,()=>{});
     try {
-      await avatar.select("sniqr");
+      await avatar.load();
       const state=player();
       expect(avatar.getHandSocket()?.name).toBe("HandR");
       expect(avatar.update(state,0,false,false,true,0)).toBe(true);
@@ -282,8 +281,8 @@ describe("avatar loading lifecycle",()=>{
     const scene=new THREE.Scene(),controller=new AbortController();
     const avatar=createTrainAvatar(scene,controller.signal,()=>{});
     try {
-      await avatar.select("sniqr");
-      await avatar.select("private");
+      await avatar.load("low");
+      await avatar.load("high");
       expect(closes).toBe(0);
       avatar.dispose();
       expect(closes).toBe(1);
@@ -307,7 +306,7 @@ describe("avatar loading lifecycle",()=>{
     const scene=new THREE.Scene(),controller=new AbortController();
     const avatar=createTrainAvatar(scene,controller.signal,()=>{});
     try {
-      await avatar.select("sniqr");
+      await avatar.load();
       const state=player(),root=avatar.group.getObjectByName("root")!;
       avatar.update(state,0,true,false,true,.5,false,.25);
       expect(root.position.x).toBeCloseTo(.125,6);
@@ -348,7 +347,7 @@ describe("avatar loading lifecycle",()=>{
         const scene=new THREE.Scene(),controller=new AbortController();
         const avatar=createTrainAvatar(scene,controller.signal,()=>{});
         try {
-          await avatar.select("sniqr");
+          await avatar.load();
           const state=player(),root=avatar.group.getObjectByName("root")!;
           for(let i=0;i<fps;i++)avatar.update(state,0,true,false,true,1/fps,false,.25);
           expect(root.position.x).toBeCloseTo(.25,6);
